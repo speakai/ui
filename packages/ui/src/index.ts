@@ -101,6 +101,18 @@ export type { ConfirmDialogProps, ConfirmDialogVariant } from "./components/Conf
 export { ThemeToggle, ThemeSelector } from "./components/ThemeToggle";
 export type { ThemeToggleProps, ThemeSelectorProps } from "./components/ThemeToggle";
 
+// SidePanel
+export { SidePanel } from "./components/SidePanel";
+export type { SidePanelProps, SidePanelSide, SidePanelSize } from "./components/SidePanel";
+
+// Tooltip
+export { Tooltip } from "./components/Tooltip";
+export type { TooltipProps, TooltipSide } from "./components/Tooltip";
+
+// Tabs
+export { Tabs, TabsList, TabsTrigger, TabsContent } from "./components/Tabs";
+export type { TabsProps, TabsListProps, TabsTriggerProps, TabsContentProps } from "./components/Tabs";
+
 // Sidebar
 export {
   Sidebar,

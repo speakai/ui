@@ -3,61 +3,34 @@
 import { useTheme } from "next-themes";
 import { useState, useEffect, useCallback } from "react";
 import {
-  Button,
-  Card,
-  Badge,
-  StatusBadge,
-  Input,
-  SearchInput,
-  Select,
-  Textarea,
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-  TableSkeleton,
-  ToastProvider,
-  useToast,
-  Skeleton,
-  SkeletonText,
-  PageHeaderSkeleton,
-  CardSkeleton,
-  GridSkeleton,
-  FormSkeleton,
-  EmptyState,
-  ErrorState,
-  DropdownMenu,
-  DropdownMenuItem,
-  DropdownMenuHeader,
-  DropdownMenuDivider,
-  MoreButton,
-  StatCard,
-  StatCardGrid,
-  PageHeader,
-  SectionHeader,
-  InfoCard,
+  Button, Card, Badge, StatusBadge, Input, SearchInput, Select, Textarea,
+  Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableActions, TableActionButton, TableSkeleton,
+  ToastProvider, useToast,
+  Skeleton, SkeletonText, PageHeaderSkeleton, GridSkeleton, FormSkeleton,
+  EmptyState, ErrorState,
+  DropdownMenu, DropdownMenuItem, DropdownMenuHeader, DropdownMenuDivider, MoreButton,
+  StatCard, StatCardGrid, PageHeader, SectionHeader, InfoCard,
+  Dialog, DialogHeader, DialogBody, DialogFooter, DialogCloseButton, ConfirmDialog,
+  ThemeSelector,
+  Tooltip,
+  Tabs, TabsList, TabsTrigger, TabsContent,
+  SidePanel,
+  Sidebar, SidebarProvider, SidebarLayout, SidebarUser, useSidebar,
   cn,
 } from "@speakai/ui";
+import type { SidebarSection } from "@speakai/ui";
 
-/* ─── Types ─────────────────────────────────────────────────────────────────── */
+/* ─── Theme Config ──────────────────────────────────────────────────────────── */
 
-interface ThemeConfig {
-  primaryHue: number;
-  gradientToHue: number;
-  radius: number;
-  font: string;
-}
+interface ThemeConfig { primaryHue: number; gradientToHue: number; radius: number; font: string; }
 
 const FONTS = [
-  { value: "system", label: "System Default", css: 'ui-sans-serif, system-ui, -apple-system, sans-serif' },
+  { value: "system", label: "System", css: 'ui-sans-serif, system-ui, -apple-system, sans-serif' },
   { value: "inter", label: "Inter", css: '"Inter", sans-serif' },
   { value: "outfit", label: "Outfit", css: '"Outfit", sans-serif' },
   { value: "dm-sans", label: "DM Sans", css: '"DM Sans", sans-serif' },
   { value: "plus-jakarta", label: "Plus Jakarta Sans", css: '"Plus Jakarta Sans", sans-serif' },
   { value: "space-grotesk", label: "Space Grotesk", css: '"Space Grotesk", sans-serif' },
-  { value: "geist", label: "Geist", css: '"Geist", sans-serif' },
   { value: "manrope", label: "Manrope", css: '"Manrope", sans-serif' },
   { value: "poppins", label: "Poppins", css: '"Poppins", sans-serif' },
   { value: "mono", label: "JetBrains Mono", css: '"JetBrains Mono", monospace' },
@@ -72,139 +45,145 @@ const PRESETS: Record<string, Partial<ThemeConfig>> = {
   "Rose": { primaryHue: 340, gradientToHue: 290 },
 };
 
-/* ─── Configurator Panel ────────────────────────────────────────────────────── */
+/* ─── Icons ─────────────────────────────────────────────────────────────────── */
 
-function ConfigPanel({ config, onChange }: { config: ThemeConfig; onChange: (c: ThemeConfig) => void }) {
+function I({ d }: { d: string }) {
+  return <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d={d} /></svg>;
+}
+function I4({ d }: { d: string }) {
+  return <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d={d} /></svg>;
+}
+
+const icons = {
+  home: "m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25",
+  sparkle: "M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z",
+  puzzle: "M14.25 6.087c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.036-1.007-1.875-2.25-1.875s-2.25.84-2.25 1.875c0 .369.128.713.349 1.003.215.283.401.604.401.959v0a.64.64 0 0 1-.657.643 48.39 48.39 0 0 1-4.163-.3c.186 1.613.293 3.25.315 4.907a.656.656 0 0 1-.658.663v0c-.355 0-.676-.186-.959-.401a1.647 1.647 0 0 0-1.003-.349c-1.036 0-1.875 1.007-1.875 2.25s.84 2.25 1.875 2.25c.369 0 .713-.128 1.003-.349.283-.215.604-.401.959-.401v0c.31 0 .555.26.532.57a48.039 48.039 0 0 1-.642 5.056c1.518.19 3.058.309 4.616.354a.64.64 0 0 0 .657-.643v0c0-.355-.186-.676-.401-.959a1.647 1.647 0 0 1-.349-1.003c0-1.035 1.008-1.875 2.25-1.875 1.243 0 2.25.84 2.25 1.875 0 .369-.128.713-.349 1.003-.215.283-.4.604-.4.959v0c0 .333.277.599.61.58a48.1 48.1 0 0 0 5.427-.63 48.05 48.05 0 0 0 .582-4.717.532.532 0 0 0-.533-.57v0c-.355 0-.676.186-.959.401-.29.221-.634.349-1.003.349-1.035 0-1.875-1.007-1.875-2.25s.84-2.25 1.875-2.25c.37 0 .713.128 1.003.349.283.215.604.401.96.401v0a.656.656 0 0 0 .658-.663 48.422 48.422 0 0 0-.37-5.36c-1.886.342-3.81.574-5.766.689a.578.578 0 0 1-.61-.58Z",
+  layout: "M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25a2.25 2.25 0 0 1-2.25-2.25v-2.25Z",
+  table: "M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0 1 12 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 0v1.5c0 .621-.504 1.125-1.125 1.125",
+  chat: "M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z",
+  bell: "M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0",
+  cog: "M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z",
+  doc: "M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z",
+  plus: "M12 4.5v15m7.5-7.5h-15",
+  pencil: "m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10",
+  trash: "m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0",
+  copy: "M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75",
+  users: "M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z",
+  clock: "M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+  screen: "M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5",
+  swatch: "M4.098 19.902a3.75 3.75 0 0 0 5.304 0l6.401-6.402M6.75 21A3.75 3.75 0 0 1 3 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 0 0 3.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008Z",
+};
+
+/* ─── Sidebar Sections ──────────────────────────────────────────────────────── */
+
+const sections = ["button", "card", "badge", "input", "table", "toast", "tabs", "stat-card", "page-header", "info-card", "dropdown", "tooltip", "dialog", "empty-state", "error-state", "skeleton"];
+
+function useSidebarSections(): SidebarSection[] {
+  const [active, setActive] = useState("button");
+
+  const handleClick = (id: string) => {
+    setActive(id);
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  return [
+    {
+      id: "components",
+      label: "Components",
+      items: sections.map((s) => ({
+        id: s,
+        label: s.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" "),
+        active: active === s,
+        onClick: () => handleClick(s),
+      })),
+    },
+  ];
+}
+
+/* ─── Toast Demo ────────────────────────────────────────────────────────────── */
+
+function ToastDemo() {
+  const toast = useToast();
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Button size="sm" onClick={() => toast.success("Saved", "Changes saved.")}>Success</Button>
+      <Button size="sm" variant="destructive" onClick={() => toast.error("Error", "Something went wrong.")}>Error</Button>
+      <Button size="sm" variant="outline" onClick={() => toast.info("Tip", "Use keyboard shortcuts.")}>Info</Button>
+      <Button size="sm" variant="secondary" onClick={() => toast.warning("Warning", "Trial expires soon.")}>Warning</Button>
+    </div>
+  );
+}
+
+/* ─── Layout Helpers ────────────────────────────────────────────────────────── */
+
+function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
+  return (
+    <section id={id} className="mb-12 scroll-mt-6">
+      <h2 className="text-base font-semibold text-foreground mb-4 pb-2 border-b border-border">{title}</h2>
+      {children}
+    </section>
+  );
+}
+
+function Sub({ title, children }: { title: string; children: React.ReactNode }) {
+  return <div className="mb-6"><h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2.5">{title}</h3>{children}</div>;
+}
+
+/* ─── Config Panel (SidePanel) ──────────────────────────────────────────────── */
+
+function ConfigPanel({ config, onChange, open, onClose }: { config: ThemeConfig; onChange: (c: ThemeConfig) => void; open: boolean; onClose: () => void }) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const [open, setOpen] = useState(true);
-
   useEffect(() => setMounted(true), []);
 
-  if (!mounted) return null;
-
   return (
-    <div className={cn(
-      "fixed right-0 top-0 z-50 h-full transition-transform duration-300",
-      open ? "translate-x-0" : "translate-x-full"
-    )}>
-      {/* Toggle tab */}
-      <button
-        onClick={() => setOpen(!open)}
-        className="absolute -left-10 top-20 z-50 flex h-10 w-10 items-center justify-center rounded-l-lg border border-r-0 border-border bg-card text-muted-foreground shadow-lg hover:text-foreground transition-colors"
-        aria-label={open ? "Close configurator" : "Open configurator"}
-      >
-        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
-          <path strokeLinecap="round" strokeLinejoin="round" d={open
-            ? "M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"
-            : "M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75"
-          } />
-        </svg>
-      </button>
-
-      {/* Panel */}
-      <div className="h-full w-72 overflow-y-auto border-l border-border bg-card p-5 shadow-2xl">
-        <h2 className="text-sm font-bold text-foreground mb-1">Theme Configurator</h2>
-        <p className="text-xs text-muted-foreground mb-5">Adjust CSS variables in real-time</p>
-
-        {/* Theme mode */}
-        <div className="mb-5">
-          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">Mode</label>
-          <div className="flex gap-1 rounded-lg border border-border bg-muted/50 p-1">
-            {(["light", "dark", "system"] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => setTheme(t)}
-                className={cn(
-                  "flex-1 rounded-md px-2 py-1.5 text-xs font-medium capitalize transition-colors",
-                  theme === t ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {t}
-              </button>
-            ))}
+    <SidePanel open={open} onClose={onClose} title="Theme Configurator" side="right" size="sm" backdrop={false}>
+      <div className="p-4 space-y-5">
+        {/* Mode */}
+        {mounted && (
+          <div>
+            <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">Mode</label>
+            <ThemeSelector theme={theme as "light" | "dark" | "system"} onChange={(t) => setTheme(t)} />
           </div>
-        </div>
+        )}
 
         {/* Presets */}
-        <div className="mb-5">
-          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">Presets</label>
+        <div>
+          <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">Presets</label>
           <div className="grid grid-cols-2 gap-1.5">
             {Object.entries(PRESETS).map(([name, preset]) => (
-              <button
-                key={name}
-                onClick={() => onChange({ ...config, ...preset })}
-                className="flex items-center gap-2 rounded-lg border border-border px-2.5 py-2 text-xs font-medium text-foreground hover:bg-muted transition-colors"
-              >
-                <span
-                  className="h-3 w-3 rounded-full flex-shrink-0"
-                  style={{ background: `hsl(${preset.primaryHue}, 80%, 55%)` }}
-                />
+              <button key={name} onClick={() => onChange({ ...config, ...preset })} className="flex items-center gap-2 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors">
+                <span className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ background: `hsl(${preset.primaryHue}, ${preset.primaryHue === 0 ? 0 : 80}%, 55%)` }} />
                 {name}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Primary Hue */}
-        <div className="mb-5">
-          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex justify-between">
-            <span>Primary Hue</span>
-            <span className="text-foreground">{config.primaryHue}</span>
-          </label>
-          <input
-            type="range" min="0" max="360" value={config.primaryHue}
-            onChange={(e) => onChange({ ...config, primaryHue: +e.target.value })}
-            className="w-full h-2 rounded-full appearance-none cursor-pointer accent-primary"
-            style={{ background: `linear-gradient(to right, hsl(0,80%,55%), hsl(60,80%,55%), hsl(120,80%,55%), hsl(180,80%,55%), hsl(240,80%,55%), hsl(300,80%,55%), hsl(360,80%,55%))` }}
-          />
+        {/* Sliders */}
+        <div>
+          <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex justify-between"><span>Primary</span><span className="text-foreground">{config.primaryHue}</span></label>
+          <input type="range" min="0" max="360" value={config.primaryHue} onChange={(e) => onChange({ ...config, primaryHue: +e.target.value })} className="w-full h-1.5 rounded-full appearance-none cursor-pointer accent-primary" style={{ background: "linear-gradient(to right, hsl(0,80%,55%), hsl(60,80%,55%), hsl(120,80%,55%), hsl(180,80%,55%), hsl(240,80%,55%), hsl(300,80%,55%), hsl(360,80%,55%))" }} />
         </div>
-
-        {/* Gradient To Hue */}
-        <div className="mb-5">
-          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex justify-between">
-            <span>Gradient End</span>
-            <span className="text-foreground">{config.gradientToHue}</span>
-          </label>
-          <input
-            type="range" min="0" max="360" value={config.gradientToHue}
-            onChange={(e) => onChange({ ...config, gradientToHue: +e.target.value })}
-            className="w-full h-2 rounded-full appearance-none cursor-pointer accent-primary"
-            style={{ background: `linear-gradient(to right, hsl(0,80%,55%), hsl(60,80%,55%), hsl(120,80%,55%), hsl(180,80%,55%), hsl(240,80%,55%), hsl(300,80%,55%), hsl(360,80%,55%))` }}
-          />
+        <div>
+          <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex justify-between"><span>Gradient End</span><span className="text-foreground">{config.gradientToHue}</span></label>
+          <input type="range" min="0" max="360" value={config.gradientToHue} onChange={(e) => onChange({ ...config, gradientToHue: +e.target.value })} className="w-full h-1.5 rounded-full appearance-none cursor-pointer accent-primary" style={{ background: "linear-gradient(to right, hsl(0,80%,55%), hsl(60,80%,55%), hsl(120,80%,55%), hsl(180,80%,55%), hsl(240,80%,55%), hsl(300,80%,55%), hsl(360,80%,55%))" }} />
         </div>
-
-        {/* Border Radius */}
-        <div className="mb-5">
-          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex justify-between">
-            <span>Radius</span>
-            <span className="text-foreground">{config.radius}rem</span>
-          </label>
-          <input
-            type="range" min="0" max="1.5" step="0.125" value={config.radius}
-            onChange={(e) => onChange({ ...config, radius: +e.target.value })}
-            className="w-full h-2 rounded-full appearance-none cursor-pointer accent-primary"
-          />
+        <div>
+          <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex justify-between"><span>Radius</span><span className="text-foreground">{config.radius}rem</span></label>
+          <input type="range" min="0" max="1.5" step="0.125" value={config.radius} onChange={(e) => onChange({ ...config, radius: +e.target.value })} className="w-full h-1.5 rounded-full appearance-none cursor-pointer accent-primary" />
         </div>
-
-        {/* Font */}
-        <div className="mb-5">
-          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">Font Family</label>
-          <select
-            value={config.font}
-            onChange={(e) => onChange({ ...config, font: e.target.value })}
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
-          >
-            {FONTS.map((f) => (
-              <option key={f.value} value={f.value}>{f.label}</option>
-            ))}
+        <div>
+          <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">Font</label>
+          <select value={config.font} onChange={(e) => onChange({ ...config, font: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-1.5 text-sm text-foreground">
+            {FONTS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
           </select>
         </div>
 
-        {/* Generated CSS */}
-        <div className="mb-5">
-          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">Generated CSS</label>
-          <pre className="rounded-lg border border-border bg-muted/50 p-3 text-[10px] leading-relaxed text-muted-foreground overflow-x-auto font-mono">
+        {/* CSS Output */}
+        <div>
+          <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">CSS Variables</label>
+          <pre className="rounded-lg border border-border bg-muted/50 p-2.5 text-[10px] leading-relaxed text-muted-foreground overflow-x-auto font-mono">
 {`:root {
   --primary: ${config.primaryHue} 80% 55%;
   --gradient-from: ${config.primaryHue} 80% 55%;
@@ -215,125 +194,41 @@ function ConfigPanel({ config, onChange }: { config: ThemeConfig; onChange: (c: 
           </pre>
         </div>
 
-        {/* Reset */}
-        <button
-          onClick={() => onChange({ primaryHue: 271, gradientToHue: 330, radius: 0.75, font: "system" })}
-          className="w-full rounded-lg border border-border px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-        >
-          Reset to Defaults
+        <button onClick={() => onChange({ primaryHue: 271, gradientToHue: 330, radius: 0.75, font: "inter" })} className="w-full rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+          Reset Defaults
         </button>
       </div>
-    </div>
+    </SidePanel>
   );
 }
 
-/* ─── Toast Demo ────────────────────────────────────────────────────────────── */
+/* ─── Main Content ──────────────────────────────────────────────────────────── */
 
-function ToastDemo() {
-  const toast = useToast();
-  return (
-    <div className="flex flex-wrap gap-3">
-      <Button size="sm" onClick={() => toast.success("Saved", "Your changes have been saved.")}>Success</Button>
-      <Button size="sm" variant="destructive" onClick={() => toast.error("Error", "Something went wrong.")}>Error</Button>
-      <Button size="sm" variant="outline" onClick={() => toast.info("Tip", "Use keyboard shortcuts for faster editing.")}>Info</Button>
-      <Button size="sm" variant="secondary" onClick={() => toast.warning("Warning", "Your trial expires in 3 days.")}>Warning</Button>
-    </div>
-  );
-}
-
-/* ─── Layout Helpers ────────────────────────────────────────────────────────── */
-
-function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
-  return (
-    <section id={id} className="mb-16 scroll-mt-20">
-      <h2 className="text-xl font-bold text-foreground mb-1.5 pb-3 border-b border-border">{title}</h2>
-      <div className="mt-6">{children}</div>
-    </section>
-  );
-}
-
-function Sub({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="mb-8">
-      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">{title}</h3>
-      {children}
-    </div>
-  );
-}
-
-function Icon({ d }: { d: string }) {
-  return (
-    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d={d} />
-    </svg>
-  );
-}
-
-const icons = {
-  clock: "M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
-  doc: "M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z",
-  users: "M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z",
-  screen: "M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5",
-  plus: "M12 4.5v15m7.5-7.5h-15",
-};
-
-/* ─── Navigation ────────────────────────────────────────────────────────────── */
-
-const sections = [
-  "button", "card", "badge", "input", "table", "toast", "stat-card",
-  "page-header", "info-card", "dropdown", "empty-state", "error-state", "skeleton",
-];
-
-function Nav() {
-  return (
-    <nav className="hidden xl:block fixed left-4 top-1/2 -translate-y-1/2 z-40">
-      <div className="flex flex-col gap-0.5 rounded-lg border border-border bg-card/90 backdrop-blur-sm p-1.5 shadow-sm">
-        {sections.map((s) => (
-          <a
-            key={s}
-            href={`#${s}`}
-            className="px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground capitalize transition-colors rounded-md hover:bg-muted"
-          >
-            {s.replace(/-/g, " ")}
-          </a>
-        ))}
-      </div>
-    </nav>
-  );
-}
-
-/* ─── Main ──────────────────────────────────────────────────────────────────── */
-
-export default function Home() {
+function DemoContent() {
+  const sidebarSections = useSidebarSections();
+  const { setMobileOpen } = useSidebar();
+  const [configOpen, setConfigOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
-  const [config, setConfig] = useState<ThemeConfig>({
-    primaryHue: 271,
-    gradientToHue: 330,
-    radius: 0.75,
-    font: "system",
-  });
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [config, setConfig] = useState<ThemeConfig>({ primaryHue: 271, gradientToHue: 330, radius: 0.75, font: "inter" });
 
-  // Apply config to CSS variables
   const applyConfig = useCallback((c: ThemeConfig) => {
     const root = document.documentElement;
-    // B&W: use 0 saturation for a classic monochrome look
     const isMonochrome = c.primaryHue === 0 && c.gradientToHue === 0;
     const sat = isMonochrome ? "0%" : "80%";
-    root.style.setProperty("--primary", `${c.primaryHue} ${sat} ${isMonochrome ? "15%" : "55%"}`);
-    root.style.setProperty("--ring", `${c.primaryHue} ${sat} ${isMonochrome ? "15%" : "55%"}`);
-    root.style.setProperty("--accent", `${c.primaryHue} ${sat} 90%`);
+    const lum = isMonochrome ? "15%" : "55%";
+    root.style.setProperty("--primary", `${c.primaryHue} ${sat} ${lum}`);
+    root.style.setProperty("--ring", `${c.primaryHue} ${sat} ${lum}`);
     root.style.setProperty("--gradient-from", `${c.primaryHue} ${sat} ${isMonochrome ? "20%" : "55%"}`);
     root.style.setProperty("--gradient-to", `${c.gradientToHue} ${sat} ${isMonochrome ? "40%" : "55%"}`);
     root.style.setProperty("--radius", `${c.radius}rem`);
-
     const fontDef = FONTS.find(f => f.value === c.font);
     if (fontDef) root.style.setProperty("--font-sans", fontDef.css);
-
     setConfig(c);
   }, []);
 
-  // Load Google Fonts dynamically
   useEffect(() => {
     const googleFonts = ["Inter", "Outfit", "DM+Sans", "Plus+Jakarta+Sans", "Space+Grotesk", "Manrope", "Poppins", "JetBrains+Mono"];
     const link = document.createElement("link");
@@ -344,212 +239,213 @@ export default function Home() {
   }, []);
 
   return (
-    <ToastProvider>
-      <div className="min-h-screen bg-background text-foreground font-sans">
-        <Nav />
-        <ConfigPanel config={config} onChange={applyConfig} />
+    <>
+      <Sidebar
+        header={
+          <div className="flex items-center gap-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-gradient-from to-gradient-to">
+              <I4 d={icons.sparkle} />
+            </div>
+            <span className="text-sm font-semibold text-foreground">@speakai/ui</span>
+          </div>
+        }
+        sections={sidebarSections}
+        footer={
+          <SidebarUser name="Design System" email="v0.1.0" />
+        }
+      />
 
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 mr-auto xl:mx-auto">
+      <SidebarLayout>
+        <div className="p-4 sm:p-6 max-w-4xl">
           {/* Header */}
-          <div className="mb-12 sm:mb-16">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Design System</p>
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
-              <span className="bg-gradient-to-r from-gradient-from to-gradient-to bg-clip-text text-transparent">@speakai/ui</span>
-            </h1>
-            <p className="mt-3 text-base text-muted-foreground max-w-2xl">
-              Premium React + Tailwind components. Adjust the configurator panel to see CSS variables update in real-time.
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Badge variant="success">14 Components</Badge>
-              <Badge variant="info">Semantic Tokens</Badge>
-              <Badge>WCAG AA</Badge>
-              <Badge variant="secondary">Mobile-First</Badge>
+          <div className="flex items-start justify-between mb-8">
+            <div>
+              <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+                <span className="bg-gradient-to-r from-gradient-from to-gradient-to bg-clip-text text-transparent">Design System</span>
+              </h1>
+              <p className="mt-1 text-sm text-muted-foreground">22 components, semantic tokens, WCAG AA, mobile-first</p>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                <Badge variant="success" size="sm">22 Components</Badge>
+                <Badge variant="info" size="sm">CSS Variables</Badge>
+                <Badge size="sm">Accessible</Badge>
+              </div>
             </div>
-            <div className="mt-4">
-              <a
-                href="/sidebar-demo"
-                className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12" />
-                </svg>
-                Sidebar Demo (full layout)
-              </a>
-            </div>
+            <Tooltip content="Theme Configurator" side="left">
+              <Button variant="outline" size="icon" onClick={() => setConfigOpen(true)}>
+                <I4 d={icons.swatch} />
+              </Button>
+            </Tooltip>
           </div>
 
-          {/* ─── Button ──────── */}
+          {/* ── Components ── */}
+
           <Section id="button" title="Button">
-            <Sub title="Variants">
-              <div className="flex flex-wrap gap-3">
-                <Button>Default</Button>
-                <Button variant="secondary">Secondary</Button>
-                <Button variant="destructive">Destructive</Button>
-                <Button variant="outline">Outline</Button>
-                <Button variant="ghost">Ghost</Button>
-                <Button variant="glass">Glass</Button>
-              </div>
-            </Sub>
-            <Sub title="Sizes">
-              <div className="flex flex-wrap gap-3 items-center">
-                <Button size="sm">Small</Button>
-                <Button size="default">Default</Button>
-                <Button size="lg">Large</Button>
-                <Button size="icon"><Icon d={icons.plus} /></Button>
-              </div>
-            </Sub>
-            <Sub title="States">
-              <div className="flex flex-wrap gap-3 items-center">
-                <Button isLoading>Saving...</Button>
-                <Button disabled>Disabled</Button>
-                <Button variant="outline" isLoading>Processing</Button>
-              </div>
-            </Sub>
+            <Sub title="Variants"><div className="flex flex-wrap gap-2"><Button>Default</Button><Button variant="secondary">Secondary</Button><Button variant="destructive">Destructive</Button><Button variant="outline">Outline</Button><Button variant="ghost">Ghost</Button><Button variant="glass">Glass</Button></div></Sub>
+            <Sub title="Sizes"><div className="flex flex-wrap gap-2 items-center"><Button size="sm">Small</Button><Button>Default</Button><Button size="lg">Large</Button><Button size="icon"><I4 d={icons.plus} /></Button></div></Sub>
+            <Sub title="States"><div className="flex flex-wrap gap-2"><Button isLoading>Saving</Button><Button disabled>Disabled</Button></div></Sub>
           </Section>
 
-          {/* ─── Card ──────── */}
           <Section id="card" title="Card">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Card><h3 className="font-semibold mb-1">Default</h3><p className="text-sm text-muted-foreground">Standard card</p></Card>
-              <Card variant="outline"><h3 className="font-semibold mb-1">Outline</h3><p className="text-sm text-muted-foreground">Thick border</p></Card>
-              <Card variant="elevated"><h3 className="font-semibold mb-1">Elevated</h3><p className="text-sm text-muted-foreground">Larger shadow</p></Card>
-              <Card variant="glass"><h3 className="font-semibold mb-1">Glass</h3><p className="text-sm text-muted-foreground">Frosted effect</p></Card>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Card><p className="text-sm font-medium">Default</p><p className="text-xs text-muted-foreground mt-1">Standard card</p></Card>
+              <Card variant="outline"><p className="text-sm font-medium">Outline</p><p className="text-xs text-muted-foreground mt-1">Thick border</p></Card>
+              <Card variant="elevated"><p className="text-sm font-medium">Elevated</p><p className="text-xs text-muted-foreground mt-1">Shadow</p></Card>
+              <Card variant="glass"><p className="text-sm font-medium">Glass</p><p className="text-xs text-muted-foreground mt-1">Frosted</p></Card>
             </div>
-            <div className="mt-4">
-              <Card showGradientAccent><h3 className="font-semibold mb-1">Gradient Accent</h3><p className="text-sm text-muted-foreground">Top gradient stripe</p></Card>
-            </div>
+            <Card showGradientAccent className="mt-3"><p className="text-sm font-medium">Gradient Accent</p></Card>
           </Section>
 
-          {/* ─── Badge ──────── */}
           <Section id="badge" title="Badge">
-            <Sub title="Variants">
-              <div className="flex flex-wrap gap-3">
-                <Badge>Default</Badge>
-                <Badge variant="success">Success</Badge>
-                <Badge variant="warning">Warning</Badge>
-                <Badge variant="destructive">Destructive</Badge>
-                <Badge variant="info">Info</Badge>
-                <Badge variant="outline">Outline</Badge>
-                <Badge variant="secondary">Secondary</Badge>
-              </div>
-            </Sub>
-            <Sub title="StatusBadge">
-              <div className="flex flex-wrap gap-3">
-                <StatusBadge status="Active" />
-                <StatusBadge status="Pending" />
-                <StatusBadge status="Failed" />
-                <StatusBadge status="Completed" />
-                <StatusBadge status="Inactive" />
-              </div>
-            </Sub>
+            <Sub title="Variants"><div className="flex flex-wrap gap-2"><Badge>Default</Badge><Badge variant="success">Success</Badge><Badge variant="warning">Warning</Badge><Badge variant="destructive">Destructive</Badge><Badge variant="info">Info</Badge><Badge variant="outline">Outline</Badge><Badge variant="secondary">Secondary</Badge></div></Sub>
+            <Sub title="StatusBadge"><div className="flex flex-wrap gap-2"><StatusBadge status="Active" /><StatusBadge status="Pending" /><StatusBadge status="Failed" /><StatusBadge status="Completed" /></div></Sub>
           </Section>
 
-          {/* ─── Input ──────── */}
           <Section id="input" title="Input">
-            <div className="max-w-md space-y-4">
-              <div><label htmlFor="d-input" className="block text-sm font-medium mb-1.5">Default</label><Input id="d-input" placeholder="Enter something..." /></div>
-              <div><label htmlFor="d-err" className="block text-sm font-medium mb-1.5">Error</label><Input id="d-err" placeholder="Invalid..." error /></div>
-              <div><label className="block text-sm font-medium mb-1.5">Search</label><SearchInput placeholder="Search documents..." value={searchValue} onChange={(e) => setSearchValue(e.target.value)} /></div>
-              <div><label htmlFor="d-sel" className="block text-sm font-medium mb-1.5">Select</label><Select id="d-sel" placeholder="Choose type..." options={[{ value: "audio", label: "Audio" }, { value: "video", label: "Video" }, { value: "text", label: "Text" }]} /></div>
-              <div><label htmlFor="d-ta" className="block text-sm font-medium mb-1.5">Textarea</label><Textarea id="d-ta" placeholder="Write something..." /></div>
+            <div className="max-w-sm space-y-3">
+              <Input placeholder="Default input..." />
+              <Input placeholder="Error state..." error />
+              <SearchInput placeholder="Search..." value={searchValue} onChange={(e) => setSearchValue(e.target.value)} />
+              <Select placeholder="Select type..." options={[{ value: "audio", label: "Audio" }, { value: "video", label: "Video" }]} />
+              <Textarea placeholder="Write something..." />
             </div>
           </Section>
 
-          {/* ─── Table ──────── */}
           <Section id="table" title="Table">
-            <Sub title="With Data">
-              <Table>
-                <TableHeader><tr><TableHead>Name</TableHead><TableHead>Type</TableHead><TableHead>Status</TableHead><TableHead>Duration</TableHead></tr></TableHeader>
-                <TableBody>
-                  <TableRow clickable><TableCell className="font-medium">Interview Recording</TableCell><TableCell>Audio</TableCell><TableCell><Badge variant="success">Completed</Badge></TableCell><TableCell className="text-muted-foreground">45:30</TableCell></TableRow>
-                  <TableRow clickable><TableCell className="font-medium">Product Demo</TableCell><TableCell>Video</TableCell><TableCell><Badge variant="warning">Processing</Badge></TableCell><TableCell className="text-muted-foreground">12:15</TableCell></TableRow>
-                  <TableRow clickable><TableCell className="font-medium">Meeting Notes</TableCell><TableCell>Text</TableCell><TableCell><Badge variant="destructive">Failed</Badge></TableCell><TableCell className="text-muted-foreground">--</TableCell></TableRow>
-                </TableBody>
-              </Table>
-            </Sub>
-            <Sub title="Loading"><TableSkeleton rows={3} /></Sub>
+            <Table>
+              <TableHeader><tr><TableHead>Name</TableHead><TableHead>Type</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Actions</TableHead></tr></TableHeader>
+              <TableBody>
+                <TableRow clickable><TableCell className="font-medium">Interview</TableCell><TableCell>Audio</TableCell><TableCell><Badge variant="success">Done</Badge></TableCell><TableCell><TableActions><Tooltip content="Edit"><TableActionButton label="Edit"><I4 d={icons.pencil} /></TableActionButton></Tooltip><Tooltip content="Copy"><TableActionButton label="Copy"><I4 d={icons.copy} /></TableActionButton></Tooltip><Tooltip content="Delete"><TableActionButton label="Delete" variant="danger"><I4 d={icons.trash} /></TableActionButton></Tooltip></TableActions></TableCell></TableRow>
+                <TableRow clickable><TableCell className="font-medium">Demo</TableCell><TableCell>Video</TableCell><TableCell><Badge variant="warning">Processing</Badge></TableCell><TableCell><TableActions><TableActionButton label="Edit"><I4 d={icons.pencil} /></TableActionButton><TableActionButton label="Delete" variant="danger"><I4 d={icons.trash} /></TableActionButton></TableActions></TableCell></TableRow>
+              </TableBody>
+            </Table>
+            <div className="mt-4"><Sub title="Skeleton"><TableSkeleton rows={2} columns={4} /></Sub></div>
           </Section>
 
-          {/* ─── Toast ──────── */}
           <Section id="toast" title="Toast">
-            <p className="text-sm text-muted-foreground mb-4">Click to fire. Hover to pause. Errors persist 15s.</p>
+            <p className="text-xs text-muted-foreground mb-3">Hover to pause. Errors persist 15s.</p>
             <ToastDemo />
           </Section>
 
-          {/* ─── StatCard ──────── */}
+          <Section id="tabs" title="Tabs">
+            <Sub title="Default">
+              <Tabs defaultTab="overview">
+                <TabsList><TabsTrigger value="overview">Overview</TabsTrigger><TabsTrigger value="analytics">Analytics</TabsTrigger><TabsTrigger value="settings">Settings</TabsTrigger></TabsList>
+                <TabsContent value="overview"><Card><p className="text-sm text-muted-foreground">Overview content</p></Card></TabsContent>
+                <TabsContent value="analytics"><Card><p className="text-sm text-muted-foreground">Analytics content</p></Card></TabsContent>
+                <TabsContent value="settings"><Card><p className="text-sm text-muted-foreground">Settings content</p></Card></TabsContent>
+              </Tabs>
+            </Sub>
+            <Sub title="Underline">
+              <Tabs defaultTab="t1">
+                <TabsList variant="underline"><TabsTrigger value="t1" variant="underline">Transcript</TabsTrigger><TabsTrigger value="t2" variant="underline">Sentiment</TabsTrigger><TabsTrigger value="t3" variant="underline">Insights</TabsTrigger></TabsList>
+                <TabsContent value="t1"><p className="text-sm text-muted-foreground">Transcript view</p></TabsContent>
+                <TabsContent value="t2"><p className="text-sm text-muted-foreground">Sentiment view</p></TabsContent>
+                <TabsContent value="t3"><p className="text-sm text-muted-foreground">Insights view</p></TabsContent>
+              </Tabs>
+            </Sub>
+            <Sub title="Pills">
+              <Tabs defaultTab="all">
+                <TabsList variant="pills"><TabsTrigger value="all" variant="pills">All</TabsTrigger><TabsTrigger value="audio" variant="pills">Audio</TabsTrigger><TabsTrigger value="video" variant="pills">Video</TabsTrigger><TabsTrigger value="text" variant="pills">Text</TabsTrigger></TabsList>
+                <TabsContent value="all"><p className="text-sm text-muted-foreground">All media</p></TabsContent>
+                <TabsContent value="audio"><p className="text-sm text-muted-foreground">Audio only</p></TabsContent>
+                <TabsContent value="video"><p className="text-sm text-muted-foreground">Video only</p></TabsContent>
+                <TabsContent value="text"><p className="text-sm text-muted-foreground">Text only</p></TabsContent>
+              </Tabs>
+            </Sub>
+          </Section>
+
           <Section id="stat-card" title="StatCard">
             <StatCardGrid>
-              <StatCard icon={<Icon d={icons.clock} />} iconColor="purple" label="Total Hours" value="1,234" />
-              <StatCard icon={<Icon d={icons.doc} />} iconColor="blue" label="Documents" value="567" />
-              <StatCard icon={<Icon d={icons.users} />} iconColor="green" label="Speakers" value="89" />
-              <StatCard variant="gradient" icon={<Icon d={icons.screen} />} iconColor="purple" label="Credits" value="$42.50" />
+              <StatCard icon={<I d={icons.clock} />} iconColor="purple" label="Hours" value="1,234" />
+              <StatCard icon={<I d={icons.doc} />} iconColor="blue" label="Docs" value="567" />
+              <StatCard icon={<I d={icons.users} />} iconColor="green" label="Users" value="89" />
+              <StatCard variant="gradient" icon={<I d={icons.screen} />} iconColor="purple" label="Credits" value="$42" />
             </StatCardGrid>
           </Section>
 
-          {/* ─── PageHeader ──────── */}
           <Section id="page-header" title="PageHeader">
-            <Card>
-              <PageHeader title="Your Agents" gradientText="Agents" description="Design, deploy, and monitor your AI fleet." action={<Button size="sm">New Agent</Button>} />
-              <div className="border-t border-border pt-4 mt-2">
-                <SectionHeader title="Recent Activity" action={<Button variant="ghost" size="sm">View All</Button>} />
-              </div>
-            </Card>
+            <Card><PageHeader title="Your Agents" gradientText="Agents" description="Deploy and monitor your AI fleet." action={<Button size="sm">New</Button>} /><div className="border-t border-border pt-3 mt-2"><SectionHeader title="Activity" action={<Button variant="ghost" size="sm">View All</Button>} /></div></Card>
           </Section>
 
-          {/* ─── InfoCard ──────── */}
           <Section id="info-card" title="InfoCard">
-            <div className="space-y-3">
-              <InfoCard color="purple" title="Pricing" description="Pay only for what you use."><span className="text-lg font-bold">$0.10/min</span></InfoCard>
-              <InfoCard color="blue" title="Tip" description="Keyboard shortcuts make editing 3x faster." />
+            <div className="space-y-2">
+              <InfoCard color="purple" title="Pricing" description="$0.10/min" />
+              <InfoCard color="blue" title="Tip" description="Shortcuts make editing faster." />
               <InfoCard color="yellow" title="Warning" description="Trial expires in 3 days." />
-              <InfoCard color="red" title="Action Required" description="This cannot be undone." />
-              <InfoCard color="green" title="All Systems Go" description="Everything running smoothly." />
+              <InfoCard color="red" title="Action" description="Cannot be undone." />
+              <InfoCard color="green" title="Success" description="All systems operational." />
             </div>
           </Section>
 
-          {/* ─── Dropdown ──────── */}
           <Section id="dropdown" title="DropdownMenu">
             <div className="relative inline-block">
               <MoreButton onClick={() => setDropdownOpen(!dropdownOpen)} />
-              <DropdownMenu open={dropdownOpen} align="left">
-                <DropdownMenuHeader>Actions</DropdownMenuHeader>
-                <DropdownMenuItem onClick={() => setDropdownOpen(false)}>Edit</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setDropdownOpen(false)}>Duplicate</DropdownMenuItem>
-                <DropdownMenuDivider />
-                <DropdownMenuItem variant="danger" onClick={() => setDropdownOpen(false)}>Delete</DropdownMenuItem>
-              </DropdownMenu>
+              <DropdownMenu open={dropdownOpen} align="left"><DropdownMenuHeader>Actions</DropdownMenuHeader><DropdownMenuItem onClick={() => setDropdownOpen(false)}>Edit</DropdownMenuItem><DropdownMenuItem onClick={() => setDropdownOpen(false)}>Duplicate</DropdownMenuItem><DropdownMenuDivider /><DropdownMenuItem variant="danger" onClick={() => setDropdownOpen(false)}>Delete</DropdownMenuItem></DropdownMenu>
             </div>
-            <p className="mt-3 text-sm text-muted-foreground">Arrow keys navigate, Escape closes.</p>
           </Section>
 
-          {/* ─── EmptyState ──────── */}
+          <Section id="tooltip" title="Tooltip">
+            <div className="flex flex-wrap gap-3">
+              <Tooltip content="Top tooltip" side="top"><Button variant="outline" size="sm">Top</Button></Tooltip>
+              <Tooltip content="Bottom tooltip" side="bottom"><Button variant="outline" size="sm">Bottom</Button></Tooltip>
+              <Tooltip content="Left tooltip" side="left"><Button variant="outline" size="sm">Left</Button></Tooltip>
+              <Tooltip content="Right tooltip" side="right"><Button variant="outline" size="sm">Right</Button></Tooltip>
+            </div>
+          </Section>
+
+          <Section id="dialog" title="Dialog & ConfirmDialog">
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => setDialogOpen(true)}>Open Dialog</Button>
+              <Button size="sm" variant="destructive" onClick={() => setConfirmOpen(true)}>Delete Item</Button>
+            </div>
+            <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+              <DialogHeader><h3 className="text-base font-semibold text-foreground">Edit Document</h3><DialogCloseButton onClose={() => setDialogOpen(false)} /></DialogHeader>
+              <DialogBody><Input placeholder="Document name..." /><Textarea className="mt-3" placeholder="Description..." /></DialogBody>
+              <DialogFooter><Button variant="ghost" size="sm" onClick={() => setDialogOpen(false)}>Cancel</Button><Button size="sm" onClick={() => setDialogOpen(false)}>Save</Button></DialogFooter>
+            </Dialog>
+            <ConfirmDialog open={confirmOpen} onClose={() => setConfirmOpen(false)} onConfirm={() => setConfirmOpen(false)} title="Delete document?" description="This action cannot be undone. The document and all associated data will be permanently removed." variant="danger" confirmLabel="Delete" />
+          </Section>
+
           <Section id="empty-state" title="EmptyState">
-            <EmptyState icon={<Icon d={icons.doc} />} title="No documents yet" description="Upload your first document to get started." action={<Button size="sm">Upload</Button>} height="sm" />
+            <EmptyState icon={<I d={icons.doc} />} title="No documents" description="Upload your first document." action={<Button size="sm">Upload</Button>} height="sm" />
           </Section>
 
-          {/* ─── ErrorState ──────── */}
           <Section id="error-state" title="ErrorState">
-            <div className="space-y-6">
-              <Sub title="Inline"><ErrorState variant="inline" message="Failed to load transcript." onRetry={() => {}} /></Sub>
-              <Sub title="Card"><Card><ErrorState variant="card" title="Load Failed" message="Could not fetch recordings." onRetry={() => {}} /></Card></Sub>
+            <div className="space-y-4">
+              <ErrorState variant="inline" message="Failed to load transcript." onRetry={() => {}} />
+              <Card><ErrorState variant="card" title="Load Failed" message="Could not fetch data." onRetry={() => {}} /></Card>
             </div>
           </Section>
 
-          {/* ─── Skeleton ──────── */}
           <Section id="skeleton" title="Skeleton">
-            <div className="space-y-8">
-              <Sub title="Basic"><div className="max-w-md space-y-3"><Skeleton className="h-8 w-48" /><SkeletonText lines={3} /></div></Sub>
-              <Sub title="Page Header"><PageHeaderSkeleton /></Sub>
-              <Sub title="Card Grid"><GridSkeleton count={3} columns={3} /></Sub>
-              <Sub title="Form"><FormSkeleton sections={2} /></Sub>
+            <div className="space-y-6">
+              <Sub title="Text"><div className="max-w-sm space-y-2"><Skeleton className="h-6 w-40" /><SkeletonText lines={3} /></div></Sub>
+              <Sub title="Cards"><GridSkeleton count={3} columns={3} /></Sub>
+              <Sub title="Form"><FormSkeleton sections={1} /></Sub>
             </div>
           </Section>
 
-          <footer className="mt-16 pt-8 border-t border-border text-center pb-8">
-            <p className="text-sm text-muted-foreground">@speakai/ui v0.1.0 — Semantic tokens, dark/light, WCAG AA, mobile-first</p>
+          <footer className="mt-12 pt-6 border-t border-border text-center pb-6">
+            <p className="text-xs text-muted-foreground">@speakai/ui v0.1.0</p>
           </footer>
         </div>
-      </div>
+      </SidebarLayout>
+
+      <ConfigPanel config={config} onChange={applyConfig} open={configOpen} onClose={() => setConfigOpen(false)} />
+    </>
+  );
+}
+
+/* ─── Root ──────────────────────────────────────────────────────────────────── */
+
+export default function Home() {
+  return (
+    <ToastProvider>
+      <SidebarProvider>
+        <div className="min-h-screen bg-background text-foreground font-sans">
+          <DemoContent />
+        </div>
+      </SidebarProvider>
     </ToastProvider>
   );
 }
