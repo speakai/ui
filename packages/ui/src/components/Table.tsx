@@ -241,3 +241,211 @@ export const TableSkeleton = forwardRef<HTMLDivElement, TableSkeletonProps>(
   )
 );
 TableSkeleton.displayName = "TableSkeleton";
+
+// ── TableSortHead (sortable column header) ──────────────────────────────────
+
+export type SortDirection = "asc" | "desc" | null;
+
+export interface TableSortHeadProps extends ThHTMLAttributes<HTMLTableCellElement> {
+  sortKey: string;
+  activeSort?: string | null;
+  direction?: SortDirection;
+  onSort?: (key: string, direction: SortDirection) => void;
+}
+
+export const TableSortHead = forwardRef<HTMLTableCellElement, TableSortHeadProps>(
+  ({ sortKey, activeSort, direction, onSort, className, children, ...props }, ref) => {
+    const isActive = activeSort === sortKey;
+
+    const handleClick = () => {
+      if (!onSort) return;
+      let next: SortDirection;
+      if (!isActive) {
+        next = "asc";
+      } else if (direction === "asc") {
+        next = "desc";
+      } else {
+        next = null;
+      }
+      onSort(sortKey, next);
+    };
+
+    return (
+      <th
+        ref={ref}
+        scope="col"
+        className={cn(
+          "px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground",
+          onSort && "cursor-pointer select-none transition-colors hover:text-foreground",
+          className
+        )}
+        onClick={handleClick}
+        aria-sort={isActive ? (direction === "asc" ? "ascending" : direction === "desc" ? "descending" : "none") : undefined}
+        {...props}
+      >
+        <span className="inline-flex items-center gap-1">
+          {children}
+          {onSort && (
+            <span className={cn("inline-flex flex-col -space-y-1", !isActive && "opacity-30")} aria-hidden="true">
+              <svg className={cn("h-3 w-3", isActive && direction === "asc" ? "text-foreground" : "text-muted-foreground/50")} viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 4l4 5H4l4-5z" />
+              </svg>
+              <svg className={cn("h-3 w-3", isActive && direction === "desc" ? "text-foreground" : "text-muted-foreground/50")} viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 12l4-5H4l4 5z" />
+              </svg>
+            </span>
+          )}
+        </span>
+      </th>
+    );
+  }
+);
+TableSortHead.displayName = "TableSortHead";
+
+// ── TablePagination ─────────────────────────────────────────────────────────
+
+export interface TablePaginationProps extends HTMLAttributes<HTMLDivElement> {
+  page: number;
+  pageSize: number;
+  total: number;
+  onPageChange: (page: number) => void;
+  onPageSizeChange?: (size: number) => void;
+  pageSizeOptions?: number[];
+}
+
+export const TablePagination = forwardRef<HTMLDivElement, TablePaginationProps>(
+  (
+    {
+      page,
+      pageSize,
+      total,
+      onPageChange,
+      onPageSizeChange,
+      pageSizeOptions = [10, 25, 50, 100],
+      className,
+      ...props
+    },
+    ref
+  ) => {
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    const start = Math.min((page - 1) * pageSize + 1, total);
+    const end = Math.min(page * pageSize, total);
+    const hasPrev = page > 1;
+    const hasNext = page < totalPages;
+
+    // Generate page numbers to show
+    const getPageNumbers = (): (number | "...")[] => {
+      if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
+
+      const pages: (number | "...")[] = [1];
+      if (page > 3) pages.push("...");
+
+      const rangeStart = Math.max(2, page - 1);
+      const rangeEnd = Math.min(totalPages - 1, page + 1);
+      for (let i = rangeStart; i <= rangeEnd; i++) pages.push(i);
+
+      if (page < totalPages - 2) pages.push("...");
+      pages.push(totalPages);
+
+      return pages;
+    };
+
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          "flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between",
+          className
+        )}
+        {...props}
+      >
+        {/* Left: info + page size */}
+        <div className="flex items-center gap-4">
+          <p className="text-xs text-muted-foreground whitespace-nowrap">
+            {total === 0 ? "No results" : `${start}-${end} of ${total}`}
+          </p>
+          {onPageSizeChange && (
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-muted-foreground">Rows:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  onPageSizeChange(Number(e.target.value));
+                  onPageChange(1);
+                }}
+                className="h-7 rounded-md border border-border bg-background px-1.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {pageSizeOptions.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+
+        {/* Right: page buttons */}
+        <div className="flex items-center gap-1">
+          {/* Prev */}
+          <button
+            onClick={() => onPageChange(page - 1)}
+            disabled={!hasPrev}
+            aria-label="Previous page"
+            className={cn(
+              "inline-flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-colors",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              hasPrev
+                ? "text-muted-foreground hover:bg-muted hover:text-foreground"
+                : "pointer-events-none text-muted-foreground/30"
+            )}
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+            </svg>
+          </button>
+
+          {/* Page numbers */}
+          {getPageNumbers().map((p, i) =>
+            p === "..." ? (
+              <span key={`ellipsis-${i}`} className="w-8 text-center text-xs text-muted-foreground">...</span>
+            ) : (
+              <button
+                key={p}
+                onClick={() => onPageChange(p)}
+                aria-label={`Page ${p}`}
+                aria-current={p === page ? "page" : undefined}
+                className={cn(
+                  "inline-flex h-8 w-8 items-center justify-center rounded-lg text-xs font-medium transition-colors",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  p === page
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                {p}
+              </button>
+            )
+          )}
+
+          {/* Next */}
+          <button
+            onClick={() => onPageChange(page + 1)}
+            disabled={!hasNext}
+            aria-label="Next page"
+            className={cn(
+              "inline-flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-colors",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              hasNext
+                ? "text-muted-foreground hover:bg-muted hover:text-foreground"
+                : "pointer-events-none text-muted-foreground/30"
+            )}
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    );
+  }
+);
+TablePagination.displayName = "TablePagination";
