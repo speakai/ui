@@ -85,9 +85,9 @@ export type { PageHeaderProps, SectionHeaderProps } from "./components/PageHeade
 export { InfoCard } from "./components/InfoCard";
 export type { InfoCardProps, InfoCardColor } from "./components/InfoCard";
 
-// Table Actions
-export { TableActions, TableActionButton } from "./components/Table";
-export type { TableActionsProps, TableActionButtonProps } from "./components/Table";
+// Table Actions, Sort, Pagination
+export { TableActions, TableActionButton, TableSortHead, TablePagination } from "./components/Table";
+export type { TableActionsProps, TableActionButtonProps, TableSortHeadProps, SortDirection, TablePaginationProps } from "./components/Table";
 
 // Dialog
 export { Dialog, DialogHeader, DialogBody, DialogFooter, DialogCloseButton } from "./components/Dialog";
