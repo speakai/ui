@@ -85,9 +85,9 @@ export type { PageHeaderProps, SectionHeaderProps } from "./components/PageHeade
 export { InfoCard } from "./components/InfoCard";
 export type { InfoCardProps, InfoCardColor } from "./components/InfoCard";
 
-// Table Actions, Sort, Pagination
-export { TableActions, TableActionButton, TableSortHead, TablePagination } from "./components/Table";
-export type { TableActionsProps, TableActionButtonProps, TableSortHeadProps, SortDirection, TablePaginationProps } from "./components/Table";
+// Table Actions, Sort, Pagination, Empty
+export { TableActions, TableActionButton, TableSortHead, TablePagination, TableEmpty, useSort } from "./components/Table";
+export type { TableActionsProps, TableActionButtonProps, TableSortHeadProps, SortDirection, TablePaginationProps, TableEmptyProps } from "./components/Table";
 
 // Dialog
 export { Dialog, DialogHeader, DialogBody, DialogFooter, DialogCloseButton } from "./components/Dialog";
@@ -112,6 +112,18 @@ export type { TooltipProps, TooltipSide } from "./components/Tooltip";
 // Tabs
 export { Tabs, TabsList, TabsTrigger, TabsContent } from "./components/Tabs";
 export type { TabsProps, TabsListProps, TabsTriggerProps, TabsContentProps } from "./components/Tabs";
+
+// Avatar
+export { Avatar } from "./components/Avatar";
+export type { AvatarProps, AvatarSize, AvatarVariant } from "./components/Avatar";
+
+// Switch
+export { Switch } from "./components/Switch";
+export type { SwitchProps, SwitchSize } from "./components/Switch";
+
+// Progress
+export { Progress } from "./components/Progress";
+export type { ProgressProps, ProgressSize, ProgressVariant } from "./components/Progress";
 
 // Sidebar
 export {

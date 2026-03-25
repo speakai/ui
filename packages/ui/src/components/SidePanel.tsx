@@ -6,6 +6,7 @@ import {
   ReactNode,
   useCallback,
   useEffect,
+  useRef,
 } from "react";
 import { cn } from "../utils/cn";
 
@@ -61,6 +62,8 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
     },
     ref
   ) => {
+    const panelRef = useRef<HTMLDivElement>(null);
+
     // Close on Escape
     useEffect(() => {
       if (!open) return;
@@ -70,6 +73,22 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
       document.addEventListener("keydown", handler);
       return () => document.removeEventListener("keydown", handler);
     }, [open, onClose]);
+
+    // Click-outside detection when backdrop is disabled
+    useEffect(() => {
+      if (!open || backdrop) return;
+
+      const handleClickOutside = (e: MouseEvent) => {
+        const panel = panelRef.current;
+        if (panel && !panel.contains(e.target as Node)) {
+          onClose();
+        }
+      };
+
+      // Use mousedown so it fires before any focus changes
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [open, backdrop, onClose]);
 
     // Lock body scroll when open
     useEffect(() => {
@@ -89,6 +108,16 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
 
     const isRight = side === "right";
 
+    // Merge refs: forwarded ref + internal panelRef
+    const setRefs = useCallback(
+      (node: HTMLDivElement | null) => {
+        (panelRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+        if (typeof ref === "function") ref(node);
+        else if (ref) ref.current = node;
+      },
+      [ref]
+    );
+
     return (
       <>
         {/* Backdrop */}
@@ -105,7 +134,7 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
 
         {/* Panel */}
         <div
-          ref={ref}
+          ref={setRefs}
           role="dialog"
           aria-modal="true"
           aria-label={title}

@@ -42,9 +42,13 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
     const containerRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLButtonElement>(null);
     const menuRef = useRef<HTMLDivElement>(null);
+    const focusIndexRef = useRef(-1);
 
     const setOpen = useCallback(
       (value: boolean) => {
+        if (!value) {
+          focusIndexRef.current = -1;
+        }
         if (isControlled) {
           onOpenChange?.(value);
         } else {
@@ -58,19 +62,40 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
       setOpen(!isOpen);
     }, [isOpen, setOpen]);
 
+    /** Returns all focusable menu items (skips disabled, headers, dividers) */
+    const getMenuItems = useCallback(() => {
+      if (!menuRef.current) return [];
+      return Array.from(
+        menuRef.current.querySelectorAll<HTMLElement>(
+          '[role="menuitem"]:not([disabled])'
+        )
+      );
+    }, []);
+
+    /** Focus a menu item by index with wrapping */
+    const focusItem = useCallback(
+      (index: number) => {
+        const items = getMenuItems();
+        if (items.length === 0) return;
+
+        // Wrap around
+        const wrapped = ((index % items.length) + items.length) % items.length;
+        focusIndexRef.current = wrapped;
+        items[wrapped]?.focus();
+      },
+      [getMenuItems]
+    );
+
     // Focus first menu item on open
     useEffect(() => {
       if (!isOpen) return;
 
       const frame = requestAnimationFrame(() => {
-        const firstItem = menuRef.current?.querySelector<HTMLElement>(
-          '[role="menuitem"]:not([disabled])'
-        );
-        firstItem?.focus();
+        focusItem(0);
       });
 
       return () => cancelAnimationFrame(frame);
-    }, [isOpen]);
+    }, [isOpen, focusItem]);
 
     // Click outside to close
     useEffect(() => {
@@ -91,17 +116,30 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
       };
     }, [isOpen, setOpen]);
 
-    // Keyboard navigation
+    // Close on Escape via document listener (catches Escape even when focus is outside menu)
+    useEffect(() => {
+      if (!isOpen) return;
+
+      const handleEscape = (e: globalThis.KeyboardEvent) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          setOpen(false);
+          triggerRef.current?.focus();
+        }
+      };
+
+      document.addEventListener("keydown", handleEscape);
+      return () => {
+        document.removeEventListener("keydown", handleEscape);
+      };
+    }, [isOpen, setOpen]);
+
+    // Keyboard navigation within the menu
     const handleMenuKeyDown = useCallback(
       (e: KeyboardEvent<HTMLDivElement>) => {
-        const menu = menuRef.current;
-        if (!menu) return;
+        const items = getMenuItems();
+        if (items.length === 0) return;
 
-        const items = Array.from(
-          menu.querySelectorAll<HTMLElement>(
-            '[role="menuitem"]:not([disabled])'
-          )
-        );
         const currentIndex = items.indexOf(
           document.activeElement as HTMLElement
         );
@@ -109,31 +147,33 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
         switch (e.key) {
           case "ArrowDown": {
             e.preventDefault();
-            const nextIndex =
-              currentIndex < items.length - 1 ? currentIndex + 1 : 0;
-            items[nextIndex]?.focus();
+            focusItem(currentIndex + 1);
             break;
           }
           case "ArrowUp": {
             e.preventDefault();
-            const prevIndex =
-              currentIndex > 0 ? currentIndex - 1 : items.length - 1;
-            items[prevIndex]?.focus();
+            focusItem(currentIndex - 1);
             break;
           }
-          case "Escape": {
+          case "Home": {
             e.preventDefault();
-            setOpen(false);
-            triggerRef.current?.focus();
+            focusItem(0);
+            break;
+          }
+          case "End": {
+            e.preventDefault();
+            focusItem(items.length - 1);
             break;
           }
           case "Tab": {
+            // Tab closes the menu and moves focus naturally
             setOpen(false);
             break;
           }
+          // Escape is handled by the document-level listener
         }
       },
-      [setOpen]
+      [setOpen, getMenuItems, focusItem]
     );
 
     const handleTriggerKeyDown = useCallback(

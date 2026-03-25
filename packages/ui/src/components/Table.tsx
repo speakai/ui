@@ -2,8 +2,12 @@ import {
   forwardRef,
   HTMLAttributes,
   KeyboardEvent,
+  ReactNode,
   TdHTMLAttributes,
   ThHTMLAttributes,
+  useCallback,
+  useMemo,
+  useState,
 } from "react";
 import { cn } from "../utils/cn";
 
@@ -449,3 +453,72 @@ export const TablePagination = forwardRef<HTMLDivElement, TablePaginationProps>(
   }
 );
 TablePagination.displayName = "TablePagination";
+
+// ── TableEmpty (empty state row) ──────────────────────────────────────────────
+
+export interface TableEmptyProps extends HTMLAttributes<HTMLTableRowElement> {
+  colSpan: number;
+  icon?: ReactNode;
+  title?: string;
+  description?: string;
+  action?: ReactNode;
+}
+
+export const TableEmpty = forwardRef<HTMLTableRowElement, TableEmptyProps>(
+  (
+    {
+      colSpan,
+      icon,
+      title = "No results",
+      description,
+      action,
+      className,
+      ...props
+    },
+    ref
+  ) => (
+    <tr ref={ref} className={className} {...props}>
+      <td colSpan={colSpan} className="px-4 py-12 text-center">
+        <div className="flex flex-col items-center gap-3">
+          {icon && (
+            <div className="text-muted-foreground/50">{icon}</div>
+          )}
+          {title && (
+            <p className="text-sm font-medium text-muted-foreground">
+              {title}
+            </p>
+          )}
+          {description && (
+            <p className="max-w-sm text-xs text-muted-foreground/70">
+              {description}
+            </p>
+          )}
+          {action && <div className="mt-1">{action}</div>}
+        </div>
+      </td>
+    </tr>
+  )
+);
+TableEmpty.displayName = "TableEmpty";
+
+// ── useSort (sort state hook) ────────────────────────────────────────────────
+
+export function useSort<T>(
+  data: T[],
+  sortFn?: (a: T, b: T, key: string, dir: SortDirection) => number
+) {
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<SortDirection>(null);
+
+  const onSort = useCallback((key: string, direction: SortDirection) => {
+    setSortKey(direction ? key : null);
+    setSortDir(direction);
+  }, []);
+
+  const sortedData = useMemo(() => {
+    if (!sortKey || !sortDir || !sortFn) return data;
+    return [...data].sort((a, b) => sortFn(a, b, sortKey, sortDir));
+  }, [data, sortKey, sortDir, sortFn]);
+
+  return { sortKey, sortDir, onSort, sortedData } as const;
+}

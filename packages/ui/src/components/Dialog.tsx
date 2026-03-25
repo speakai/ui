@@ -32,11 +32,23 @@ const sizeMap = {
   full: "max-w-[calc(100vw-2rem)]",
 };
 
+// ── Focusable selector ──────────────────────────────────────────────────────
+
+const FOCUSABLE_SELECTOR = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(", ");
+
 // ── Dialog ───────────────────────────────────────────────────────────────────
 
 export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
   ({ open, onClose, size = "default", className, children, ...props }, ref) => {
     const overlayRef = useRef<HTMLDivElement>(null);
+    const panelRef = useRef<HTMLDivElement>(null);
 
     // Close on Escape
     useEffect(() => {
@@ -60,6 +72,65 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
       };
     }, [open]);
 
+    // Focus trap: auto-focus first element and cycle Tab/Shift+Tab
+    useEffect(() => {
+      if (!open) return;
+
+      // Small delay to allow dialog content to render
+      const rafId = requestAnimationFrame(() => {
+        const panel = panelRef.current;
+        if (!panel) return;
+
+        const focusableElements = panel.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+        if (focusableElements.length > 0) {
+          focusableElements[0].focus();
+        } else {
+          // If no focusable elements, make the panel itself focusable
+          panel.setAttribute("tabindex", "-1");
+          panel.focus();
+        }
+      });
+
+      return () => cancelAnimationFrame(rafId);
+    }, [open]);
+
+    useEffect(() => {
+      if (!open) return;
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key !== "Tab") return;
+
+        const panel = panelRef.current;
+        if (!panel) return;
+
+        const focusableElements = panel.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+        if (focusableElements.length === 0) {
+          e.preventDefault();
+          return;
+        }
+
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey) {
+          // Shift+Tab: if on first element, wrap to last
+          if (document.activeElement === firstElement) {
+            e.preventDefault();
+            lastElement.focus();
+          }
+        } else {
+          // Tab: if on last element, wrap to first
+          if (document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement.focus();
+          }
+        }
+      };
+
+      document.addEventListener("keydown", handleKeyDown);
+      return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [open]);
+
     // Close on backdrop click
     const handleBackdropClick = useCallback(
       (e: React.MouseEvent) => {
@@ -79,7 +150,15 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
         aria-modal="true"
       >
         <div
-          ref={ref}
+          ref={(node) => {
+            // Support both internal ref and forwarded ref
+            (panelRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+            if (typeof ref === "function") {
+              ref(node);
+            } else if (ref) {
+              (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+            }
+          }}
           className={cn(
             "w-full rounded-lg border border-border bg-card shadow-xl animate-scale-in",
             sizeMap[size],

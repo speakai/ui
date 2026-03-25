@@ -4,9 +4,11 @@ import {
   createContext,
   forwardRef,
   HTMLAttributes,
+  KeyboardEvent,
   ReactNode,
   useCallback,
   useContext,
+  useRef,
   useState,
 } from "react";
 import { cn } from "../utils/cn";
@@ -69,16 +71,74 @@ const listVariantStyles = {
 };
 
 export const TabsList = forwardRef<HTMLDivElement, TabsListProps>(
-  ({ variant = "default", className, children, ...props }, ref) => (
-    <div
-      ref={ref}
-      role="tablist"
-      className={cn(listVariantStyles[variant], className)}
-      {...props}
-    >
-      {children}
-    </div>
-  )
+  ({ variant = "default", className, children, ...props }, ref) => {
+    const listRef = useRef<HTMLDivElement>(null);
+    const { setActiveTab } = useTabsContext();
+
+    const handleKeyDown = useCallback(
+      (e: KeyboardEvent<HTMLDivElement>) => {
+        const container = listRef.current;
+        if (!container) return;
+
+        const tabs = Array.from(
+          container.querySelectorAll<HTMLButtonElement>('[role="tab"]:not([disabled])')
+        );
+        if (tabs.length === 0) return;
+
+        const currentIndex = tabs.indexOf(e.target as HTMLButtonElement);
+        if (currentIndex === -1) return;
+
+        let nextIndex: number | null = null;
+
+        switch (e.key) {
+          case "ArrowRight":
+            nextIndex = (currentIndex + 1) % tabs.length;
+            break;
+          case "ArrowLeft":
+            nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+            break;
+          case "Home":
+            nextIndex = 0;
+            break;
+          case "End":
+            nextIndex = tabs.length - 1;
+            break;
+          default:
+            return;
+        }
+
+        e.preventDefault();
+        const nextTab = tabs[nextIndex];
+        nextTab.focus();
+
+        // Select on focus (ARIA tabs pattern)
+        const tabValue = nextTab.getAttribute("aria-controls")?.replace("tabpanel-", "");
+        if (tabValue) {
+          setActiveTab(tabValue);
+        }
+      },
+      [setActiveTab]
+    );
+
+    return (
+      <div
+        ref={(node) => {
+          (listRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+          if (typeof ref === "function") {
+            ref(node);
+          } else if (ref) {
+            (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+          }
+        }}
+        role="tablist"
+        className={cn(listVariantStyles[variant], className)}
+        onKeyDown={handleKeyDown}
+        {...props}
+      >
+        {children}
+      </div>
+    );
+  }
 );
 TabsList.displayName = "TabsList";
 

@@ -133,23 +133,24 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(
       <>
         {/* Header */}
         {header && (
-          <div className="flex h-14 items-center gap-2 border-b border-border px-3 flex-shrink-0">
+          <div className={cn(
+            "flex h-14 items-center border-b border-border flex-shrink-0",
+            collapsed ? "justify-center px-2" : "gap-2 px-3"
+          )}>
             {header}
             <button
               onClick={() => setCollapsed(!collapsed)}
-              className="ml-auto hidden rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:flex"
+              className={cn(
+                "rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring hidden md:flex",
+                collapsed ? "mx-auto mt-0" : "ml-auto"
+              )}
               aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d={
-                    collapsed
-                      ? "M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"
-                      : "M9 9V4.5M9 9H4.5M9 9 3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5 5.25 5.25"
-                  }
-                />
+                <path strokeLinecap="round" strokeLinejoin="round" d={collapsed
+                  ? "m5.25 4.5 7.5 7.5-7.5 7.5m6-15 7.5 7.5-7.5 7.5"
+                  : "m18.75 4.5-7.5 7.5 7.5 7.5m-6-15L5.25 12l7.5 7.5"
+                } />
               </svg>
             </button>
           </div>
@@ -250,6 +251,20 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(
 );
 Sidebar.displayName = "Sidebar";
 
+// ── Collapsed Tooltip ───────────────────────────────────────────────────────
+
+interface CollapsedTooltipProps {
+  label: string;
+}
+
+function CollapsedTooltip({ label }: CollapsedTooltipProps) {
+  return (
+    <span className="pointer-events-none absolute left-full ml-2 hidden rounded-md border border-border bg-popover px-2 py-1 text-xs font-medium text-popover-foreground shadow-md group-hover:block whitespace-nowrap z-50">
+      {label}
+    </span>
+  );
+}
+
 // ── Nav Item ─────────────────────────────────────────────────────────────────
 
 interface SidebarNavItemProps {
@@ -271,7 +286,7 @@ function SidebarNavItem({ item, collapsed, renderLink, onNavigate, depth = 0 }: 
       ? "bg-primary/10 text-primary"
       : "text-muted-foreground hover:bg-muted hover:text-foreground",
     item.disabled && "pointer-events-none opacity-50",
-    collapsed && "justify-center px-0",
+    collapsed && "justify-center px-1.5",
     depth > 0 && !collapsed && "ml-4 pl-4"
   );
 
@@ -297,19 +312,21 @@ function SidebarNavItem({ item, collapsed, renderLink, onNavigate, depth = 0 }: 
     <span className="flex-shrink-0">{item.badge}</span>
   );
 
+  const tooltipEl = collapsed && <CollapsedTooltip label={item.label} />;
+
   // Expandable parent
   if (hasChildren) {
     return (
-      <li>
+      <li className={cn(collapsed && "relative")}>
         <button
           className={baseClasses}
           onClick={() => setExpanded(!expanded)}
           aria-expanded={expanded}
-          title={collapsed ? item.label : undefined}
         >
           {activeIndicator}
           {iconEl}
           {labelEl}
+          {tooltipEl}
           {!collapsed && (
             <svg
               className={cn("h-4 w-4 flex-shrink-0 text-muted-foreground transition-transform duration-150", expanded && "rotate-90")}
@@ -341,12 +358,13 @@ function SidebarNavItem({ item, collapsed, renderLink, onNavigate, depth = 0 }: 
       {iconEl}
       {labelEl}
       {badgeEl}
+      {tooltipEl}
     </>
   );
 
   if (item.href && renderLink) {
     return (
-      <li>
+      <li className={cn(collapsed && "relative")}>
         {renderLink({
           href: item.href,
           className: baseClasses,
@@ -359,12 +377,11 @@ function SidebarNavItem({ item, collapsed, renderLink, onNavigate, depth = 0 }: 
 
   if (item.href) {
     return (
-      <li>
+      <li className={cn(collapsed && "relative")}>
         <a
           href={item.href}
           className={baseClasses}
           onClick={onNavigate}
-          title={collapsed ? item.label : undefined}
         >
           {content}
         </a>
@@ -373,14 +390,13 @@ function SidebarNavItem({ item, collapsed, renderLink, onNavigate, depth = 0 }: 
   }
 
   return (
-    <li>
+    <li className={cn(collapsed && "relative")}>
       <button
         className={baseClasses}
         onClick={() => {
           item.onClick?.();
           onNavigate();
         }}
-        title={collapsed ? item.label : undefined}
       >
         {content}
       </button>

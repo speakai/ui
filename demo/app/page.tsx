@@ -4,10 +4,11 @@ import { useTheme } from "next-themes";
 import { useState, useEffect, useCallback } from "react";
 import {
   Button, Card, Badge, StatusBadge, Input, SearchInput, Select, Textarea,
-  Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableActions, TableActionButton, TableSkeleton, TableSortHead, TablePagination,
+  Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableActions, TableActionButton, TableSkeleton, TableSortHead, TablePagination, TableEmpty,
   ToastProvider, useToast,
   Skeleton, SkeletonText, PageHeaderSkeleton, GridSkeleton, FormSkeleton,
   EmptyState, ErrorState,
+  Avatar, Switch, Progress,
   DropdownMenu, DropdownMenuItem, DropdownMenuHeader, DropdownMenuDivider, MoreButton,
   StatCard, StatCardGrid, PageHeader, SectionHeader, InfoCard,
   Dialog, DialogHeader, DialogBody, DialogFooter, DialogCloseButton, ConfirmDialog,
@@ -26,14 +27,13 @@ interface ThemeConfig { primaryHue: number; gradientToHue: number; radius: numbe
 
 const FONTS = [
   { value: "system", label: "System", css: 'ui-sans-serif, system-ui, -apple-system, sans-serif' },
-  { value: "inter", label: "Inter", css: '"Inter", sans-serif' },
-  { value: "outfit", label: "Outfit", css: '"Outfit", sans-serif' },
-  { value: "dm-sans", label: "DM Sans", css: '"DM Sans", sans-serif' },
-  { value: "plus-jakarta", label: "Plus Jakarta Sans", css: '"Plus Jakarta Sans", sans-serif' },
-  { value: "space-grotesk", label: "Space Grotesk", css: '"Space Grotesk", sans-serif' },
-  { value: "manrope", label: "Manrope", css: '"Manrope", sans-serif' },
-  { value: "poppins", label: "Poppins", css: '"Poppins", sans-serif' },
-  { value: "mono", label: "JetBrains Mono", css: '"JetBrains Mono", monospace' },
+  { value: "poppins", label: "Poppins", css: 'var(--font-poppins), sans-serif' },
+  { value: "inter", label: "Inter", css: 'var(--font-inter), sans-serif' },
+  { value: "outfit", label: "Outfit", css: 'var(--font-outfit), sans-serif' },
+  { value: "dm-sans", label: "DM Sans", css: 'var(--font-dm-sans), sans-serif' },
+  { value: "space-grotesk", label: "Space Grotesk", css: 'var(--font-space-grotesk), sans-serif' },
+  { value: "manrope", label: "Manrope", css: 'var(--font-manrope), sans-serif' },
+  { value: "mono", label: "JetBrains Mono", css: 'var(--font-mono), monospace' },
 ];
 
 const PRESETS: Record<string, Partial<ThemeConfig>> = {
@@ -76,7 +76,27 @@ const icons = {
 
 /* ─── Sidebar Sections ──────────────────────────────────────────────────────── */
 
-const sections = ["button", "card", "badge", "input", "table", "toast", "tabs", "stat-card", "page-header", "info-card", "dropdown", "tooltip", "dialog", "empty-state", "error-state", "skeleton"];
+const navItems = [
+  { id: "button", icon: icons.puzzle, label: "Button" },
+  { id: "card", icon: icons.layout, label: "Card" },
+  { id: "badge", icon: icons.sparkle, label: "Badge" },
+  { id: "input", icon: icons.pencil, label: "Input" },
+  { id: "table", icon: icons.table, label: "Table" },
+  { id: "toast", icon: icons.bell, label: "Toast" },
+  { id: "tabs", icon: icons.layout, label: "Tabs" },
+  { id: "stat-card", icon: icons.screen, label: "Stat Card" },
+  { id: "page-header", icon: icons.doc, label: "Page Header" },
+  { id: "info-card", icon: icons.chat, label: "Info Card" },
+  { id: "dropdown", icon: icons.cog, label: "Dropdown" },
+  { id: "tooltip", icon: icons.chat, label: "Tooltip" },
+  { id: "dialog", icon: icons.layout, label: "Dialog" },
+  { id: "empty-state", icon: icons.doc, label: "Empty State" },
+  { id: "error-state", icon: icons.bell, label: "Error State" },
+  { id: "skeleton", icon: icons.layout, label: "Skeleton" },
+  { id: "avatar", icon: icons.users, label: "Avatar" },
+  { id: "switch", icon: icons.cog, label: "Switch" },
+  { id: "progress", icon: icons.screen, label: "Progress" },
+];
 
 function useSidebarSections(): SidebarSection[] {
   const [active, setActive] = useState("button");
@@ -90,14 +110,45 @@ function useSidebarSections(): SidebarSection[] {
     {
       id: "components",
       label: "Components",
-      items: sections.map((s) => ({
-        id: s,
-        label: s.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" "),
-        active: active === s,
-        onClick: () => handleClick(s),
+      items: navItems.map((n) => ({
+        id: n.id,
+        label: n.label,
+        icon: <I4 d={n.icon} />,
+        active: active === n.id,
+        onClick: () => handleClick(n.id),
       })),
     },
   ];
+}
+
+/* ─── Sidebar Header ────────────────────────────────────────────────────────── */
+
+function SidebarHeader() {
+  const { collapsed } = useSidebar();
+  return (
+    <div className="flex items-center gap-2 min-w-0">
+      <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-gradient-from to-gradient-to text-white">
+        <I4 d={icons.sparkle} />
+      </div>
+      {!collapsed && <span className="text-sm font-semibold text-foreground truncate">@speakai/ui</span>}
+    </div>
+  );
+}
+
+/* ─── Switch Demo ───────────────────────────────────────────────────────────── */
+
+function SwitchDemo() {
+  const [on1, setOn1] = useState(false);
+  const [on2, setOn2] = useState(true);
+  const [on3, setOn3] = useState(false);
+  return (
+    <div className="space-y-4">
+      <Switch checked={on1} onChange={setOn1} label="Email notifications" />
+      <Switch checked={on2} onChange={setOn2} label="Dark mode" />
+      <Switch checked={on3} onChange={setOn3} label="Disabled example" disabled />
+      <Switch checked={true} onChange={() => {}} label="Small size" size="sm" />
+    </div>
+  );
 }
 
 /* ─── Toast Demo ────────────────────────────────────────────────────────────── */
@@ -216,69 +267,81 @@ function DemoContent() {
   const [tablePage, setTablePage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [config, setConfig] = useState<ThemeConfig>({ primaryHue: 271, gradientToHue: 330, radius: 0.75, font: "inter" });
+  const [config, setConfig] = useState<ThemeConfig>({ primaryHue: 271, gradientToHue: 330, radius: 0.75, font: "poppins" });
 
   const applyConfig = useCallback((c: ThemeConfig) => {
     const root = document.documentElement;
     const isMonochrome = c.primaryHue === 0 && c.gradientToHue === 0;
-    const sat = isMonochrome ? "0%" : "80%";
-    const lum = isMonochrome ? "15%" : "55%";
-    root.style.setProperty("--primary", `${c.primaryHue} ${sat} ${lum}`);
-    root.style.setProperty("--ring", `${c.primaryHue} ${sat} ${lum}`);
-    root.style.setProperty("--gradient-from", `${c.primaryHue} ${sat} ${isMonochrome ? "20%" : "55%"}`);
-    root.style.setProperty("--gradient-to", `${c.gradientToHue} ${sat} ${isMonochrome ? "40%" : "55%"}`);
+
+    if (isMonochrome) {
+      // B&W: crisp black primary, subtle gray gradient
+      root.style.setProperty("--primary", "0 0% 9%");
+      root.style.setProperty("--primary-foreground", "0 0% 100%");
+      root.style.setProperty("--ring", "0 0% 9%");
+      root.style.setProperty("--gradient-from", "0 0% 9%");
+      root.style.setProperty("--gradient-to", "0 0% 35%");
+
+      // Check if dark mode — invert for dark
+      const isDark = document.documentElement.classList.contains("dark");
+      if (isDark) {
+        root.style.setProperty("--primary", "0 0% 95%");
+        root.style.setProperty("--primary-foreground", "0 0% 9%");
+        root.style.setProperty("--ring", "0 0% 95%");
+        root.style.setProperty("--gradient-from", "0 0% 95%");
+        root.style.setProperty("--gradient-to", "0 0% 60%");
+      }
+    } else {
+      root.style.setProperty("--primary", `${c.primaryHue} 80% 55%`);
+      root.style.setProperty("--primary-foreground", "0 0% 100%");
+      root.style.setProperty("--ring", `${c.primaryHue} 80% 55%`);
+      root.style.setProperty("--gradient-from", `${c.primaryHue} 80% 55%`);
+      root.style.setProperty("--gradient-to", `${c.gradientToHue} 80% 55%`);
+    }
+
     root.style.setProperty("--radius", `${c.radius}rem`);
     const fontDef = FONTS.find(f => f.value === c.font);
     if (fontDef) root.style.setProperty("--font-sans", fontDef.css);
     setConfig(c);
   }, []);
 
+  // Apply default config on mount
   useEffect(() => {
-    const googleFonts = ["Inter", "Outfit", "DM+Sans", "Plus+Jakarta+Sans", "Space+Grotesk", "Manrope", "Poppins", "JetBrains+Mono"];
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = `https://fonts.googleapis.com/css2?${googleFonts.map(f => `family=${f}:wght@400;500;600;700`).join("&")}&display=swap`;
-    document.head.appendChild(link);
-    return () => { document.head.removeChild(link); };
+    applyConfig(config);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <>
       <Sidebar
-        header={
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-gradient-from to-gradient-to">
-              <I4 d={icons.sparkle} />
-            </div>
-            <span className="text-sm font-semibold text-foreground">@speakai/ui</span>
-          </div>
-        }
+        header={<SidebarHeader />}
         sections={sidebarSections}
-        footer={
-          <SidebarUser name="Design System" email="v0.1.0" />
-        }
+        footer={<SidebarUser name="Design System" email="v0.1.0" />}
       />
 
+      {/* Floating config button */}
+      <Tooltip content="Theme Configurator" side="left">
+        <button
+          onClick={() => setConfigOpen(true)}
+          className="fixed bottom-6 right-6 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-gradient-from to-gradient-to text-white shadow-lg transition-transform hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          aria-label="Open theme configurator"
+        >
+          <I d={icons.swatch} />
+        </button>
+      </Tooltip>
+
       <SidebarLayout>
-        <div className="p-4 sm:p-6 max-w-4xl">
+        <div className="mx-auto w-full max-w-5xl p-4 sm:p-6 lg:p-8">
           {/* Header */}
-          <div className="flex items-start justify-between mb-8">
-            <div>
-              <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
-                <span className="bg-gradient-to-r from-gradient-from to-gradient-to bg-clip-text text-transparent">Design System</span>
-              </h1>
-              <p className="mt-1 text-sm text-muted-foreground">22 components, semantic tokens, WCAG AA, mobile-first</p>
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                <Badge variant="success" size="sm">22 Components</Badge>
-                <Badge variant="info" size="sm">CSS Variables</Badge>
-                <Badge size="sm">Accessible</Badge>
-              </div>
+          <div className="mb-8">
+            <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+              <span className="bg-gradient-to-r from-gradient-from to-gradient-to bg-clip-text text-transparent">Design System</span>
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">25 components, semantic tokens, WCAG AA, mobile-first</p>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              <Badge variant="success" size="sm">25 Components</Badge>
+              <Badge variant="info" size="sm">CSS Variables</Badge>
+              <Badge size="sm">Accessible</Badge>
             </div>
-            <Tooltip content="Theme Configurator" side="left">
-              <Button variant="outline" size="icon" onClick={() => setConfigOpen(true)}>
-                <I4 d={icons.swatch} />
-              </Button>
-            </Tooltip>
           </div>
 
           {/* ── Components ── */}
@@ -334,6 +397,12 @@ function DemoContent() {
             </Sub>
             <Sub title="Pagination">
               <TablePagination page={tablePage} pageSize={pageSize} total={87} onPageChange={setTablePage} onPageSizeChange={setPageSize} />
+            </Sub>
+            <Sub title="Empty State">
+              <Table>
+                <TableHeader><tr><TableHead>Name</TableHead><TableHead>Type</TableHead><TableHead>Status</TableHead><TableHead>Actions</TableHead></tr></TableHeader>
+                <TableBody><TableEmpty colSpan={4} icon={<I d={icons.doc} />} title="No results found" description="Try adjusting your search or filters" action={<Button size="sm" variant="outline">Clear Filters</Button>} /></TableBody>
+              </Table>
             </Sub>
             <Sub title="Skeleton"><TableSkeleton rows={2} columns={4} /></Sub>
           </Section>
@@ -442,8 +511,31 @@ function DemoContent() {
             </div>
           </Section>
 
+          <Section id="avatar" title="Avatar">
+            <div className="flex flex-wrap items-center gap-4">
+              <Avatar name="Vatsal Shah" size="sm" />
+              <Avatar name="Vatsal Shah" />
+              <Avatar name="Vatsal Shah" size="lg" />
+              <Avatar name="Jane Doe" size="lg" variant="rounded" />
+              <Avatar name="John" src="https://api.dicebear.com/8.x/avataaars/svg?seed=John" size="lg" />
+            </div>
+          </Section>
+
+          <Section id="switch" title="Switch">
+            <SwitchDemo />
+          </Section>
+
+          <Section id="progress" title="Progress">
+            <div className="max-w-md space-y-4">
+              <Sub title="Default"><Progress value={65} /></Sub>
+              <Sub title="Gradient"><Progress value={45} variant="gradient" /></Sub>
+              <Sub title="Small"><Progress value={80} size="sm" /></Sub>
+              <Sub title="With Label"><Progress value={72} showLabel /></Sub>
+            </div>
+          </Section>
+
           <footer className="mt-12 pt-6 border-t border-border text-center pb-6">
-            <p className="text-xs text-muted-foreground">@speakai/ui v0.1.0</p>
+            <p className="text-xs text-muted-foreground">@speakai/ui v0.1.0 — 25 components</p>
           </footer>
         </div>
       </SidebarLayout>

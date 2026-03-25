@@ -14,7 +14,7 @@ const variantStyles: Record<CardVariant, string> = {
   outline:
     "bg-transparent border-2 border-border hover:border-border/80 transition-colors",
   elevated:
-    "bg-card text-card-foreground border border-border shadow-lg",
+    "bg-card text-card-foreground border border-border shadow-lg hover:shadow-xl transition-shadow",
   glass:
     "bg-card/5 backdrop-blur-xl border border-border/10 shadow-lg hover:bg-card/10 transition-colors",
 };

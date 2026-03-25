@@ -34,6 +34,13 @@ const AUTO_DISMISS_MS: Record<ToastType, number> = {
 
 const MAX_VISIBLE_TOASTS = 5;
 
+const accentBorderMap: Record<ToastType, string> = {
+  success: "border-l-success",
+  error: "border-l-destructive",
+  info: "border-l-primary",
+  warning: "border-l-warning",
+};
+
 // ── Icons ────────────────────────────────────────────────────────────────────
 
 const icons: Record<ToastType, ReactNode> = {
@@ -144,7 +151,8 @@ const ToastItem = ({ toast, onDismiss }: ToastItemProps) => {
   return (
     <div
       className={cn(
-        "pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-lg border border-border bg-card p-4 shadow-lg",
+        "pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-lg border border-border border-l-4 bg-card p-4 shadow-lg",
+        accentBorderMap[toast.type],
         "animate-slide-in-from-top transition-opacity duration-150",
         isExiting && "opacity-0"
       )}
