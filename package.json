@@ -1,0 +1,19 @@
+{
+  "name": "speak-ui",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "build:ui": "npm run build -w @speakai/ui",
+    "build:recorder": "npm run build -w @speakai/recorder",
+    "build:editor": "npm run build -w @speakai/editor",
+    "build:player": "npm run build -w @speakai/player",
+    "clean": "npm run clean --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
