@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  forwardRef,
   ReactNode,
   useCallback,
   useContext,
@@ -11,7 +12,7 @@ import {
 } from "react";
 import { cn } from "../utils/cn";
 
-// ── Types ──────────────────────────────────────────────────────────────────────
+// ── Types ────────────────────────────────────────────────────────────────────
 
 export type ToastType = "success" | "error" | "info" | "warning";
 
@@ -22,39 +23,91 @@ export interface Toast {
   message?: string;
 }
 
-// ── Icons ──────────────────────────────────────────────────────────────────────
+// ── Constants ────────────────────────────────────────────────────────────────
+
+const AUTO_DISMISS_MS: Record<ToastType, number> = {
+  success: 5000,
+  info: 5000,
+  warning: 10000,
+  error: 15000,
+};
+
+const MAX_VISIBLE_TOASTS = 5;
+
+// ── Icons ────────────────────────────────────────────────────────────────────
 
 const icons: Record<ToastType, ReactNode> = {
   success: (
-    <svg className="h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <svg
+      aria-hidden="true"
+      className="h-5 w-5 text-success"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={2}
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
     </svg>
   ),
   error: (
-    <svg className="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <svg
+      aria-hidden="true"
+      className="h-5 w-5 text-destructive"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={2}
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
     </svg>
   ),
   info: (
-    <svg className="h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+    <svg
+      aria-hidden="true"
+      className="h-5 w-5 text-primary"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={2}
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"
+      />
     </svg>
   ),
   warning: (
-    <svg className="h-5 w-5 text-yellow-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+    <svg
+      aria-hidden="true"
+      className="h-5 w-5 text-warning"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={2}
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+      />
     </svg>
   ),
 };
 
-const typeStyles: Record<ToastType, string> = {
-  success: "border-green-200 dark:border-green-800",
-  error: "border-red-200 dark:border-red-800",
-  info: "border-blue-200 dark:border-blue-800",
-  warning: "border-yellow-200 dark:border-yellow-800",
-};
-
-// ── Toast Item ─────────────────────────────────────────────────────────────────
+// ── Toast Item ───────────────────────────────────────────────────────────────
 
 interface ToastItemProps {
   toast: Toast;
@@ -62,41 +115,78 @@ interface ToastItemProps {
 }
 
 const ToastItem = ({ toast, onDismiss }: ToastItemProps) => {
-  const duration = toast.type === "warning" ? 12000 : 5000;
+  const [isExiting, setIsExiting] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const remainingRef = useRef(AUTO_DISMISS_MS[toast.type]);
+  const startTimeRef = useRef(Date.now());
+
+  const dismiss = useCallback(() => {
+    setIsExiting(true);
+    setTimeout(() => onDismiss(toast.id), 150);
+  }, [toast.id, onDismiss]);
+
+  const startTimer = useCallback(() => {
+    startTimeRef.current = Date.now();
+    timerRef.current = setTimeout(dismiss, remainingRef.current);
+  }, [dismiss]);
+
+  const pauseTimer = useCallback(() => {
+    clearTimeout(timerRef.current);
+    remainingRef.current -= Date.now() - startTimeRef.current;
+    if (remainingRef.current < 0) remainingRef.current = 0;
+  }, []);
 
   useEffect(() => {
-    timerRef.current = setTimeout(() => onDismiss(toast.id), duration);
+    startTimer();
     return () => clearTimeout(timerRef.current);
-  }, [toast.id, duration, onDismiss]);
+  }, [startTimer]);
 
   return (
     <div
       className={cn(
-        "pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border bg-white p-4 shadow-lg transition-all duration-200 dark:bg-gray-800",
-        typeStyles[toast.type]
+        "pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-lg border border-border bg-card p-4 shadow-lg",
+        "animate-slide-in-from-top transition-opacity duration-150",
+        isExiting && "opacity-0"
       )}
+      onMouseEnter={pauseTimer}
+      onMouseLeave={startTimer}
     >
       <div className="flex-shrink-0 pt-0.5">{icons[toast.type]}</div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-gray-900 dark:text-white">{toast.title}</p>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-card-foreground">
+          {toast.title}
+        </p>
         {toast.message && (
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{toast.message}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{toast.message}</p>
         )}
       </div>
       <button
-        onClick={() => onDismiss(toast.id)}
-        className="flex-shrink-0 rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all duration-200 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+        onClick={dismiss}
+        aria-label="Dismiss notification"
+        className="flex-shrink-0 rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-card-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       >
-        <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        <svg
+          aria-hidden="true"
+          className="h-4 w-4"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M6 18L18 6M6 6l12 12"
+          />
         </svg>
       </button>
     </div>
   );
 };
+ToastItem.displayName = "ToastItem";
 
-// ── Container ──────────────────────────────────────────────────────────────────
+// ── Container ────────────────────────────────────────────────────────────────
 
 interface ToastContainerProps {
   toasts: Toast[];
@@ -104,21 +194,26 @@ interface ToastContainerProps {
   className?: string;
 }
 
-export const ToastContainer = ({ toasts, onDismiss, className }: ToastContainerProps) => (
-  <div
-    className={cn(
-      "pointer-events-none fixed inset-0 z-[9999] flex flex-col items-end gap-3 p-4 sm:p-6",
-      className
-    )}
-  >
-    {toasts.map((toast) => (
-      <ToastItem key={toast.id} toast={toast} onDismiss={onDismiss} />
-    ))}
-  </div>
+export const ToastContainer = forwardRef<HTMLDivElement, ToastContainerProps>(
+  ({ toasts, onDismiss, className }, ref) => (
+    <div
+      ref={ref}
+      role="status"
+      aria-live="polite"
+      className={cn(
+        "pointer-events-none fixed inset-x-0 top-0 z-[9999] flex flex-col items-center gap-3 p-4 sm:items-end sm:p-6",
+        className
+      )}
+    >
+      {toasts.map((toast) => (
+        <ToastItem key={toast.id} toast={toast} onDismiss={onDismiss} />
+      ))}
+    </div>
+  )
 );
 ToastContainer.displayName = "ToastContainer";
 
-// ── Context ────────────────────────────────────────────────────────────────────
+// ── Context ──────────────────────────────────────────────────────────────────
 
 interface ToastContextValue {
   toasts: Toast[];
@@ -134,8 +229,14 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const addToast = useCallback((toast: Omit<Toast, "id">) => {
-    const id = `toast-${++idCounter}-${Date.now()}`;
-    setToasts((prev) => [...prev, { ...toast, id }]);
+    const id = `toast-${++idCounter}`;
+    setToasts((prev) => {
+      const next = [...prev, { ...toast, id }];
+      if (next.length > MAX_VISIBLE_TOASTS) {
+        return next.slice(next.length - MAX_VISIBLE_TOASTS);
+      }
+      return next;
+    });
   }, []);
 
   const dismissToast = useCallback((id: string) => {
@@ -151,7 +252,7 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
 };
 ToastProvider.displayName = "ToastProvider";
 
-// ── Hook ───────────────────────────────────────────────────────────────────────
+// ── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useToast() {
   const ctx = useContext(ToastContext);

@@ -3,16 +3,16 @@ export { cn } from "./utils/cn";
 
 // Components
 export { Button } from "./components/Button";
-export type { ButtonProps } from "./components/Button";
+export type { ButtonProps, ButtonVariant, ButtonSize } from "./components/Button";
 
 export { Card } from "./components/Card";
-export type { CardProps } from "./components/Card";
+export type { CardProps, CardVariant } from "./components/Card";
 
 export { Badge, StatusBadge } from "./components/Badge";
-export type { BadgeProps, BadgeVariant, BadgeColor } from "./components/Badge";
+export type { BadgeProps, BadgeVariant, BadgeSize, StatusBadgeProps } from "./components/Badge";
 
-export { Input, SearchInput, Select } from "./components/Input";
-export type { InputProps, SearchInputProps, SelectProps } from "./components/Input";
+export { Input, SearchInput, Select, Textarea } from "./components/Input";
+export type { InputProps, SearchInputProps, SelectProps, TextareaProps } from "./components/Input";
 
 export {
   Table,
@@ -84,3 +84,21 @@ export type { PageHeaderProps, SectionHeaderProps } from "./components/PageHeade
 
 export { InfoCard } from "./components/InfoCard";
 export type { InfoCardProps, InfoCardColor } from "./components/InfoCard";
+
+// Sidebar
+export {
+  Sidebar,
+  SidebarProvider,
+  SidebarLayout,
+  SidebarUser,
+  useSidebar,
+} from "./components/Sidebar";
+export type {
+  SidebarProps,
+  SidebarProviderProps,
+  SidebarLayoutProps,
+  SidebarUserProps,
+  SidebarContextValue,
+  SidebarItem,
+  SidebarSection,
+} from "./components/Sidebar";

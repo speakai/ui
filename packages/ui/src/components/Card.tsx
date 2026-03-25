@@ -1,39 +1,60 @@
 import { HTMLAttributes, forwardRef } from "react";
 import { cn } from "../utils/cn";
 
+export type CardVariant = "default" | "outline" | "elevated" | "glass";
+
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
-  variant?: "default" | "outlined" | "elevated" | "glass" | "gradient-border";
+  variant?: CardVariant;
   showGradientAccent?: boolean;
 }
 
+const variantStyles: Record<CardVariant, string> = {
+  default:
+    "bg-card text-card-foreground border border-border shadow-sm",
+  outline:
+    "bg-transparent border-2 border-border hover:border-border/80 transition-colors",
+  elevated:
+    "bg-card text-card-foreground border border-border shadow-lg",
+  glass:
+    "bg-card/5 backdrop-blur-xl border border-border/10 shadow-lg hover:bg-card/10 transition-colors",
+};
+
 export const Card = forwardRef<HTMLDivElement, CardProps>(
-  ({ className, variant = "default", showGradientAccent = false, children, ...props }, ref) => {
-    const variants = {
-      default: "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-200",
-      outlined: "bg-transparent border-2 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 transition-all duration-200",
-      elevated: "bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 transition-all duration-200",
-      glass: "bg-white/5 dark:bg-white/5 backdrop-blur-xl border border-white/10 dark:border-white/10 shadow-lg hover:bg-white/10 hover:border-purple-500/30 transition-all duration-200",
-      "gradient-border": "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-transparent transition-all duration-200",
-    };
-
-    const needsRelative = showGradientAccent || variant === "gradient-border";
-
+  (
+    {
+      className,
+      variant = "default",
+      showGradientAccent = false,
+      children,
+      ...props
+    },
+    ref,
+  ) => {
     return (
       <div
         ref={ref}
-        className={cn("rounded-2xl p-6", needsRelative && "relative overflow-hidden", variants[variant], className)}
+        className={cn(
+          "rounded-lg p-6",
+          showGradientAccent && "relative overflow-hidden",
+          variantStyles[variant],
+          className,
+        )}
         {...props}
       >
         {showGradientAccent && (
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500" />
+          <div
+            className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-gradient-from via-gradient-to to-gradient-accent"
+            aria-hidden="true"
+          />
         )}
-        {variant === "gradient-border" && (
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-orange-500/20 opacity-0 hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
+        {showGradientAccent ? (
+          <div className="relative z-10">{children}</div>
+        ) : (
+          children
         )}
-        <div className={cn(needsRelative && "relative z-10")}>{children}</div>
       </div>
     );
-  }
+  },
 );
 
 Card.displayName = "Card";

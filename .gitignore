@@ -2,3 +2,22 @@ node_modules/
 dist/
 *.tsbuildinfo
 .DS_Store
+
+# Next.js (demo)
+.next/
+out/
+next-env.d.ts
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local

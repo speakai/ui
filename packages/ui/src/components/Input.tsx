@@ -1,51 +1,70 @@
-import { forwardRef, InputHTMLAttributes, SelectHTMLAttributes } from "react";
+import {
+  forwardRef,
+  InputHTMLAttributes,
+  SelectHTMLAttributes,
+  TextareaHTMLAttributes,
+} from "react";
 import { cn } from "../utils/cn";
 
-// ── Input ──────────────────────────────────────────────────────────────────────
+// ── Shared styles ─────────────────────────────────────────────────────────────
+
+const inputBase = [
+  "flex w-full rounded-lg border bg-background px-4 text-base text-foreground",
+  "placeholder:text-muted-foreground",
+  "transition-colors",
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+  "disabled:pointer-events-none disabled:opacity-50",
+].join(" ");
+
+const errorRing = "border-destructive focus-visible:ring-destructive";
+const defaultRing = "border-input";
+
+// ── Input ─────────────────────────────────────────────────────────────────────
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, error, ...props }, ref) => (
+  ({ className, error, id, ...props }, ref) => (
     <div className="w-full">
       <input
         ref={ref}
+        id={id}
+        aria-invalid={error ? true : undefined}
         className={cn(
-          "w-full rounded-xl border bg-white px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 transition-all duration-200",
-          "focus:outline-none focus:ring-2 focus:ring-offset-0",
-          "dark:bg-gray-800 dark:text-white dark:placeholder-gray-500",
-          error
-            ? "border-red-400 focus:border-red-500 focus:ring-red-500/20 dark:border-red-500"
-            : "border-gray-200 focus:border-purple-500 focus:ring-purple-500/20 dark:border-gray-700 dark:focus:border-purple-400",
-          "disabled:cursor-not-allowed disabled:opacity-50",
-          className
+          inputBase,
+          "h-10",
+          error ? errorRing : defaultRing,
+          className,
         )}
         {...props}
       />
       {error && (
-        <p className="mt-1.5 text-xs text-red-500 dark:text-red-400">{error}</p>
+        <p className="mt-1.5 text-xs text-destructive">{error}</p>
       )}
     </div>
-  )
+  ),
 );
+
 Input.displayName = "Input";
 
-// ── SearchInput ────────────────────────────────────────────────────────────────
+// ── SearchInput ───────────────────────────────────────────────────────────────
 
-export interface SearchInputProps extends InputHTMLAttributes<HTMLInputElement> {}
+export interface SearchInputProps
+  extends InputHTMLAttributes<HTMLInputElement> {}
 
 export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
   ({ className, ...props }, ref) => (
     <div className="relative w-full">
       <svg
-        className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500"
+        className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
         strokeWidth={2}
         stroke="currentColor"
+        aria-hidden="true"
       >
         <path
           strokeLinecap="round"
@@ -57,58 +76,94 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
         ref={ref}
         type="search"
         className={cn(
-          "w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-900 placeholder-gray-400 transition-all duration-200",
-          "focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500",
-          "dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500 dark:focus:border-purple-400",
-          "disabled:cursor-not-allowed disabled:opacity-50",
-          className
+          inputBase,
+          "h-10 pl-10 pr-4",
+          defaultRing,
+          className,
         )}
         {...props}
       />
     </div>
-  )
+  ),
 );
+
 SearchInput.displayName = "SearchInput";
 
-// ── Select ─────────────────────────────────────────────────────────────────────
+// ── Select ────────────────────────────────────────────────────────────────────
 
-export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
+export interface SelectProps
+  extends SelectHTMLAttributes<HTMLSelectElement> {
   error?: string;
 }
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, error, children, ...props }, ref) => (
+  ({ className, error, children, id, ...props }, ref) => (
     <div className="relative w-full">
       <select
         ref={ref}
+        id={id}
+        aria-invalid={error ? true : undefined}
         className={cn(
-          "w-full appearance-none rounded-xl border bg-white px-4 py-2.5 pr-10 text-sm text-gray-900 transition-all duration-200",
-          "focus:outline-none focus:ring-2 focus:ring-offset-0",
-          "dark:bg-gray-800 dark:text-white",
-          error
-            ? "border-red-400 focus:border-red-500 focus:ring-red-500/20 dark:border-red-500"
-            : "border-gray-200 focus:border-purple-500 focus:ring-purple-500/20 dark:border-gray-700 dark:focus:border-purple-400",
-          "disabled:cursor-not-allowed disabled:opacity-50",
-          className
+          inputBase,
+          "h-10 appearance-none pr-10",
+          error ? errorRing : defaultRing,
+          className,
         )}
         {...props}
       >
         {children}
       </select>
       <svg
-        className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500"
+        className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
         strokeWidth={2}
         stroke="currentColor"
+        aria-hidden="true"
       >
-        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+        />
       </svg>
       {error && (
-        <p className="mt-1.5 text-xs text-red-500 dark:text-red-400">{error}</p>
+        <p className="mt-1.5 text-xs text-destructive">{error}</p>
       )}
     </div>
-  )
+  ),
 );
+
 Select.displayName = "Select";
+
+// ── Textarea ──────────────────────────────────────────────────────────────────
+
+export interface TextareaProps
+  extends TextareaHTMLAttributes<HTMLTextAreaElement> {
+  error?: string;
+}
+
+export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
+  ({ className, error, id, ...props }, ref) => (
+    <div className="w-full">
+      <textarea
+        ref={ref}
+        id={id}
+        aria-invalid={error ? true : undefined}
+        className={cn(
+          inputBase,
+          "min-h-[80px] py-2.5",
+          error ? errorRing : defaultRing,
+          className,
+        )}
+        {...props}
+      />
+      {error && (
+        <p className="mt-1.5 text-xs text-destructive">{error}</p>
+      )}
+    </div>
+  ),
+);
+
+Textarea.displayName = "Textarea";

@@ -1,52 +1,96 @@
 import { ButtonHTMLAttributes, forwardRef } from "react";
 import { cn } from "../utils/cn";
 
+export type ButtonVariant =
+  | "default"
+  | "secondary"
+  | "destructive"
+  | "ghost"
+  | "outline"
+  | "glass";
+
+export type ButtonSize = "sm" | "default" | "lg" | "icon";
+
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "danger" | "ghost" | "gradient" | "glass" | "solid";
-  size?: "sm" | "md" | "lg";
+  variant?: ButtonVariant;
+  size?: ButtonSize;
   isLoading?: boolean;
 }
 
+const variantStyles: Record<ButtonVariant, string> = {
+  default:
+    "bg-gradient-to-r from-gradient-from to-gradient-to text-primary-foreground shadow-sm hover:opacity-90",
+  secondary:
+    "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
+  destructive:
+    "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+  ghost: "hover:bg-accent hover:text-accent-foreground",
+  outline:
+    "border border-input bg-background text-foreground shadow-sm hover:bg-accent hover:text-accent-foreground",
+  glass:
+    "bg-background/10 backdrop-blur-xl border border-border/20 text-foreground hover:bg-background/20 shadow-sm",
+};
+
+const sizeStyles: Record<ButtonSize, string> = {
+  sm: "h-9 px-3 text-sm gap-1.5",
+  default: "h-10 px-4 text-sm gap-2",
+  lg: "h-11 px-6 text-base gap-2",
+  icon: "h-10 w-10",
+};
+
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "primary", size = "md", isLoading = false, disabled, children, ...props }, ref) => {
-    const baseStyles =
-      "inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none";
-
-    const variants = {
-      primary:
-        "bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 focus:ring-purple-500 rounded-xl shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/30 hover:scale-105 active:scale-100",
-      gradient:
-        "bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 focus:ring-purple-500 rounded-full shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/30 hover:scale-105 active:scale-100",
-      secondary:
-        "bg-white/10 dark:bg-gray-700/50 backdrop-blur-sm text-gray-900 dark:text-white border border-gray-200 dark:border-gray-600 hover:bg-white/20 dark:hover:bg-gray-600/70 focus:ring-gray-500 rounded-xl shadow-sm hover:shadow-md hover:scale-105 active:scale-100",
-      danger:
-        "bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 focus:ring-red-500 rounded-xl shadow-lg shadow-red-500/25 hover:shadow-xl hover:shadow-red-500/30 hover:scale-105 active:scale-100",
-      ghost:
-        "bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 focus:ring-gray-500 rounded-lg hover:scale-105 active:scale-100",
-      glass:
-        "bg-white/10 backdrop-blur-xl border border-white/20 text-white hover:bg-white/20 focus:ring-purple-500/50 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 active:scale-100",
-      solid:
-        "text-white focus:ring-offset-2 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 active:scale-100 border-2",
-    };
-
-    const sizes = {
-      sm: "px-3 py-1.5 text-sm gap-1.5",
-      md: "px-4 py-2 text-base gap-2",
-      lg: "px-6 py-3 text-lg gap-2",
-    };
+  (
+    {
+      className,
+      variant = "default",
+      size = "default",
+      isLoading = false,
+      disabled,
+      children,
+      ...props
+    },
+    ref,
+  ) => {
+    const isDisabled = disabled || isLoading;
 
     return (
       <button
         ref={ref}
-        className={cn(baseStyles, variants[variant], sizes[size], className)}
-        disabled={disabled || isLoading}
+        className={cn(
+          "inline-flex items-center justify-center whitespace-nowrap rounded-lg font-medium transition-colors",
+          "active:scale-[0.98]",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+          "disabled:pointer-events-none disabled:opacity-50",
+          variantStyles[variant],
+          sizeStyles[size],
+          className,
+        )}
+        disabled={isDisabled}
+        aria-busy={isLoading || undefined}
         {...props}
       >
         {isLoading ? (
           <>
-            <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            <svg
+              className="h-4 w-4 animate-spin"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
             </svg>
             <span>Loading...</span>
           </>
@@ -55,7 +99,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         )}
       </button>
     );
-  }
+  },
 );
 
 Button.displayName = "Button";

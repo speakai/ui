@@ -1,68 +1,75 @@
-import { ReactNode } from "react";
+import { forwardRef, HTMLAttributes, ReactNode } from "react";
 import { cn } from "../utils/cn";
 
 // ── PageHeader ─────────────────────────────────────────────────────────────────
 
-export interface PageHeaderProps {
+export interface PageHeaderProps extends HTMLAttributes<HTMLDivElement> {
   title: string;
   gradientText?: string;
   description?: string;
   action?: ReactNode;
-  className?: string;
 }
 
-export const PageHeader = ({
-  title,
-  gradientText,
-  description,
-  action,
-  className,
-}: PageHeaderProps) => (
-  <div className={cn("flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between", className)}>
-    <div className="space-y-1">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-        {title}
-        {gradientText && (
-          <>
-            {" "}
-            <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              {gradientText}
-            </span>
-          </>
-        )}
-      </h1>
-      {description && (
-        <p className="text-sm text-gray-500 dark:text-gray-400">{description}</p>
+export const PageHeader = forwardRef<HTMLDivElement, PageHeaderProps>(
+  ({ title, gradientText, description, action, className, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn(
+        "flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between",
+        className
       )}
+      {...props}
+    >
+      <div className="space-y-1">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          {title}
+          {gradientText && (
+            <>
+              {" "}
+              <span className="bg-gradient-to-r from-gradient-from to-gradient-to bg-clip-text text-transparent">
+                {gradientText}
+              </span>
+            </>
+          )}
+        </h1>
+        {description && (
+          <p className="text-base text-muted-foreground sm:text-lg">
+            {description}
+          </p>
+        )}
+      </div>
+      {action && <div className="mt-3 sm:mt-0">{action}</div>}
     </div>
-    {action && <div className="mt-3 sm:mt-0">{action}</div>}
-  </div>
+  )
 );
 PageHeader.displayName = "PageHeader";
 
 // ── SectionHeader ──────────────────────────────────────────────────────────────
 
-export interface SectionHeaderProps {
+export interface SectionHeaderProps extends HTMLAttributes<HTMLDivElement> {
   title: string;
   description?: string;
   action?: ReactNode;
-  className?: string;
 }
 
-export const SectionHeader = ({
-  title,
-  description,
-  action,
-  className,
-}: SectionHeaderProps) => (
-  <div className={cn("flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between", className)}>
-    <div className="space-y-0.5">
-      <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h2>
-      {description && (
-        <p className="text-sm text-gray-500 dark:text-gray-400">{description}</p>
+export const SectionHeader = forwardRef<HTMLDivElement, SectionHeaderProps>(
+  ({ title, description, action, className, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn(
+        "flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between",
+        className
       )}
+      {...props}
+    >
+      <div className="space-y-0.5">
+        <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+        {description && (
+          <p className="text-sm text-muted-foreground">{description}</p>
+        )}
+      </div>
+      {action && <div className="mt-2 sm:mt-0">{action}</div>}
     </div>
-    {action && <div className="mt-2 sm:mt-0">{action}</div>}
-  </div>
+  )
 );
 SectionHeader.displayName = "SectionHeader";

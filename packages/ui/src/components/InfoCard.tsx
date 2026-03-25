@@ -1,56 +1,61 @@
-import { ReactNode } from "react";
+import { forwardRef, HTMLAttributes, ReactNode } from "react";
 import { cn } from "../utils/cn";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
 export type InfoCardColor = "purple" | "blue" | "green" | "yellow" | "red" | "gray";
 
-export interface InfoCardProps {
+export interface InfoCardProps extends HTMLAttributes<HTMLDivElement> {
   color?: InfoCardColor;
   title?: string;
   description?: string;
   children?: ReactNode;
-  className?: string;
 }
 
 // ── Color Map ──────────────────────────────────────────────────────────────────
 
 const colorMap: Record<InfoCardColor, string> = {
   purple:
-    "border-purple-200 bg-purple-50 text-purple-800 dark:border-purple-800 dark:bg-purple-900/20 dark:text-purple-300",
+    "bg-purple-500/10 border-purple-500/20 text-purple-700 dark:text-purple-300",
   blue:
-    "border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300",
+    "bg-blue-500/10 border-blue-500/20 text-blue-700 dark:text-blue-300",
   green:
-    "border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-300",
+    "bg-green-500/10 border-green-500/20 text-green-700 dark:text-green-300",
   yellow:
-    "border-yellow-200 bg-yellow-50 text-yellow-800 dark:border-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300",
+    "bg-yellow-500/10 border-yellow-500/20 text-yellow-700 dark:text-yellow-300",
   red:
-    "border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300",
+    "bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-300",
   gray:
-    "border-gray-200 bg-gray-50 text-gray-800 dark:border-gray-700 dark:bg-gray-800/50 dark:text-gray-300",
+    "bg-muted/50 border-border text-foreground",
 };
 
 // ── Component ──────────────────────────────────────────────────────────────────
 
-export const InfoCard = ({
-  color = "blue",
-  title,
-  description,
-  children,
-  className,
-}: InfoCardProps) => (
-  <div
-    className={cn(
-      "rounded-xl border p-4 transition-all duration-200",
-      colorMap[color],
-      className
-    )}
-  >
-    {title && <h4 className="text-sm font-semibold">{title}</h4>}
-    {description && (
-      <p className={cn("text-sm opacity-80", title && "mt-1")}>{description}</p>
-    )}
-    {children && <div className={cn((title || description) && "mt-3")}>{children}</div>}
-  </div>
+export const InfoCard = forwardRef<HTMLDivElement, InfoCardProps>(
+  ({ color = "blue", title, description, children, className, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn(
+        "rounded-lg border p-4 transition-colors sm:p-6",
+        colorMap[color],
+        className
+      )}
+      {...props}
+    >
+      <div className="flex flex-col gap-3 md:flex-row md:items-start">
+        <div className="min-w-0 flex-1">
+          {title && <h4 className="font-semibold">{title}</h4>}
+          {description && (
+            <p className={cn("text-sm opacity-80", title && "mt-1")}>
+              {description}
+            </p>
+          )}
+        </div>
+      </div>
+      {children && (
+        <div className={cn((title || description) && "mt-3")}>{children}</div>
+      )}
+    </div>
+  )
 );
 InfoCard.displayName = "InfoCard";

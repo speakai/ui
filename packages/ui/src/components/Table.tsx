@@ -1,13 +1,28 @@
-import { forwardRef, HTMLAttributes, TdHTMLAttributes, ThHTMLAttributes } from "react";
+import {
+  forwardRef,
+  HTMLAttributes,
+  KeyboardEvent,
+  TdHTMLAttributes,
+  ThHTMLAttributes,
+} from "react";
 import { cn } from "../utils/cn";
 
-// ── Table ──────────────────────────────────────────────────────────────────────
+// ── Deterministic skeleton widths ────────────────────────────────────────────
+
+const SKELETON_WIDTH_PATTERN = [75, 60, 85, 50, 70, 90, 55, 80, 65, 95];
+
+function getSkeletonWidth(rowIndex: number, colIndex: number): string {
+  const idx = (rowIndex * 7 + colIndex * 3) % SKELETON_WIDTH_PATTERN.length;
+  return `${SKELETON_WIDTH_PATTERN[idx]}%`;
+}
+
+// ── Table ────────────────────────────────────────────────────────────────────
 
 export interface TableProps extends HTMLAttributes<HTMLTableElement> {}
 
 export const Table = forwardRef<HTMLTableElement, TableProps>(
   ({ className, children, ...props }, ref) => (
-    <div className="w-full overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
+    <div className="w-full overflow-x-auto rounded-lg border border-border bg-card">
       <table
         ref={ref}
         className={cn("w-full caption-bottom text-sm", className)}
@@ -20,70 +35,87 @@ export const Table = forwardRef<HTMLTableElement, TableProps>(
 );
 Table.displayName = "Table";
 
-// ── TableHeader ────────────────────────────────────────────────────────────────
+// ── TableHeader ──────────────────────────────────────────────────────────────
 
-export interface TableHeaderProps extends HTMLAttributes<HTMLTableSectionElement> {}
+export interface TableHeaderProps
+  extends HTMLAttributes<HTMLTableSectionElement> {}
 
-export const TableHeader = forwardRef<HTMLTableSectionElement, TableHeaderProps>(
-  ({ className, ...props }, ref) => (
-    <thead
-      ref={ref}
-      className={cn(
-        "bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700",
-        className
-      )}
-      {...props}
-    />
-  )
-);
+export const TableHeader = forwardRef<
+  HTMLTableSectionElement,
+  TableHeaderProps
+>(({ className, ...props }, ref) => (
+  <thead
+    ref={ref}
+    className={cn("border-b border-border bg-muted/50", className)}
+    {...props}
+  />
+));
 TableHeader.displayName = "TableHeader";
 
-// ── TableBody ──────────────────────────────────────────────────────────────────
+// ── TableBody ────────────────────────────────────────────────────────────────
 
-export interface TableBodyProps extends HTMLAttributes<HTMLTableSectionElement> {}
+export interface TableBodyProps
+  extends HTMLAttributes<HTMLTableSectionElement> {}
 
 export const TableBody = forwardRef<HTMLTableSectionElement, TableBodyProps>(
   ({ className, ...props }, ref) => (
     <tbody
       ref={ref}
-      className={cn("divide-y divide-gray-200 dark:divide-gray-700", className)}
+      className={cn("divide-y divide-border", className)}
       {...props}
     />
   )
 );
 TableBody.displayName = "TableBody";
 
-// ── TableRow ───────────────────────────────────────────────────────────────────
+// ── TableRow ─────────────────────────────────────────────────────────────────
 
 export interface TableRowProps extends HTMLAttributes<HTMLTableRowElement> {
   clickable?: boolean;
 }
 
 export const TableRow = forwardRef<HTMLTableRowElement, TableRowProps>(
-  ({ className, clickable = false, ...props }, ref) => (
-    <tr
-      ref={ref}
-      className={cn(
-        "bg-white dark:bg-gray-800 transition-all duration-200",
-        clickable && "cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50",
-        className
-      )}
-      {...props}
-    />
-  )
+  ({ className, clickable = false, onClick, ...props }, ref) => {
+    const handleKeyDown = (e: KeyboardEvent<HTMLTableRowElement>) => {
+      if (clickable && (e.key === "Enter" || e.key === " ")) {
+        e.preventDefault();
+        onClick?.(e as unknown as React.MouseEvent<HTMLTableRowElement>);
+      }
+      props.onKeyDown?.(e);
+    };
+
+    return (
+      <tr
+        ref={ref}
+        role="row"
+        tabIndex={clickable ? 0 : undefined}
+        onClick={onClick}
+        onKeyDown={handleKeyDown}
+        className={cn(
+          "bg-card transition-colors",
+          clickable &&
+            "cursor-pointer hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+          className
+        )}
+        {...props}
+      />
+    );
+  }
 );
 TableRow.displayName = "TableRow";
 
-// ── TableHead ──────────────────────────────────────────────────────────────────
+// ── TableHead ────────────────────────────────────────────────────────────────
 
-export interface TableHeadProps extends ThHTMLAttributes<HTMLTableCellElement> {}
+export interface TableHeadProps
+  extends ThHTMLAttributes<HTMLTableCellElement> {}
 
 export const TableHead = forwardRef<HTMLTableCellElement, TableHeadProps>(
   ({ className, ...props }, ref) => (
     <th
       ref={ref}
+      scope="col"
       className={cn(
-        "px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400",
+        "px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground",
         className
       )}
       {...props}
@@ -92,16 +124,17 @@ export const TableHead = forwardRef<HTMLTableCellElement, TableHeadProps>(
 );
 TableHead.displayName = "TableHead";
 
-// ── TableCell ──────────────────────────────────────────────────────────────────
+// ── TableCell ────────────────────────────────────────────────────────────────
 
-export interface TableCellProps extends TdHTMLAttributes<HTMLTableCellElement> {}
+export interface TableCellProps
+  extends TdHTMLAttributes<HTMLTableCellElement> {}
 
 export const TableCell = forwardRef<HTMLTableCellElement, TableCellProps>(
   ({ className, ...props }, ref) => (
     <td
       ref={ref}
       className={cn(
-        "px-4 py-3 text-sm text-gray-700 dark:text-gray-300",
+        "px-4 py-3 text-sm text-card-foreground",
         className
       )}
       {...props}
@@ -110,7 +143,7 @@ export const TableCell = forwardRef<HTMLTableCellElement, TableCellProps>(
 );
 TableCell.displayName = "TableCell";
 
-// ── TableSkeleton ──────────────────────────────────────────────────────────────
+// ── TableSkeleton ────────────────────────────────────────────────────────────
 
 export interface TableSkeletonProps {
   columns?: number;
@@ -118,33 +151,41 @@ export interface TableSkeletonProps {
   className?: string;
 }
 
-export const TableSkeleton = ({ columns = 4, rows = 5, className }: TableSkeletonProps) => (
-  <div className={cn("w-full overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700", className)}>
-    <table className="w-full">
-      <thead className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
-        <tr>
-          {Array.from({ length: columns }).map((_, i) => (
-            <th key={i} className="px-4 py-3">
-              <div className="h-3 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-        {Array.from({ length: rows }).map((_, rowIdx) => (
-          <tr key={rowIdx} className="bg-white dark:bg-gray-800">
-            {Array.from({ length: columns }).map((_, colIdx) => (
-              <td key={colIdx} className="px-4 py-3">
-                <div
-                  className="h-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"
-                  style={{ width: `${60 + Math.random() * 30}%` }}
-                />
-              </td>
+export const TableSkeleton = forwardRef<HTMLDivElement, TableSkeletonProps>(
+  ({ columns = 4, rows = 5, className }, ref) => (
+    <div
+      ref={ref}
+      className={cn(
+        "w-full overflow-x-auto rounded-lg border border-border bg-card",
+        className
+      )}
+    >
+      <table className="w-full">
+        <thead className="border-b border-border bg-muted/50">
+          <tr>
+            {Array.from({ length: columns }).map((_, i) => (
+              <th key={i} scope="col" className="px-4 py-3">
+                <div className="h-3 w-20 animate-pulse rounded-lg bg-muted" />
+              </th>
             ))}
           </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
+        </thead>
+        <tbody className="divide-y divide-border">
+          {Array.from({ length: rows }).map((_, rowIdx) => (
+            <tr key={rowIdx} className="bg-card">
+              {Array.from({ length: columns }).map((_, colIdx) => (
+                <td key={colIdx} className="px-4 py-3">
+                  <div
+                    className="h-4 animate-pulse rounded-lg bg-muted"
+                    style={{ width: getSkeletonWidth(rowIdx, colIdx) }}
+                  />
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
 );
 TableSkeleton.displayName = "TableSkeleton";

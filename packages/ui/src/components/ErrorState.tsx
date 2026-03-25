@@ -1,23 +1,24 @@
 "use client";
 
+import { forwardRef, HTMLAttributes } from "react";
 import { cn } from "../utils/cn";
 import { Button } from "./Button";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
-export interface ErrorStateProps {
+export interface ErrorStateProps extends HTMLAttributes<HTMLDivElement> {
   variant?: "page" | "card" | "inline";
   title?: string;
   message?: string;
   onRetry?: () => void;
   retryLabel?: string;
-  className?: string;
 }
 
 // ── Icons ──────────────────────────────────────────────────────────────────────
 
 const WarningIcon = ({ className }: { className?: string }) => (
   <svg
+    aria-hidden="true"
     className={cn("h-6 w-6", className)}
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
@@ -35,6 +36,7 @@ const WarningIcon = ({ className }: { className?: string }) => (
 
 const RetryIcon = () => (
   <svg
+    aria-hidden="true"
     className="h-4 w-4"
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
@@ -52,82 +54,107 @@ const RetryIcon = () => (
 
 // ── Component ──────────────────────────────────────────────────────────────────
 
-export const ErrorState = ({
-  variant = "card",
-  title = "Something went wrong",
-  message = "An unexpected error occurred. Please try again.",
-  onRetry,
-  retryLabel = "Try again",
-  className,
-}: ErrorStateProps) => {
-  const retryButton = onRetry ? (
-    <Button variant="secondary" size="sm" onClick={onRetry}>
-      <RetryIcon />
-      {retryLabel}
-    </Button>
-  ) : null;
+export const ErrorState = forwardRef<HTMLDivElement, ErrorStateProps>(
+  (
+    {
+      variant = "card",
+      title = "Something went wrong",
+      message = "An unexpected error occurred. Please try again.",
+      onRetry,
+      retryLabel = "Try again",
+      className,
+      ...props
+    },
+    ref
+  ) => {
+    const retryButton = onRetry ? (
+      <Button variant="outline" size="sm" onClick={onRetry}>
+        <RetryIcon />
+        {retryLabel}
+      </Button>
+    ) : null;
 
-  if (variant === "inline") {
+    // ── Inline variant ───────────────────────────────────────────────────────
+    if (variant === "inline") {
+      return (
+        <div
+          ref={ref}
+          role="alert"
+          className={cn(
+            "flex items-center gap-3 rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 transition-colors",
+            className
+          )}
+          {...props}
+        >
+          <WarningIcon className="flex-shrink-0 text-destructive" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-destructive">{title}</p>
+            {message && (
+              <p className="text-xs text-destructive/80">{message}</p>
+            )}
+          </div>
+          {retryButton}
+        </div>
+      );
+    }
+
+    // ── Page variant ─────────────────────────────────────────────────────────
+    if (variant === "page") {
+      return (
+        <div
+          ref={ref}
+          role="alert"
+          className={cn(
+            "flex min-h-[480px] flex-col items-center justify-center gap-6 px-4 py-16 text-center sm:px-8",
+            className
+          )}
+          {...props}
+        >
+          <div
+            aria-hidden="true"
+            className="flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10"
+          >
+            <WarningIcon className="h-8 w-8 text-destructive" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-semibold text-foreground">{title}</h2>
+            {message && (
+              <p className="max-w-md text-sm text-muted-foreground">
+                {message}
+              </p>
+            )}
+          </div>
+          {retryButton}
+        </div>
+      );
+    }
+
+    // ── Card variant (default) ───────────────────────────────────────────────
     return (
       <div
+        ref={ref}
+        role="alert"
         className={cn(
-          "flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 transition-all duration-200 dark:border-red-800 dark:bg-red-900/20",
+          "flex flex-col items-center justify-center gap-4 rounded-lg border border-border bg-card p-8 text-center transition-colors",
           className
         )}
+        {...props}
       >
-        <WarningIcon className="text-red-500 flex-shrink-0" />
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-red-800 dark:text-red-300">{title}</p>
+        <div
+          aria-hidden="true"
+          className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10"
+        >
+          <WarningIcon className="text-destructive" />
+        </div>
+        <div className="space-y-1">
+          <h3 className="text-base font-semibold text-foreground">{title}</h3>
           {message && (
-            <p className="text-xs text-red-600 dark:text-red-400">{message}</p>
+            <p className="max-w-sm text-sm text-muted-foreground">{message}</p>
           )}
         </div>
         {retryButton}
       </div>
     );
   }
-
-  if (variant === "page") {
-    return (
-      <div
-        className={cn(
-          "flex min-h-[480px] flex-col items-center justify-center gap-6 p-8 text-center",
-          className
-        )}
-      >
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-red-100 dark:bg-red-900/30">
-          <WarningIcon className="h-8 w-8 text-red-500" />
-        </div>
-        <div className="space-y-2">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h2>
-          {message && (
-            <p className="max-w-md text-sm text-gray-500 dark:text-gray-400">{message}</p>
-          )}
-        </div>
-        {retryButton}
-      </div>
-    );
-  }
-
-  // card (default)
-  return (
-    <div
-      className={cn(
-        "flex flex-col items-center justify-center gap-4 rounded-2xl border border-gray-200 bg-white p-8 text-center transition-all duration-200 dark:border-gray-700 dark:bg-gray-800",
-        className
-      )}
-    >
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100 dark:bg-red-900/30">
-        <WarningIcon className="text-red-500" />
-      </div>
-      <div className="space-y-1">
-        <h3 className="text-base font-semibold text-gray-900 dark:text-white">{title}</h3>
-        {message && (
-          <p className="max-w-sm text-sm text-gray-500 dark:text-gray-400">{message}</p>
-        )}
-      </div>
-      {retryButton}
-    </div>
-  );
-};
+);
 ErrorState.displayName = "ErrorState";
