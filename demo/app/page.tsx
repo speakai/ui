@@ -4,7 +4,7 @@ import { useTheme } from "next-themes";
 import { useState, useEffect, useCallback } from "react";
 import {
   Button, Card, Badge, StatusBadge, Input, SearchInput, Select, Textarea,
-  Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableActions, TableActionButton, TableSkeleton,
+  Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableActions, TableActionButton, TableSkeleton, TableSortHead, TablePagination,
   ToastProvider, useToast,
   Skeleton, SkeletonText, PageHeaderSkeleton, GridSkeleton, FormSkeleton,
   EmptyState, ErrorState,
@@ -211,6 +211,10 @@ function DemoContent() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc" | null>(null);
+  const [tablePage, setTablePage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [config, setConfig] = useState<ThemeConfig>({ primaryHue: 271, gradientToHue: 330, radius: 0.75, font: "inter" });
 
@@ -311,14 +315,27 @@ function DemoContent() {
           </Section>
 
           <Section id="table" title="Table">
-            <Table>
-              <TableHeader><tr><TableHead>Name</TableHead><TableHead>Type</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Actions</TableHead></tr></TableHeader>
-              <TableBody>
-                <TableRow clickable><TableCell className="font-medium">Interview</TableCell><TableCell>Audio</TableCell><TableCell><Badge variant="success">Done</Badge></TableCell><TableCell><TableActions><Tooltip content="Edit"><TableActionButton label="Edit"><I4 d={icons.pencil} /></TableActionButton></Tooltip><Tooltip content="Copy"><TableActionButton label="Copy"><I4 d={icons.copy} /></TableActionButton></Tooltip><Tooltip content="Delete"><TableActionButton label="Delete" variant="danger"><I4 d={icons.trash} /></TableActionButton></Tooltip></TableActions></TableCell></TableRow>
-                <TableRow clickable><TableCell className="font-medium">Demo</TableCell><TableCell>Video</TableCell><TableCell><Badge variant="warning">Processing</Badge></TableCell><TableCell><TableActions><TableActionButton label="Edit"><I4 d={icons.pencil} /></TableActionButton><TableActionButton label="Delete" variant="danger"><I4 d={icons.trash} /></TableActionButton></TableActions></TableCell></TableRow>
-              </TableBody>
-            </Table>
-            <div className="mt-4"><Sub title="Skeleton"><TableSkeleton rows={2} columns={4} /></Sub></div>
+            <Sub title="Sortable + Actions">
+              <Table>
+                <TableHeader>
+                  <tr>
+                    <TableSortHead sortKey="name" activeSort={sortKey} direction={sortDir} onSort={(k, d) => { setSortKey(d ? k : null); setSortDir(d); }}>Name</TableSortHead>
+                    <TableSortHead sortKey="type" activeSort={sortKey} direction={sortDir} onSort={(k, d) => { setSortKey(d ? k : null); setSortDir(d); }}>Type</TableSortHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </tr>
+                </TableHeader>
+                <TableBody>
+                  <TableRow clickable><TableCell className="font-medium">Interview Recording</TableCell><TableCell>Audio</TableCell><TableCell><Badge variant="success">Done</Badge></TableCell><TableCell><TableActions><Tooltip content="Edit"><TableActionButton label="Edit"><I4 d={icons.pencil} /></TableActionButton></Tooltip><Tooltip content="Copy"><TableActionButton label="Copy"><I4 d={icons.copy} /></TableActionButton></Tooltip><Tooltip content="Delete"><TableActionButton label="Delete" variant="danger"><I4 d={icons.trash} /></TableActionButton></Tooltip></TableActions></TableCell></TableRow>
+                  <TableRow clickable><TableCell className="font-medium">Product Demo</TableCell><TableCell>Video</TableCell><TableCell><Badge variant="warning">Processing</Badge></TableCell><TableCell><TableActions><TableActionButton label="Edit"><I4 d={icons.pencil} /></TableActionButton><TableActionButton label="Delete" variant="danger"><I4 d={icons.trash} /></TableActionButton></TableActions></TableCell></TableRow>
+                  <TableRow clickable><TableCell className="font-medium">Meeting Notes</TableCell><TableCell>Text</TableCell><TableCell><Badge variant="destructive">Failed</Badge></TableCell><TableCell><TableActions><TableActionButton label="Edit"><I4 d={icons.pencil} /></TableActionButton></TableActions></TableCell></TableRow>
+                </TableBody>
+              </Table>
+            </Sub>
+            <Sub title="Pagination">
+              <TablePagination page={tablePage} pageSize={pageSize} total={87} onPageChange={setTablePage} onPageSizeChange={setPageSize} />
+            </Sub>
+            <Sub title="Skeleton"><TableSkeleton rows={2} columns={4} /></Sub>
           </Section>
 
           <Section id="toast" title="Toast">
