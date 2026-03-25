@@ -21,7 +21,7 @@ export const PageHeader = forwardRef<HTMLDivElement, PageHeaderProps>(
       {...props}
     >
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
           {title}
           {gradientText && (
             <>
@@ -33,7 +33,7 @@ export const PageHeader = forwardRef<HTMLDivElement, PageHeaderProps>(
           )}
         </h1>
         {description && (
-          <p className="text-base text-muted-foreground sm:text-lg">
+          <p className="text-sm text-muted-foreground sm:text-base">
             {description}
           </p>
         )}

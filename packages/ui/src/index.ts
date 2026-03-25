@@ -85,6 +85,22 @@ export type { PageHeaderProps, SectionHeaderProps } from "./components/PageHeade
 export { InfoCard } from "./components/InfoCard";
 export type { InfoCardProps, InfoCardColor } from "./components/InfoCard";
 
+// Table Actions
+export { TableActions, TableActionButton } from "./components/Table";
+export type { TableActionsProps, TableActionButtonProps } from "./components/Table";
+
+// Dialog
+export { Dialog, DialogHeader, DialogBody, DialogFooter, DialogCloseButton } from "./components/Dialog";
+export type { DialogProps, DialogHeaderProps, DialogBodyProps, DialogFooterProps, DialogCloseButtonProps } from "./components/Dialog";
+
+// ConfirmDialog
+export { ConfirmDialog } from "./components/ConfirmDialog";
+export type { ConfirmDialogProps, ConfirmDialogVariant } from "./components/ConfirmDialog";
+
+// ThemeToggle
+export { ThemeToggle, ThemeSelector } from "./components/ThemeToggle";
+export type { ThemeToggleProps, ThemeSelectorProps } from "./components/ThemeToggle";
+
 // Sidebar
 export {
   Sidebar,

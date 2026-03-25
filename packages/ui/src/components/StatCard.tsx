@@ -51,7 +51,7 @@ export const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
       <div
         ref={ref}
         className={cn(
-          "rounded-lg border p-6 transition-colors",
+          "rounded-lg border p-4 sm:p-5 transition-colors",
           isGradient
             ? "border-transparent bg-gradient-to-br from-gradient-from to-gradient-to text-primary-foreground"
             : "border-border bg-card",
@@ -59,41 +59,35 @@ export const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
         )}
         {...props}
       >
-        <div className="flex items-center gap-4">
-          {icon && (
-            <div
-              aria-hidden="true"
-              className={cn(
-                "flex h-12 w-12 items-center justify-center rounded-lg",
-                isGradient
-                  ? "bg-white/20 text-primary-foreground"
-                  : iconBgMap[iconColor]
-              )}
-            >
-              {icon}
-            </div>
-          )}
-          <div className="min-w-0 flex-1">
-            <p
-              className={cn(
-                "text-xs font-medium uppercase tracking-wider",
-                isGradient
-                  ? "text-primary-foreground/80"
-                  : "text-muted-foreground"
-              )}
-            >
-              {label}
-            </p>
-            <p
-              className={cn(
-                "mt-0.5 text-2xl font-bold",
-                isGradient ? "text-primary-foreground" : "text-foreground"
-              )}
-            >
-              {value}
-            </p>
+        {icon && (
+          <div
+            aria-hidden="true"
+            className={cn(
+              "flex h-10 w-10 items-center justify-center rounded-lg",
+              isGradient
+                ? "bg-white/20 text-primary-foreground"
+                : iconBgMap[iconColor]
+            )}
+          >
+            {icon}
           </div>
-        </div>
+        )}
+        <p
+          className={cn(
+            "mt-3 text-xs font-medium uppercase tracking-wider",
+            isGradient ? "text-primary-foreground/70" : "text-muted-foreground"
+          )}
+        >
+          {label}
+        </p>
+        <p
+          className={cn(
+            "mt-1 text-xl font-semibold",
+            isGradient ? "text-primary-foreground" : "text-foreground"
+          )}
+        >
+          {value}
+        </p>
       </div>
     );
   }

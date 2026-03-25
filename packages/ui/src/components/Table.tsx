@@ -143,6 +143,58 @@ export const TableCell = forwardRef<HTMLTableCellElement, TableCellProps>(
 );
 TableCell.displayName = "TableCell";
 
+// ── TableActions (inline row actions) ───────────────────────────────────────
+
+export interface TableActionsProps extends HTMLAttributes<HTMLDivElement> {}
+
+export const TableActions = forwardRef<HTMLDivElement, TableActionsProps>(
+  ({ className, children, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn(
+        "flex items-center justify-end gap-1",
+        className
+      )}
+      onClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => e.stopPropagation()}
+      {...props}
+    >
+      {children}
+    </div>
+  )
+);
+TableActions.displayName = "TableActions";
+
+// ── TableActionButton (small icon buttons for rows) ─────────────────────────
+
+export interface TableActionButtonProps
+  extends HTMLAttributes<HTMLButtonElement> {
+  label: string;
+  variant?: "default" | "danger";
+}
+
+export const TableActionButton = forwardRef<
+  HTMLButtonElement,
+  TableActionButtonProps
+>(({ className, label, variant = "default", children, ...props }, ref) => (
+  <button
+    ref={ref}
+    aria-label={label}
+    className={cn(
+      "inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
+      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+      variant === "danger"
+        ? "text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+        : "text-muted-foreground hover:bg-muted hover:text-foreground",
+      className
+    )}
+    {...props}
+  >
+    {children}
+  </button>
+));
+TableActionButton.displayName = "TableActionButton";
+
 // ── TableSkeleton ────────────────────────────────────────────────────────────
 
 export interface TableSkeletonProps {

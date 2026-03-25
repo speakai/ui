@@ -36,7 +36,7 @@ export const InfoCard = forwardRef<HTMLDivElement, InfoCardProps>(
     <div
       ref={ref}
       className={cn(
-        "rounded-lg border p-4 transition-colors sm:p-6",
+        "rounded-lg border px-4 py-3 transition-colors sm:px-5 sm:py-3.5",
         colorMap[color],
         className
       )}

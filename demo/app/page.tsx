@@ -64,12 +64,12 @@ const FONTS = [
 ];
 
 const PRESETS: Record<string, Partial<ThemeConfig>> = {
+  "Classic B&W": { primaryHue: 0, gradientToHue: 0 },
   "Speak Purple": { primaryHue: 271, gradientToHue: 330 },
-  "Ocean Blue": { primaryHue: 210, gradientToHue: 190 },
-  "Forest Green": { primaryHue: 155, gradientToHue: 130 },
-  "Sunset Orange": { primaryHue: 25, gradientToHue: 350 },
-  "Rose Pink": { primaryHue: 340, gradientToHue: 290 },
-  "Slate Neutral": { primaryHue: 220, gradientToHue: 240 },
+  "Ocean Blue": { primaryHue: 210, gradientToHue: 185 },
+  "Emerald": { primaryHue: 162, gradientToHue: 142 },
+  "Sunset": { primaryHue: 25, gradientToHue: 350 },
+  "Rose": { primaryHue: 340, gradientToHue: 290 },
 };
 
 /* ─── Configurator Panel ────────────────────────────────────────────────────── */
@@ -317,11 +317,14 @@ export default function Home() {
   // Apply config to CSS variables
   const applyConfig = useCallback((c: ThemeConfig) => {
     const root = document.documentElement;
-    root.style.setProperty("--primary", `${c.primaryHue} 80% 55%`);
-    root.style.setProperty("--ring", `${c.primaryHue} 80% 55%`);
-    root.style.setProperty("--accent", `${c.primaryHue} 80% 90%`);
-    root.style.setProperty("--gradient-from", `${c.primaryHue} 80% 55%`);
-    root.style.setProperty("--gradient-to", `${c.gradientToHue} 80% 55%`);
+    // B&W: use 0 saturation for a classic monochrome look
+    const isMonochrome = c.primaryHue === 0 && c.gradientToHue === 0;
+    const sat = isMonochrome ? "0%" : "80%";
+    root.style.setProperty("--primary", `${c.primaryHue} ${sat} ${isMonochrome ? "15%" : "55%"}`);
+    root.style.setProperty("--ring", `${c.primaryHue} ${sat} ${isMonochrome ? "15%" : "55%"}`);
+    root.style.setProperty("--accent", `${c.primaryHue} ${sat} 90%`);
+    root.style.setProperty("--gradient-from", `${c.primaryHue} ${sat} ${isMonochrome ? "20%" : "55%"}`);
+    root.style.setProperty("--gradient-to", `${c.gradientToHue} ${sat} ${isMonochrome ? "40%" : "55%"}`);
     root.style.setProperty("--radius", `${c.radius}rem`);
 
     const fontDef = FONTS.find(f => f.value === c.font);
