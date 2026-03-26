@@ -14,9 +14,6 @@ const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mon
 export const metadata: Metadata = {
   title: "@speakai/ui — Design System",
   description: "Component showcase for Speak AI UI library",
-  icons: {
-    icon: "/logo.jpg",
-  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -164,7 +164,7 @@ function SidebarHeader() {
   const { collapsed } = useSidebar();
   return (
     <a href="https://speakai.co?ref=design-system" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 min-w-0 transition-opacity hover:opacity-80">
-      <img src="/logo.jpg" alt="Speak" className="h-7 w-7 flex-shrink-0 rounded-lg object-cover" />
+      <img src="/ui/logo.jpg" alt="Speak" className="h-7 w-7 flex-shrink-0 rounded-lg object-cover" />
       {!collapsed && <span className="text-sm font-semibold text-foreground truncate">@speakai/ui</span>}
     </a>
   );
