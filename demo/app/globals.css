@@ -4,6 +4,7 @@
 
 @layer base {
   :root {
+    --font-sans: var(--font-poppins), "Poppins", sans-serif;
     --background: 222 47% 11%;
     --foreground: 210 40% 98%;
     --card: 222 47% 11%;
@@ -75,6 +76,11 @@
   }
 
   body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: var(--font-sans);
     font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }

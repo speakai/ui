@@ -258,7 +258,7 @@ function ConfigPanel({ config, onChange, open, onClose }: { config: ThemeConfig;
 function DemoContent() {
   const sidebarSections = useSidebarSections();
   const { setMobileOpen } = useSidebar();
-  const [configOpen, setConfigOpen] = useState(false);
+  const [configOpen, setConfigOpen] = useState(true);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
