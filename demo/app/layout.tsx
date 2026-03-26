@@ -18,12 +18,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${poppins.variable} ${inter.variable} ${dmSans.variable} ${spaceGrotesk.variable} ${manrope.variable} ${outfit.variable} ${jetbrainsMono.variable} antialiased`}
-        style={{ fontFamily: "var(--font-sans)" }}
-      >
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+    <html lang="en" suppressHydrationWarning className={`${poppins.variable} ${inter.variable} ${dmSans.variable} ${spaceGrotesk.variable} ${manrope.variable} ${outfit.variable} ${jetbrainsMono.variable}`}>
+      <body className="antialiased">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           {children}
         </ThemeProvider>
       </body>
