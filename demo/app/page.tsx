@@ -158,7 +158,7 @@ function ToastDemo() {
   return (
     <div className="flex flex-wrap gap-2">
       <Button size="sm" onClick={() => toast.success("Saved", "Changes saved.")}>Success</Button>
-      <Button size="sm" variant="destructive" onClick={() => toast.error("Error", "Something went wrong.")}>Error</Button>
+      <Button size="sm" variant="danger" onClick={() => toast.error("Error", "Something went wrong.")}>Error</Button>
       <Button size="sm" variant="outline" onClick={() => toast.info("Tip", "Use keyboard shortcuts.")}>Info</Button>
       <Button size="sm" variant="secondary" onClick={() => toast.warning("Warning", "Trial expires soon.")}>Warning</Button>
     </div>
@@ -347,7 +347,7 @@ function DemoContent() {
           {/* ── Components ── */}
 
           <Section id="button" title="Button">
-            <Sub title="Variants"><div className="flex flex-wrap gap-2"><Button>Default</Button><Button variant="secondary">Secondary</Button><Button variant="destructive">Destructive</Button><Button variant="outline">Outline</Button><Button variant="ghost">Ghost</Button><Button variant="glass">Glass</Button></div></Sub>
+            <Sub title="Variants"><div className="flex flex-wrap gap-2"><Button>Primary</Button><Button variant="secondary">Secondary</Button><Button variant="danger">Danger</Button><Button variant="outline">Outline</Button><Button variant="ghost">Ghost</Button><Button variant="gradient">Gradient</Button><Button variant="glass">Glass</Button><Button variant="solid">Solid</Button></div></Sub>
             <Sub title="Sizes"><div className="flex flex-wrap gap-2 items-center"><Button size="sm">Small</Button><Button>Default</Button><Button size="lg">Large</Button><Button size="icon"><I4 d={icons.plus} /></Button></div></Sub>
             <Sub title="States"><div className="flex flex-wrap gap-2"><Button isLoading>Saving</Button><Button disabled>Disabled</Button></div></Sub>
           </Section>
@@ -363,7 +363,8 @@ function DemoContent() {
           </Section>
 
           <Section id="badge" title="Badge">
-            <Sub title="Variants"><div className="flex flex-wrap gap-2"><Badge>Default</Badge><Badge variant="success">Success</Badge><Badge variant="warning">Warning</Badge><Badge variant="destructive">Destructive</Badge><Badge variant="info">Info</Badge><Badge variant="outline">Outline</Badge><Badge variant="secondary">Secondary</Badge></div></Sub>
+            <Sub title="Variants"><div className="flex flex-wrap gap-2"><Badge>Default</Badge><Badge variant="success">Success</Badge><Badge variant="warning">Warning</Badge><Badge variant="error">Error</Badge><Badge variant="info">Info</Badge><Badge variant="outline">Outline</Badge><Badge variant="secondary">Secondary</Badge></div></Sub>
+            <Sub title="Colors"><div className="flex flex-wrap gap-2"><Badge color="green">Green</Badge><Badge color="yellow">Yellow</Badge><Badge color="red">Red</Badge><Badge color="blue">Blue</Badge><Badge color="purple">Purple</Badge><Badge color="pink">Pink</Badge><Badge color="orange">Orange</Badge><Badge color="gray">Gray</Badge></div></Sub>
             <Sub title="StatusBadge"><div className="flex flex-wrap gap-2"><StatusBadge status="Active" /><StatusBadge status="Pending" /><StatusBadge status="Failed" /><StatusBadge status="Completed" /></div></Sub>
           </Section>
 
@@ -391,7 +392,7 @@ function DemoContent() {
                 <TableBody>
                   <TableRow clickable><TableCell className="font-medium">Interview Recording</TableCell><TableCell>Audio</TableCell><TableCell><Badge variant="success">Done</Badge></TableCell><TableCell><TableActions><Tooltip content="Edit"><TableActionButton label="Edit"><I4 d={icons.pencil} /></TableActionButton></Tooltip><Tooltip content="Copy"><TableActionButton label="Copy"><I4 d={icons.copy} /></TableActionButton></Tooltip><Tooltip content="Delete"><TableActionButton label="Delete" variant="danger"><I4 d={icons.trash} /></TableActionButton></Tooltip></TableActions></TableCell></TableRow>
                   <TableRow clickable><TableCell className="font-medium">Product Demo</TableCell><TableCell>Video</TableCell><TableCell><Badge variant="warning">Processing</Badge></TableCell><TableCell><TableActions><TableActionButton label="Edit"><I4 d={icons.pencil} /></TableActionButton><TableActionButton label="Delete" variant="danger"><I4 d={icons.trash} /></TableActionButton></TableActions></TableCell></TableRow>
-                  <TableRow clickable><TableCell className="font-medium">Meeting Notes</TableCell><TableCell>Text</TableCell><TableCell><Badge variant="destructive">Failed</Badge></TableCell><TableCell><TableActions><TableActionButton label="Edit"><I4 d={icons.pencil} /></TableActionButton></TableActions></TableCell></TableRow>
+                  <TableRow clickable><TableCell className="font-medium">Meeting Notes</TableCell><TableCell>Text</TableCell><TableCell><Badge variant="error">Failed</Badge></TableCell><TableCell><TableActions><TableActionButton label="Edit"><I4 d={icons.pencil} /></TableActionButton></TableActions></TableCell></TableRow>
                 </TableBody>
               </Table>
             </Sub>
@@ -482,7 +483,7 @@ function DemoContent() {
           <Section id="dialog" title="Dialog & ConfirmDialog">
             <div className="flex gap-2">
               <Button size="sm" variant="outline" onClick={() => setDialogOpen(true)}>Open Dialog</Button>
-              <Button size="sm" variant="destructive" onClick={() => setConfirmOpen(true)}>Delete Item</Button>
+              <Button size="sm" variant="danger" onClick={() => setConfirmOpen(true)}>Delete Item</Button>
             </div>
             <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
               <DialogHeader><h3 className="text-base font-semibold text-foreground">Edit Document</h3><DialogCloseButton onClose={() => setDialogOpen(false)} /></DialogHeader>

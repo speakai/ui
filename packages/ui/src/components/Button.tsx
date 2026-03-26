@@ -2,14 +2,16 @@ import { ButtonHTMLAttributes, forwardRef } from "react";
 import { cn } from "../utils/cn";
 
 export type ButtonVariant =
-  | "default"
+  | "primary"
   | "secondary"
-  | "destructive"
+  | "danger"
   | "ghost"
   | "outline"
-  | "glass";
+  | "gradient"
+  | "glass"
+  | "solid";
 
-export type ButtonSize = "sm" | "default" | "lg" | "icon";
+export type ButtonSize = "sm" | "md" | "lg" | "icon";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
@@ -18,22 +20,26 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantStyles: Record<ButtonVariant, string> = {
-  default:
-    "bg-gradient-to-r from-gradient-from to-gradient-to text-primary-foreground shadow-sm hover:opacity-90",
+  primary:
+    "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90",
   secondary:
     "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
-  destructive:
+  danger:
     "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
   ghost: "hover:bg-accent hover:text-accent-foreground",
   outline:
     "border border-input bg-background text-foreground shadow-sm hover:bg-accent hover:text-accent-foreground",
+  gradient:
+    "bg-gradient-to-r from-gradient-from to-gradient-to text-primary-foreground shadow-sm hover:opacity-90",
   glass:
     "bg-background/10 backdrop-blur-xl border border-border/20 text-foreground hover:bg-background/20 shadow-sm",
+  solid:
+    "bg-foreground text-background shadow-sm hover:bg-foreground/90",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
   sm: "h-9 px-3 text-sm gap-1.5",
-  default: "h-10 px-4 text-sm gap-2",
+  md: "h-10 px-4 text-sm gap-2",
   lg: "h-11 px-6 text-base gap-2",
   icon: "h-10 w-10",
 };
@@ -42,8 +48,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
       className,
-      variant = "default",
-      size = "default",
+      variant = "primary",
+      size = "md",
       isLoading = false,
       disabled,
       children,

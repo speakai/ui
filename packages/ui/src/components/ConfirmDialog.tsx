@@ -42,10 +42,10 @@ const defaultIcons: Record<ConfirmDialogVariant, ReactNode> = {
   ),
 };
 
-const variantStyles: Record<ConfirmDialogVariant, { icon: string; button: "destructive" | "default" | "outline" }> = {
-  danger: { icon: "bg-destructive/10 text-destructive", button: "destructive" },
-  warning: { icon: "bg-warning/10 text-warning", button: "default" },
-  info: { icon: "bg-info/10 text-info", button: "default" },
+const variantStyles: Record<ConfirmDialogVariant, { icon: string; button: "danger" | "primary" | "outline" }> = {
+  danger: { icon: "bg-destructive/10 text-destructive", button: "danger" },
+  warning: { icon: "bg-warning/10 text-warning", button: "primary" },
+  info: { icon: "bg-info/10 text-info", button: "primary" },
 };
 
 // ── Component ────────────────────────────────────────────────────────────────
