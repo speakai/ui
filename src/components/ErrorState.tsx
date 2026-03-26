@@ -81,16 +81,16 @@ export const ErrorState = forwardRef<HTMLDivElement, ErrorStateProps>(
           ref={ref}
           role="alert"
           className={cn(
-            "flex items-center gap-3 rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 transition-colors",
+            "flex items-center gap-3 rounded-lg border border-danger/20 bg-danger/10 px-4 py-3 transition-colors",
             className
           )}
           {...props}
         >
-          <WarningIcon className="flex-shrink-0 text-destructive" />
+          <WarningIcon className="flex-shrink-0 text-danger" />
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-destructive">{title}</p>
+            <p className="text-sm font-medium text-danger">{title}</p>
             {message && (
-              <p className="text-xs text-destructive/80">{message}</p>
+              <p className="text-xs text-danger/80">{message}</p>
             )}
           </div>
           {retryButton}
@@ -112,9 +112,9 @@ export const ErrorState = forwardRef<HTMLDivElement, ErrorStateProps>(
         >
           <div
             aria-hidden="true"
-            className="flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10"
+            className="flex h-16 w-16 items-center justify-center rounded-full bg-danger/10"
           >
-            <WarningIcon className="h-8 w-8 text-destructive" />
+            <WarningIcon className="h-8 w-8 text-danger" />
           </div>
           <div className="space-y-2">
             <h2 className="text-xl font-semibold text-foreground">{title}</h2>
@@ -142,9 +142,9 @@ export const ErrorState = forwardRef<HTMLDivElement, ErrorStateProps>(
       >
         <div
           aria-hidden="true"
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10"
+          className="flex h-12 w-12 items-center justify-center rounded-full bg-danger/10"
         >
-          <WarningIcon className="text-destructive" />
+          <WarningIcon className="text-danger" />
         </div>
         <div className="space-y-1">
           <h3 className="text-base font-semibold text-foreground">{title}</h3>

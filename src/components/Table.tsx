@@ -122,7 +122,7 @@ export const TableHead = forwardRef<HTMLTableCellElement, TableHeadProps>(
       ref={ref}
       scope="col"
       className={cn(
-        "px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground",
+        "px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground",
         className
       )}
       {...props}
@@ -141,7 +141,7 @@ export const TableCell = forwardRef<HTMLTableCellElement, TableCellProps>(
     <td
       ref={ref}
       className={cn(
-        "px-4 py-3 text-sm text-card-foreground",
+        "px-6 py-4 text-sm text-card-foreground",
         className
       )}
       {...props}
@@ -191,7 +191,7 @@ export const TableActionButton = forwardRef<
       "inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
       variant === "danger"
-        ? "text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+        ? "text-muted-foreground hover:bg-danger/10 hover:text-danger"
         : "text-muted-foreground hover:bg-muted hover:text-foreground",
       className
     )}
@@ -245,7 +245,7 @@ export const TableSkeleton = forwardRef<HTMLDivElement, TableSkeletonProps>(
           <thead className="border-b border-border bg-muted/50">
             <tr>
               {Array.from({ length: columns }).map((_, i) => (
-                <th key={i} scope="col" className="px-4 py-3">
+                <th key={i} scope="col" className="px-6 py-3">
                   <div className="h-3 w-20 animate-pulse rounded-lg bg-muted" />
                 </th>
               ))}
@@ -255,7 +255,7 @@ export const TableSkeleton = forwardRef<HTMLDivElement, TableSkeletonProps>(
             {Array.from({ length: rows }).map((_, rowIdx) => (
               <tr key={rowIdx} className="bg-card">
                 {Array.from({ length: columns }).map((_, colIdx) => (
-                  <td key={colIdx} className="px-4 py-3">
+                  <td key={colIdx} className="px-6 py-4">
                     <div
                       className="h-4 animate-pulse rounded-lg bg-muted"
                       style={{ width: getSkeletonWidth(rowIdx, colIdx) }}
@@ -305,7 +305,7 @@ export const TableSortHead = forwardRef<HTMLTableCellElement, TableSortHeadProps
         ref={ref}
         scope="col"
         className={cn(
-          "px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground",
+          "px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground",
           onSort && "cursor-pointer select-none transition-colors hover:text-foreground",
           className
         )}
@@ -384,7 +384,7 @@ export const TablePagination = forwardRef<HTMLDivElement, TablePaginationProps>(
       <div
         ref={ref}
         className={cn(
-          "flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between",
+          "flex flex-col gap-3 px-6 py-3 sm:flex-row sm:items-center sm:justify-between",
           className
         )}
         {...props}

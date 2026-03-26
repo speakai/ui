@@ -36,7 +36,7 @@ const MAX_VISIBLE_TOASTS = 5;
 
 const accentBorderMap: Record<ToastType, string> = {
   success: "border-l-success",
-  error: "border-l-destructive",
+  error: "border-l-danger",
   info: "border-l-primary",
   warning: "border-l-warning",
 };
@@ -64,7 +64,7 @@ const icons: Record<ToastType, ReactNode> = {
   error: (
     <svg
       aria-hidden="true"
-      className="h-5 w-5 text-destructive"
+      className="h-5 w-5 text-danger"
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"

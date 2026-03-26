@@ -156,17 +156,20 @@ function useSidebarSections(): SidebarSection[] {
 function SidebarHeader() {
   const { collapsed } = useSidebar();
   return (
-    <div className="flex items-center gap-2 min-w-0">
-      <img src="/logo.jpg" alt="Speak logo" className="h-7 w-7 flex-shrink-0 rounded-lg object-contain" />
+    <a href="https://speakai.co?ref=design-system" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 min-w-0 transition-opacity hover:opacity-80">
+      <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-gradient-from to-gradient-to">
+        <span className="text-xs font-bold text-white">S</span>
+      </div>
       {!collapsed && <span className="text-sm font-semibold text-foreground truncate">@speakai/ui</span>}
-    </div>
+    </a>
   );
 }
 
 /* ─── CodeBlock with copy button ────────────────────────────────────────────── */
 
-function CodeBlock({ code }: { code: string }) {
+function CodeBlock({ code, children }: { code: string; children?: React.ReactNode }) {
   const [copied, setCopied] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(code);
@@ -174,11 +177,11 @@ function CodeBlock({ code }: { code: string }) {
     setTimeout(() => setCopied(false), 1500);
   };
 
-  return (
-    <div className="relative mt-3 rounded-lg border border-border bg-muted/30 group">
+  const codePanel = (
+    <div className="relative rounded-lg border border-border bg-muted/30 group min-w-0">
       <button
         onClick={handleCopy}
-        className="absolute right-2 top-2 rounded-md p-1.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-muted hover:text-foreground"
+        className="absolute right-2 top-2 z-10 rounded-md p-1.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-muted hover:text-foreground"
         aria-label="Copy code"
       >
         {copied ? (
@@ -191,6 +194,38 @@ function CodeBlock({ code }: { code: string }) {
         <code>{code}</code>
       </pre>
     </div>
+  );
+
+  // If used standalone (no children preview), render inline code only
+  if (!children) {
+    return <div className="mt-3">{codePanel}</div>;
+  }
+
+  return (
+    <>
+      {/* Desktop: side-by-side */}
+      <div className="mt-3 hidden lg:grid lg:grid-cols-2 lg:gap-4 lg:items-start">
+        <div className="min-w-0">{children}</div>
+        {codePanel}
+      </div>
+      {/* Mobile: preview + code icon toggle */}
+      <div className="mt-3 lg:hidden">
+        <div className="flex items-start gap-2">
+          <div className="min-w-0 flex-1">{children}</div>
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className={cn(
+              "flex-shrink-0 rounded-md p-1.5 transition-colors",
+              mobileOpen ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+            aria-label={mobileOpen ? "Hide code" : "Show code"}
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" /></svg>
+          </button>
+        </div>
+        {mobileOpen && <div className="mt-2">{codePanel}</div>}
+      </div>
+    </>
   );
 }
 
@@ -205,7 +240,7 @@ function SwitchDemo() {
       <Switch checked={on1} onChange={setOn1} label="Email notifications" />
       <Switch checked={on2} onChange={setOn2} label="Dark mode" />
       <Switch checked={on3} onChange={setOn3} label="Disabled example" disabled />
-      <Switch checked={true} onChange={() => {}} label="Small size" size="sm" />
+      <Switch checked={true} onChange={() => { }} label="Small size" size="sm" />
     </div>
   );
 }
@@ -296,7 +331,7 @@ function ConfigPanel({ config, onChange, open, onClose }: { config: ThemeConfig;
         <div>
           <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">CSS Variables</label>
           <pre className="rounded-lg border border-border bg-muted/50 p-2.5 text-[10px] leading-relaxed text-muted-foreground overflow-x-auto font-mono">
-{`:root {
+            {`:root {
   --primary: ${config.primaryHue} 80% 55%;
   --gradient-from: ${config.primaryHue} 80% 55%;
   --gradient-to: ${config.gradientToHue} 80% 55%;
@@ -370,7 +405,7 @@ function DemoContent() {
       <Sidebar
         header={<SidebarHeader />}
         sections={sidebarSections}
-        footer={<SidebarUser name="Design System" email="v0.1.0" />}
+        footer={<SidebarUser name="Design System" />}
       />
 
       <Tooltip content="Theme Configurator" side="left">
@@ -405,19 +440,23 @@ function DemoContent() {
 
           <Section id="button" title="Button">
             <Sub title="Variants">
-              <div className="flex flex-wrap gap-2"><Button>Primary</Button><Button variant="secondary">Secondary</Button><Button variant="danger">Danger</Button><Button variant="outline">Outline</Button><Button variant="ghost">Ghost</Button><Button variant="gradient">Gradient</Button><Button variant="glass">Glass</Button><Button variant="solid">Solid</Button></div>
               <CodeBlock code={`<Button>Primary</Button>
 <Button variant="danger">Danger</Button>
-<Button variant="gradient">Gradient</Button>`} />
+<Button variant="gradient">Gradient</Button>`}>
+                <div className="flex flex-wrap gap-2"><Button>Primary</Button><Button variant="secondary">Secondary</Button><Button variant="danger">Danger</Button><Button variant="outline">Outline</Button><Button variant="ghost">Ghost</Button><Button variant="gradient">Gradient</Button><Button variant="glass">Glass</Button><Button variant="solid">Solid</Button></div>
+              </CodeBlock>
             </Sub>
             <Sub title="Sizes">
-              <div className="flex flex-wrap gap-2 items-center"><Button size="sm">Small</Button><Button>Default</Button><Button size="lg">Large</Button><Button size="icon"><I4 d={icons.plus} /></Button></div>
               <CodeBlock code={`<Button size="sm">Small</Button>
-<Button size="icon"><PlusIcon /></Button>`} />
+<Button size="icon"><PlusIcon /></Button>`}>
+                <div className="flex flex-wrap gap-2 items-center"><Button size="sm">Small</Button><Button>Default</Button><Button size="lg">Large</Button><Button size="icon"><I4 d={icons.plus} /></Button></div>
+              </CodeBlock>
             </Sub>
             <Sub title="States">
-              <div className="flex flex-wrap gap-2"><Button isLoading>Saving</Button><Button disabled>Disabled</Button></div>
-              <CodeBlock code={`<Button isLoading>Saving</Button>`} />
+              <CodeBlock code={`<Button isLoading>Saving</Button>
+<Button disabled>Disabled</Button>`}>
+                <div className="flex flex-wrap gap-2"><Button isLoading>Saving</Button><Button disabled>Disabled</Button></div>
+              </CodeBlock>
             </Sub>
           </Section>
 
@@ -454,9 +493,10 @@ function DemoContent() {
           </Section>
 
           <Section id="switch" title="Switch">
-            <SwitchDemo />
             <CodeBlock code={`<Switch checked={on} onChange={setOn} label="Notifications" />
-<Switch checked={on} onChange={setOn} size="sm" disabled />`} />
+<Switch checked={on} onChange={setOn} size="sm" disabled />`}>
+              <SwitchDemo />
+            </CodeBlock>
           </Section>
 
           {/* ════════════════════════════════════════════════════════════════════ */}
@@ -583,23 +623,29 @@ function DemoContent() {
           </Section>
 
           <Section id="badge" title="Badge">
-            <Sub title="Variants"><div className="flex flex-wrap gap-2"><Badge>Default</Badge><Badge variant="success">Success</Badge><Badge variant="warning">Warning</Badge><Badge variant="error">Error</Badge><Badge variant="info">Info</Badge><Badge variant="outline">Outline</Badge><Badge variant="secondary">Secondary</Badge></div></Sub>
-            <Sub title="Colors"><div className="flex flex-wrap gap-2"><Badge color="green">Green</Badge><Badge color="yellow">Yellow</Badge><Badge color="red">Red</Badge><Badge color="blue">Blue</Badge><Badge color="purple">Purple</Badge><Badge color="pink">Pink</Badge><Badge color="orange">Orange</Badge><Badge color="gray">Gray</Badge></div></Sub>
-            <Sub title="StatusBadge"><div className="flex flex-wrap gap-2"><StatusBadge status="Active" /><StatusBadge status="Pending" /><StatusBadge status="Failed" /><StatusBadge status="Completed" /></div></Sub>
-            <CodeBlock code={`<Badge variant="success">Active</Badge>
+            <Sub title="Variants">
+              <CodeBlock code={`<Badge variant="success">Active</Badge>
 <Badge color="purple">Custom</Badge>
-<StatusBadge status="Active" />`} />
+<StatusBadge status="Active" />`}>
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-2"><Badge>Default</Badge><Badge variant="success">Success</Badge><Badge variant="warning">Warning</Badge><Badge variant="error">Error</Badge><Badge variant="info">Info</Badge><Badge variant="outline">Outline</Badge><Badge variant="secondary">Secondary</Badge></div>
+                  <div className="flex flex-wrap gap-2"><Badge color="green">Green</Badge><Badge color="yellow">Yellow</Badge><Badge color="red">Red</Badge><Badge color="blue">Blue</Badge><Badge color="purple">Purple</Badge><Badge color="pink">Pink</Badge><Badge color="orange">Orange</Badge><Badge color="gray">Gray</Badge></div>
+                  <div className="flex flex-wrap gap-2"><StatusBadge status="Active" /><StatusBadge status="Pending" /><StatusBadge status="Failed" /><StatusBadge status="Completed" /></div>
+                </div>
+              </CodeBlock>
+            </Sub>
           </Section>
 
           <Section id="info-card" title="InfoCard">
-            <div className="space-y-2">
-              <InfoCard color="blue" title="Tip" description="Shortcuts make editing faster." />
-              <InfoCard color="yellow" title="Warning" description="Trial expires in 3 days." />
-              <InfoCard color="red" title="Action" description="Cannot be undone." />
-              <InfoCard color="green" title="Success" description="All systems operational." />
-            </div>
             <CodeBlock code={`<InfoCard color="blue" title="Tip" description="Shortcuts make editing faster." />
-<InfoCard color="red" title="Action" description="Cannot be undone." />`} />
+<InfoCard color="red" title="Action" description="Cannot be undone." />`}>
+              <div className="space-y-2">
+                <InfoCard color="blue" title="Tip" description="Shortcuts make editing faster." />
+                <InfoCard color="yellow" title="Warning" description="Trial expires in 3 days." />
+                <InfoCard color="red" title="Action" description="Cannot be undone." />
+                <InfoCard color="green" title="Success" description="All systems operational." />
+              </div>
+            </CodeBlock>
           </Section>
 
           {/* ════════════════════════════════════════════════════════════════════ */}
@@ -608,12 +654,15 @@ function DemoContent() {
           <CategoryHeader title="Feedback" />
 
           <Section id="toast" title="Toast">
-            <p className="text-xs text-muted-foreground mb-3">Hover to pause. Errors persist 15s.</p>
-            <ToastDemo />
             <CodeBlock code={`const toast = useToast();
 toast.success("Saved");                    // title only
 toast.success("Saved", "Changes saved.");  // title + message
-toast.error("Error", "Something went wrong.");`} />
+toast.error("Error", "Something went wrong.");`}>
+              <div>
+                <p className="text-xs text-muted-foreground mb-3">Hover to pause. Errors persist 15s.</p>
+                <ToastDemo />
+              </div>
+            </CodeBlock>
           </Section>
 
           <Section id="dialog" title="Dialog & ConfirmDialog">
@@ -640,22 +689,24 @@ toast.error("Error", "Something went wrong.");`} />
           </Section>
 
           <Section id="empty-state" title="EmptyState">
-            <EmptyState icon={<I d={icons.doc} />} title="No documents" description="Upload your first document." action={<Button size="sm">Upload</Button>} height="sm" />
             <CodeBlock code={`<EmptyState
   icon={<DocIcon />}
   title="No documents"
   description="Upload your first document."
   action={<Button size="sm">Upload</Button>}
-/>`} />
+/>`}>
+              <EmptyState icon={<I d={icons.doc} />} title="No documents" description="Upload your first document." action={<Button size="sm">Upload</Button>} height="sm" />
+            </CodeBlock>
           </Section>
 
           <Section id="error-state" title="ErrorState">
-            <div className="space-y-4">
-              <ErrorState variant="inline" message="Failed to load transcript." onRetry={() => {}} />
-              <Card><ErrorState variant="card" title="Load Failed" message="Could not fetch data." onRetry={() => {}} /></Card>
-            </div>
             <CodeBlock code={`<ErrorState variant="inline" message="Failed to load." onRetry={refetch} />
-<ErrorState variant="card" title="Error" message="Could not fetch." onRetry={refetch} />`} />
+<ErrorState variant="card" title="Error" message="Could not fetch." onRetry={refetch} />`}>
+              <div className="space-y-4">
+                <ErrorState variant="inline" message="Failed to load transcript." onRetry={() => { }} />
+                <Card><ErrorState variant="card" title="Load Failed" message="Could not fetch data." onRetry={() => { }} /></Card>
+              </div>
+            </CodeBlock>
           </Section>
 
           <Section id="skeleton" title="Skeleton">
@@ -726,43 +777,49 @@ toast.error("Error", "Something went wrong.");`} />
           </Section>
 
           <Section id="tooltip" title="Tooltip">
-            <div className="flex flex-wrap gap-3">
-              <Tooltip content="Top tooltip" side="top"><Button variant="outline" size="sm">Top</Button></Tooltip>
-              <Tooltip content="Bottom tooltip" side="bottom"><Button variant="outline" size="sm">Bottom</Button></Tooltip>
-              <Tooltip content="Left tooltip" side="left"><Button variant="outline" size="sm">Left</Button></Tooltip>
-              <Tooltip content="Right tooltip" side="right"><Button variant="outline" size="sm">Right</Button></Tooltip>
-            </div>
             <CodeBlock code={`<Tooltip content="Edit item" side="top">
   <Button variant="outline">Hover me</Button>
-</Tooltip>`} />
+</Tooltip>`}>
+              <div className="flex flex-wrap gap-3">
+                <Tooltip content="Top tooltip" side="top"><Button variant="outline" size="sm">Top</Button></Tooltip>
+                <Tooltip content="Bottom tooltip" side="bottom"><Button variant="outline" size="sm">Bottom</Button></Tooltip>
+                <Tooltip content="Left tooltip" side="left"><Button variant="outline" size="sm">Left</Button></Tooltip>
+                <Tooltip content="Right tooltip" side="right"><Button variant="outline" size="sm">Right</Button></Tooltip>
+              </div>
+            </CodeBlock>
           </Section>
 
           <Section id="avatar" title="Avatar">
-            <div className="flex flex-wrap items-center gap-4">
-              <Avatar name="Vatsal Shah" size="sm" />
-              <Avatar name="Vatsal Shah" />
-              <Avatar name="Vatsal Shah" size="lg" />
-              <Avatar name="Jane Doe" size="lg" variant="rounded" />
-              <Avatar name="John" src="https://api.dicebear.com/8.x/avataaars/svg?seed=John" size="lg" />
-            </div>
             <CodeBlock code={`<Avatar name="Vatsal Shah" size="lg" />
 <Avatar name="Jane Doe" variant="rounded" />
-<Avatar name="John" src="/john.jpg" />`} />
+<Avatar name="John" src="/john.jpg" />`}>
+              <div className="flex flex-wrap items-center gap-4">
+                <Avatar name="Vatsal Shah" size="sm" />
+                <Avatar name="Vatsal Shah" />
+                <Avatar name="Vatsal Shah" size="lg" />
+                <Avatar name="Jane Doe" size="lg" variant="rounded" />
+                <Avatar name="John" src="https://api.dicebear.com/8.x/avataaars/svg?seed=John" size="lg" />
+              </div>
+            </CodeBlock>
           </Section>
 
           <Section id="progress" title="Progress">
-            <div className="max-w-md space-y-4">
-              <Sub title="Default"><Progress value={65} /></Sub>
-              <Sub title="Gradient"><Progress value={45} variant="gradient" /></Sub>
-              <Sub title="With Label"><Progress value={72} showLabel /></Sub>
-            </div>
             <CodeBlock code={`<Progress value={65} />
 <Progress value={45} variant="gradient" />
-<Progress value={72} showLabel />`} />
+<Progress value={72} showLabel />`}>
+              <div className="space-y-4">
+                <Progress value={65} />
+                <Progress value={45} variant="gradient" />
+                <Progress value={72} showLabel />
+              </div>
+            </CodeBlock>
           </Section>
 
           <footer className="mt-12 pt-6 border-t border-border text-center pb-6">
-            <p className="text-xs text-muted-foreground">@speakai/ui v0.1.0 — 25 components</p>
+            <p className="text-xs text-muted-foreground">
+              <a href="https://speakai.co?ref=design-system" target="_blank" rel="noopener noreferrer" className="font-medium text-foreground hover:text-primary transition-colors">@speakai/ui</a>
+              {" "} — 25 components
+            </p>
           </footer>
         </div>
       </SidebarLayout>

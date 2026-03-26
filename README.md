@@ -143,21 +143,38 @@ WCAG 2.1 AA compliant:
   --primary-foreground: 0 0% 100%;
   --gradient-from: 271 91% 65%;
   --gradient-to: 330 81% 60%;
+  --gradient-accent: 24 95% 53%;
 
   /* Status */
+  --danger: 0 84% 60%;
+  --danger-foreground: 0 0% 100%;
   --success: 160 84% 39%;
+  --success-foreground: 0 0% 100%;
   --warning: 38 92% 50%;
+  --warning-foreground: 0 0% 0%;
   --info: 217 91% 60%;
-  --destructive: 0 84% 60%;
+  --info-foreground: 0 0% 100%;
 
   /* Surfaces */
   --background: 0 0% 100%;
   --foreground: 222 84% 5%;
   --card: 0 0% 100%;
   --card-foreground: 222 84% 5%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 84% 5%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222 47% 11%;
   --muted: 210 40% 96%;
   --muted-foreground: 215 16% 47%;
+  --accent: 210 40% 96%;
+  --accent-foreground: 222 47% 11%;
   --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 271 91% 65%;
+
+  /* Skeleton */
+  --skeleton-bg: 220 14% 91%;
+  --skeleton-highlight: 220 14% 96%;
 
   /* Typography */
   --font-sans: "Inter", sans-serif;

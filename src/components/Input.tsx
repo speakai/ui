@@ -16,7 +16,7 @@ const inputBase = [
   "disabled:pointer-events-none disabled:opacity-50",
 ].join(" ");
 
-const errorRing = "border-destructive focus-visible:ring-destructive";
+const errorRing = "border-danger focus-visible:ring-danger";
 const defaultRing = "border-input";
 
 // ── Input ─────────────────────────────────────────────────────────────────────
@@ -42,7 +42,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {...props}
       />
       {typeof error === "string" && error && (
-        <p className="mt-1.5 text-xs text-destructive">{error}</p>
+        <p className="mt-1.5 text-xs text-danger">{error}</p>
       )}
     </div>
   ),
@@ -147,7 +147,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         />
       </svg>
       {typeof error === "string" && error && (
-        <p className="mt-1.5 text-xs text-destructive">{error}</p>
+        <p className="mt-1.5 text-xs text-danger">{error}</p>
       )}
     </div>
   ),
@@ -179,7 +179,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         {...props}
       />
       {typeof error === "string" && error && (
-        <p className="mt-1.5 text-xs text-destructive">{error}</p>
+        <p className="mt-1.5 text-xs text-danger">{error}</p>
       )}
     </div>
   ),

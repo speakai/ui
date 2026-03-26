@@ -16,7 +16,7 @@ const variantStyles: Record<BadgeVariant, string> = {
   default: "bg-primary/10 text-primary",
   success: "bg-success/10 text-success",
   warning: "bg-warning/10 text-warning",
-  error: "bg-destructive/10 text-destructive",
+  error: "bg-danger/10 text-danger",
   info: "bg-info/10 text-info",
   outline: "border border-border bg-transparent text-foreground",
   secondary: "bg-secondary text-secondary-foreground",

@@ -273,9 +273,10 @@ export const DropdownMenuItem = forwardRef<
     tabIndex={-1}
     className={cn(
       "flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors",
-      "focus:bg-accent focus:text-accent-foreground focus:outline-none",
+      "focus:bg-muted focus:text-foreground focus:outline-none",
+      "hover:bg-muted hover:text-foreground",
       variant === "danger"
-        ? "text-destructive focus:bg-destructive/10 focus:text-destructive"
+        ? "text-danger hover:bg-danger/10 hover:text-danger focus:bg-danger/10 focus:text-danger"
         : "text-popover-foreground",
       disabled && "pointer-events-none opacity-50",
       className
