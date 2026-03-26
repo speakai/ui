@@ -371,9 +371,14 @@ function DemoContent() {
           <Section id="input" title="Input">
             <div className="max-w-sm space-y-3">
               <Input placeholder="Default input..." />
-              <Input placeholder="Error state..." error />
+              <Input placeholder="Error state..." error="This field is required" />
               <SearchInput placeholder="Search..." value={searchValue} onChange={(e) => setSearchValue(e.target.value)} />
-              <Select placeholder="Select type..." options={[{ value: "audio", label: "Audio" }, { value: "video", label: "Video" }]} />
+              <Select defaultValue="">
+                <option value="" disabled>Select type...</option>
+                <option value="audio">Audio</option>
+                <option value="video">Video</option>
+                <option value="text">Text</option>
+              </Select>
               <Textarea placeholder="Write something..." />
             </div>
           </Section>
@@ -465,10 +470,13 @@ function DemoContent() {
           </Section>
 
           <Section id="dropdown" title="DropdownMenu">
-            <div className="relative inline-block">
-              <MoreButton onClick={() => setDropdownOpen(!dropdownOpen)} />
-              <DropdownMenu open={dropdownOpen} align="left"><DropdownMenuHeader>Actions</DropdownMenuHeader><DropdownMenuItem onClick={() => setDropdownOpen(false)}>Edit</DropdownMenuItem><DropdownMenuItem onClick={() => setDropdownOpen(false)}>Duplicate</DropdownMenuItem><DropdownMenuDivider /><DropdownMenuItem variant="danger" onClick={() => setDropdownOpen(false)}>Delete</DropdownMenuItem></DropdownMenu>
-            </div>
+            <DropdownMenu trigger={<MoreButton />} align="left">
+              <DropdownMenuHeader>Actions</DropdownMenuHeader>
+              <DropdownMenuItem>Edit</DropdownMenuItem>
+              <DropdownMenuItem>Duplicate</DropdownMenuItem>
+              <DropdownMenuDivider />
+              <DropdownMenuItem variant="danger">Delete</DropdownMenuItem>
+            </DropdownMenu>
           </Section>
 
           <Section id="tooltip" title="Tooltip">
@@ -507,8 +515,8 @@ function DemoContent() {
           <Section id="skeleton" title="Skeleton">
             <div className="space-y-6">
               <Sub title="Text"><div className="max-w-sm space-y-2"><Skeleton className="h-6 w-40" /><SkeletonText lines={3} /></div></Sub>
-              <Sub title="Cards"><GridSkeleton count={3} columns={3} /></Sub>
-              <Sub title="Form"><FormSkeleton sections={1} /></Sub>
+              <Sub title="Cards"><GridSkeleton rows={3} columns={3} /></Sub>
+              <Sub title="Form"><FormSkeleton fields={3} /></Sub>
             </div>
           </Section>
 
