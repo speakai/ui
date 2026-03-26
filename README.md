@@ -4,7 +4,7 @@
 [![npm downloads](https://img.shields.io/npm/dm/@speakai/ui.svg)](https://www.npmjs.com/package/@speakai/ui)
 [![license](https://img.shields.io/npm/l/@speakai/ui.svg)](https://github.com/speakai/ui/blob/main/LICENSE)
 
-Speak AI's design system — 25 React + Tailwind components with dark/light mode, WCAG AA accessibility, and full CSS variable customization.
+Speak AI's design system — 26 React + Tailwind components with dark/light mode, WCAG AA accessibility, and full CSS variable customization.
 
 **[Live Preview & Design Guide →](https://speakai.github.io/ui)**
 
@@ -69,7 +69,7 @@ Override CSS variables to match your brand — zero source code changes:
 
 Every component updates automatically. See the [Live Preview](https://speakai.github.io/ui) for a real-time theme configurator.
 
-## Components (25)
+## Components (26)
 
 ### Forms & Actions
 | Component | Variants |
@@ -80,6 +80,7 @@ Every component updates automatically. See the [Live Preview](https://speakai.gi
 | **Select** | Children-based or `options` array prop |
 | **Textarea** | Auto-height, error as boolean or message string |
 | **Switch** | Toggle with label |
+| **Checkbox** | With label, description, sizes, error state |
 
 ### Layout
 | Component | Description |
@@ -112,7 +113,7 @@ Every component updates automatically. See the [Live Preview](https://speakai.gi
 | **ConfirmDialog** | `danger` `warning` `info` — with confirm/cancel, loading state, legacy prop aliases |
 | **EmptyState** | Icon + title + description + action |
 | **ErrorState** | `page` `card` `inline` — with retry |
-| **Skeleton** | 10 variants (page, card, form, grid, table, detail) |
+| **Skeleton** | 9 variants (page, card, form, grid, table) |
 
 ### Utilities
 | Component | Description |
@@ -242,7 +243,6 @@ If migrating from the inline `@/components/ui` in voice-agent-client, these back
 <PageSkeleton showCards={false} tableRows={8} />
 <GridSkeleton count={6} columns={3} />   // count = total cards
 <FormSkeleton sections={3} />            // card-wrapped sections
-<DetailSkeleton />                       // detail page skeleton
 ```
 
 ## Development

@@ -18,7 +18,7 @@ const trackSizes: Record<SwitchSize, string> = {
 
 const thumbSizes: Record<SwitchSize, string> = {
   sm: "h-3.5 w-3.5",
-  default: "h-4.5 w-4.5",
+  default: "h-[18px] w-[18px]",
 };
 
 const thumbTranslate: Record<SwitchSize, { off: string; on: string }> = {

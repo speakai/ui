@@ -1,18 +1,18 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
-  Button, Card, Badge, StatusBadge, Input, SearchInput, Select, Textarea,
+  Button, Card, Badge, StatusBadge, Input, SearchInput, Select, Textarea, Checkbox,
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableActions, TableActionButton, TableSkeleton, TableSortHead, TablePagination, TableEmpty,
   ToastProvider, useToast,
-  Skeleton, SkeletonText, PageHeaderSkeleton, GridSkeleton, FormSkeleton, DetailSkeleton, PageSkeleton,
+  Skeleton, SkeletonText, PageHeaderSkeleton, GridSkeleton, FormSkeleton, PageSkeleton,
   EmptyState, ErrorState,
   Avatar, Switch, Progress,
   DropdownMenu, DropdownMenuItem, DropdownMenuHeader, DropdownMenuDivider, MoreButton,
   StatCard, StatCardGrid, PageHeader, SectionHeader, InfoCard,
   Dialog, DialogHeader, DialogBody, DialogFooter, DialogCloseButton, ConfirmDialog,
-  ThemeSelector,
+  ThemeSelector, ThemeToggle,
   Tooltip,
   Tabs, TabsList, TabsTrigger, TabsContent,
   SidePanel,
@@ -86,6 +86,7 @@ const sidebarGroups = [
       { id: "button", icon: icons.puzzle, label: "Button" },
       { id: "input", icon: icons.pencil, label: "Input & Select" },
       { id: "switch", icon: icons.toggle, label: "Switch" },
+      { id: "checkbox", icon: icons.check, label: "Checkbox" },
     ],
   },
   {
@@ -115,7 +116,6 @@ const sidebarGroups = [
       { id: "dialog", icon: icons.layout, label: "Dialog" },
       { id: "empty-state", icon: icons.doc, label: "Empty State" },
       { id: "error-state", icon: icons.bell, label: "Error State" },
-      { id: "skeleton", icon: icons.layout, label: "Skeleton" },
     ],
   },
   {
@@ -126,6 +126,13 @@ const sidebarGroups = [
       { id: "tooltip", icon: icons.chat, label: "Tooltip" },
       { id: "avatar", icon: icons.users, label: "Avatar" },
       { id: "progress", icon: icons.screen, label: "Progress" },
+    ],
+  },
+  {
+    id: "skeleton",
+    label: "Skeleton",
+    items: [
+      { id: "skeleton", icon: icons.layout, label: "Loading Skeletons" },
     ],
   },
 ];
@@ -157,11 +164,25 @@ function SidebarHeader() {
   const { collapsed } = useSidebar();
   return (
     <a href="https://speakai.co?ref=design-system" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 min-w-0 transition-opacity hover:opacity-80">
-      <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-gradient-from to-gradient-to">
-        <span className="text-xs font-bold text-white">S</span>
-      </div>
+      <img src="/logo.jpg" alt="Speak" className="h-7 w-7 flex-shrink-0 rounded-lg object-cover" />
       {!collapsed && <span className="text-sm font-semibold text-foreground truncate">@speakai/ui</span>}
     </a>
+  );
+}
+
+/* ─── Sidebar Footer with theme toggle ──────────────────────────────────────── */
+
+function SidebarFooterContent() {
+  const { collapsed } = useSidebar();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  return (
+    <div className="flex items-center justify-between gap-2">
+      {!collapsed && <span className="text-xs text-muted-foreground truncate">Design System</span>}
+      {mounted && <ThemeToggle theme={theme as "light" | "dark" | "system"} onChange={(t) => setTheme(t)} />}
+    </div>
   );
 }
 
@@ -169,7 +190,6 @@ function SidebarHeader() {
 
 function CodeBlock({ code, children }: { code: string; children?: React.ReactNode }) {
   const [copied, setCopied] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(code);
@@ -196,36 +216,56 @@ function CodeBlock({ code, children }: { code: string; children?: React.ReactNod
     </div>
   );
 
-  // If used standalone (no children preview), render inline code only
+  // Standalone code block (no preview)
   if (!children) {
     return <div className="mt-3">{codePanel}</div>;
   }
 
+  // Preview only — code is toggled from the Section title bar
+  return <>{children}</>;
+}
+
+/** Code toggle context — allows Section title to toggle code visibility */
+const CodeToggleContext = React.createContext<{ open: boolean; setOpen: (o: boolean) => void } | null>(null);
+
+function CodeProvider({ children }: { children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return <CodeToggleContext.Provider value={{ open, setOpen }}>{children}</CodeToggleContext.Provider>;
+}
+
+function useCodeToggle() {
+  return React.useContext(CodeToggleContext);
+}
+
+/** Renders the code panel only when toggled open from the Section title */
+function CodePanel({ code }: { code: string }) {
+  const ctx = useCodeToggle();
+  const [copied, setCopied] = useState(false);
+  if (!ctx?.open) return null;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
   return (
-    <>
-      {/* Desktop: side-by-side */}
-      <div className="mt-3 hidden lg:grid lg:grid-cols-2 lg:gap-4 lg:items-start">
-        <div className="min-w-0">{children}</div>
-        {codePanel}
-      </div>
-      {/* Mobile: preview + code icon toggle */}
-      <div className="mt-3 lg:hidden">
-        <div className="flex items-start gap-2">
-          <div className="min-w-0 flex-1">{children}</div>
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className={cn(
-              "flex-shrink-0 rounded-md p-1.5 transition-colors",
-              mobileOpen ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-            )}
-            aria-label={mobileOpen ? "Hide code" : "Show code"}
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" /></svg>
-          </button>
-        </div>
-        {mobileOpen && <div className="mt-2">{codePanel}</div>}
-      </div>
-    </>
+    <div className="mt-3 relative rounded-lg border border-border bg-muted/30 group min-w-0">
+      <button
+        onClick={handleCopy}
+        className="absolute right-2 top-2 z-10 rounded-md p-1.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-muted hover:text-foreground"
+        aria-label="Copy code"
+      >
+        {copied ? (
+          <svg className="h-4 w-4 text-success" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d={icons.check} /></svg>
+        ) : (
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d={icons.copy} /></svg>
+        )}
+      </button>
+      <pre className="overflow-x-auto p-3.5 text-[11px] leading-relaxed text-muted-foreground font-mono">
+        <code>{code}</code>
+      </pre>
+    </div>
   );
 }
 
@@ -236,7 +276,7 @@ function SwitchDemo() {
   const [on2, setOn2] = useState(true);
   const [on3, setOn3] = useState(false);
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4 items-start">
       <Switch checked={on1} onChange={setOn1} label="Email notifications" />
       <Switch checked={on2} onChange={setOn2} label="Dark mode" />
       <Switch checked={on3} onChange={setOn3} label="Disabled example" disabled />
@@ -261,12 +301,45 @@ function ToastDemo() {
 
 /* ─── Layout Helpers ────────────────────────────────────────────────────────── */
 
-function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
+function Section({ id, title, code, children }: { id: string; title: string; code?: string; children: React.ReactNode }) {
+  if (!code) {
+    return (
+      <section id={id} className="mb-10 scroll-mt-6">
+        <h3 className="text-base font-semibold text-foreground mb-4 pb-2 border-b border-border">{title}</h3>
+        {children}
+      </section>
+    );
+  }
+
   return (
-    <section id={id} className="mb-10 scroll-mt-6">
-      <h3 className="text-base font-semibold text-foreground mb-4 pb-2 border-b border-border">{title}</h3>
-      {children}
-    </section>
+    <CodeProvider>
+      <section id={id} className="mb-10 scroll-mt-6">
+        <div className="flex items-center justify-between mb-4 pb-2 border-b border-border">
+          <h3 className="text-base font-semibold text-foreground">{title}</h3>
+          <CodeToggleButton />
+        </div>
+        <CodePanel code={code} />
+        {children}
+      </section>
+    </CodeProvider>
+  );
+}
+
+function CodeToggleButton() {
+  const ctx = useCodeToggle();
+  if (!ctx) return null;
+  return (
+    <button
+      onClick={() => ctx.setOpen(!ctx.open)}
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium transition-colors",
+        ctx.open ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+      )}
+      aria-label={ctx.open ? "Hide code" : "Show code"}
+    >
+      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" /></svg>
+      {ctx.open ? "Hide" : "Code"}
+    </button>
   );
 }
 
@@ -405,7 +478,7 @@ function DemoContent() {
       <Sidebar
         header={<SidebarHeader />}
         sections={sidebarSections}
-        footer={<SidebarUser name="Design System" />}
+        footer={<SidebarFooterContent />}
       />
 
       <Tooltip content="Theme Configurator" side="left">
@@ -425,7 +498,7 @@ function DemoContent() {
             <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
               <span className="bg-gradient-to-r from-gradient-from to-gradient-to bg-clip-text text-transparent">Design System</span>
             </h1>
-            <p className="mt-1 text-sm text-muted-foreground">25 components, semantic tokens, WCAG AA, mobile-first</p>
+            <p className="mt-1 text-sm text-muted-foreground">26 components, semantic tokens, WCAG AA, mobile-first</p>
             <div className="mt-3 flex flex-wrap gap-1.5">
               <Badge variant="success" size="sm">25 Components</Badge>
               <Badge variant="info" size="sm">CSS Variables</Badge>
@@ -438,65 +511,57 @@ function DemoContent() {
           {/* ════════════════════════════════════════════════════════════════════ */}
           <CategoryHeader title="Forms & Actions" />
 
-          <Section id="button" title="Button">
-            <Sub title="Variants">
-              <CodeBlock code={`<Button>Primary</Button>
+          <Section id="button" title="Button" code={`<Button>Primary</Button>
 <Button variant="danger">Danger</Button>
-<Button variant="gradient">Gradient</Button>`}>
-                <div className="flex flex-wrap gap-2"><Button>Primary</Button><Button variant="secondary">Secondary</Button><Button variant="danger">Danger</Button><Button variant="outline">Outline</Button><Button variant="ghost">Ghost</Button><Button variant="gradient">Gradient</Button><Button variant="glass">Glass</Button><Button variant="solid">Solid</Button></div>
-              </CodeBlock>
+<Button variant="gradient">Gradient</Button>
+<Button size="sm">Small</Button>
+<Button size="icon"><PlusIcon /></Button>
+<Button isLoading>Saving</Button>`}>
+            <Sub title="Variants">
+              <div className="flex flex-wrap gap-2"><Button>Primary</Button><Button variant="secondary">Secondary</Button><Button variant="danger">Danger</Button><Button variant="outline">Outline</Button><Button variant="ghost">Ghost</Button><Button variant="gradient">Gradient</Button><Button variant="glass">Glass</Button><Button variant="solid">Solid</Button></div>
             </Sub>
             <Sub title="Sizes">
-              <CodeBlock code={`<Button size="sm">Small</Button>
-<Button size="icon"><PlusIcon /></Button>`}>
-                <div className="flex flex-wrap gap-2 items-center"><Button size="sm">Small</Button><Button>Default</Button><Button size="lg">Large</Button><Button size="icon"><I4 d={icons.plus} /></Button></div>
-              </CodeBlock>
+              <div className="flex flex-wrap gap-2 items-center"><Button size="sm">Small</Button><Button>Default</Button><Button size="lg">Large</Button><Button size="icon"><I4 d={icons.plus} /></Button></div>
             </Sub>
             <Sub title="States">
-              <CodeBlock code={`<Button isLoading>Saving</Button>
-<Button disabled>Disabled</Button>`}>
-                <div className="flex flex-wrap gap-2"><Button isLoading>Saving</Button><Button disabled>Disabled</Button></div>
-              </CodeBlock>
+              <div className="flex flex-wrap gap-2"><Button isLoading>Saving</Button><Button disabled>Disabled</Button></div>
             </Sub>
           </Section>
 
-          <Section id="input" title="Input & Select">
-            <div className="max-w-sm space-y-4">
-              <Sub title="Input">
-                <Input placeholder="Default input..." />
-                <CodeBlock code={`<Input placeholder="Enter name..." />
-<Input error="Required" />   {/* string: border + message */}
-<Input error={true} />       {/* boolean: border only */}`} />
-              </Sub>
-              <Sub title="SearchInput">
-                <SearchInput placeholder="Search..." value={searchValue} onChange={(e) => setSearchValue(e.target.value)} containerClassName="max-w-xs" />
-                <CodeBlock code={`<SearchInput placeholder="Search..." containerClassName="max-w-xs" />`} />
-              </Sub>
-              <Sub title="Select (options prop)">
-                <Select options={[{ value: "sm", label: "Small" }, { value: "md", label: "Medium" }, { value: "lg", label: "Large" }]} placeholder="Pick a size..." />
-                <CodeBlock code={`<Select
-  options={[{ value: "sm", label: "Small" }, ...]}
-  placeholder="Pick a size..."
-/>`} />
-              </Sub>
-              <Sub title="Select (children)">
-                <Select defaultValue=""><option value="" disabled>Select type...</option><option value="audio">Audio</option><option value="video">Video</option></Select>
-                <CodeBlock code={`<Select>
-  <option value="audio">Audio</option>
-</Select>`} />
-              </Sub>
-              <Sub title="Textarea">
-                <Textarea placeholder="Write something..." />
-                <CodeBlock code={`<Textarea placeholder="Write something..." />`} />
-              </Sub>
+          <Section id="input" title="Input & Select" code={`<Input placeholder="Enter name..." />
+<Input error="Required" />       {/* string: border + message */}
+<Input error={true} />           {/* boolean: border only */}
+<SearchInput placeholder="Search..." containerClassName="max-w-xs" />
+<Select options={[{ value: "sm", label: "Small" }]} placeholder="Pick..." />
+<Select><option value="audio">Audio</option></Select>
+<Textarea placeholder="Write something..." />`}>
+            <div className="max-w-md space-y-4">
+              <Sub title="Input"><Input placeholder="Default input..." /></Sub>
+              <Sub title="Error (string)"><Input placeholder="With error..." error="This field is required" /></Sub>
+              <Sub title="SearchInput"><SearchInput placeholder="Search..." value={searchValue} onChange={(e) => setSearchValue(e.target.value)} containerClassName="max-w-xs" /></Sub>
+              <Sub title="Select (options)"><Select options={[{ value: "sm", label: "Small" }, { value: "md", label: "Medium" }, { value: "lg", label: "Large" }]} placeholder="Pick a size..." /></Sub>
+              <Sub title="Select (children)"><Select defaultValue=""><option value="" disabled>Select type...</option><option value="audio">Audio</option><option value="video">Video</option></Select></Sub>
+              <Sub title="Textarea"><Textarea placeholder="Write something..." /></Sub>
             </div>
           </Section>
 
-          <Section id="switch" title="Switch">
-            <CodeBlock code={`<Switch checked={on} onChange={setOn} label="Notifications" />
+          <Section id="switch" title="Switch" code={`<Switch checked={on} onChange={setOn} label="Notifications" />
 <Switch checked={on} onChange={setOn} size="sm" disabled />`}>
-              <SwitchDemo />
-            </CodeBlock>
+            <SwitchDemo />
+          </Section>
+
+          <Section id="checkbox" title="Checkbox" code={`<Checkbox label="Accept terms" />
+<Checkbox label="Newsletter" description="Get weekly updates" />
+<Checkbox label="Required" error="You must accept" />
+<Checkbox label="Disabled" disabled checked />`}>
+            <div className="flex flex-col gap-4 items-start">
+              <Checkbox label="Accept terms and conditions" />
+              <Checkbox label="Subscribe to newsletter" description="Get weekly updates and tips" />
+              <Checkbox label="Required field" error="You must accept the terms" />
+              <Checkbox label="Disabled checked" disabled defaultChecked />
+              <Checkbox label="Small" size="sm" />
+              <Checkbox label="Large" size="lg" description="A larger checkbox with description" />
+            </div>
           </Section>
 
           {/* ════════════════════════════════════════════════════════════════════ */}
@@ -504,7 +569,9 @@ function DemoContent() {
           {/* ════════════════════════════════════════════════════════════════════ */}
           <CategoryHeader title="Layout" />
 
-          <Section id="card" title="Card">
+          <Section id="card" title="Card" code={`<Card variant="elevated">Content</Card>
+<Card variant="glass">Frosted</Card>
+<Card showGradientAccent>Accent top border</Card>`}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Card><p className="text-sm font-medium">Default</p><p className="text-xs text-muted-foreground mt-1">Standard card</p></Card>
               <Card variant="outline"><p className="text-sm font-medium">Outline</p><p className="text-xs text-muted-foreground mt-1">Thick border</p></Card>
@@ -512,28 +579,26 @@ function DemoContent() {
               <Card variant="glass"><p className="text-sm font-medium">Glass</p><p className="text-xs text-muted-foreground mt-1">Frosted</p></Card>
             </div>
             <Card showGradientAccent className="mt-3"><p className="text-sm font-medium">Gradient Accent</p></Card>
-            <CodeBlock code={`<Card variant="elevated">Content</Card>
-<Card variant="glass">Frosted</Card>
-<Card showGradientAccent>Accent top border</Card>`} />
           </Section>
 
-          <Section id="page-header" title="PageHeader">
+          <Section id="page-header" title="PageHeader" code={`<PageHeader title="Your" gradientText="Agents"
+  description="Deploy and monitor your AI fleet."
+  action={<Button size="sm">New</Button>} />
+<SectionHeader title="Activity" action={...} />`}>
             <Card>
-              <PageHeader title="Your Agents" gradientText="Agents" description="Deploy and monitor your AI fleet." action={<Button size="sm">New</Button>} />
+              <PageHeader title="Your" gradientText="Agents" description="Deploy and monitor your AI fleet." action={<Button size="sm">New</Button>} />
               <div className="border-t border-border pt-3 mt-2">
                 <SectionHeader title="Activity" action={<Button variant="ghost" size="sm">View All</Button>} />
               </div>
             </Card>
-            <CodeBlock code={`<PageHeader
-  title="Your Agents"
-  gradientText="Agents"
-  description="Deploy and monitor your AI fleet."
-  action={<Button size="sm">New</Button>}
-/>
-<SectionHeader title="Activity" action={...} />`} />
           </Section>
 
-          <Section id="tabs" title="Tabs">
+          <Section id="tabs" title="Tabs" code={`<Tabs defaultTab="overview">
+  <TabsList>
+    <TabsTrigger value="overview">Overview</TabsTrigger>
+  </TabsList>
+  <TabsContent value="overview">...</TabsContent>
+</Tabs>`}>
             <Sub title="Default">
               <Tabs defaultTab="overview">
                 <TabsList><TabsTrigger value="overview">Overview</TabsTrigger><TabsTrigger value="analytics">Analytics</TabsTrigger><TabsTrigger value="settings">Settings</TabsTrigger></TabsList>
@@ -557,12 +622,6 @@ function DemoContent() {
                 <TabsContent value="video"><p className="text-sm text-muted-foreground">Video only</p></TabsContent>
               </Tabs>
             </Sub>
-            <CodeBlock code={`<Tabs defaultTab="overview">
-  <TabsList>
-    <TabsTrigger value="overview">Overview</TabsTrigger>
-  </TabsList>
-  <TabsContent value="overview">...</TabsContent>
-</Tabs>`} />
           </Section>
 
           {/* ════════════════════════════════════════════════════════════════════ */}
@@ -570,7 +629,19 @@ function DemoContent() {
           {/* ════════════════════════════════════════════════════════════════════ */}
           <CategoryHeader title="Data Display" />
 
-          <Section id="table" title="Table">
+          <Section id="table" title="Table" code={`<Table>
+  <TableHeader><tr>
+    <TableSortHead sortKey="name" activeSort={key} direction={dir} onSort={onSort}>Name</TableSortHead>
+    <TableHead>Status</TableHead>
+  </tr></TableHeader>
+  <TableBody>
+    <TableRow clickable>
+      <TableCell>Interview</TableCell>
+      <TableCell><Badge variant="success">Done</Badge></TableCell>
+    </TableRow>
+  </TableBody>
+</Table>
+<TablePagination page={1} pageSize={10} total={87} onPageChange={setPage} />`}>
             <Sub title="Sortable + Actions">
               <Table>
                 <TableHeader>
@@ -587,65 +658,39 @@ function DemoContent() {
                 </TableBody>
               </Table>
             </Sub>
-            <Sub title="Pagination">
-              <TablePagination page={tablePage} pageSize={pageSize} total={87} onPageChange={setTablePage} onPageSizeChange={setPageSize} />
-            </Sub>
-            <Sub title="Empty">
-              <Table><TableHeader><tr><TableHead>Name</TableHead><TableHead>Type</TableHead><TableHead>Status</TableHead></tr></TableHeader><TableBody><TableEmpty colSpan={3} icon={<I d={icons.doc} />} title="No results found" description="Try adjusting your search." action={<Button size="sm" variant="outline">Clear Filters</Button>} /></TableBody></Table>
-            </Sub>
+            <Sub title="Pagination"><TablePagination page={tablePage} pageSize={pageSize} total={87} onPageChange={setTablePage} onPageSizeChange={setPageSize} /></Sub>
+            <Sub title="Empty"><Table><TableHeader><tr><TableHead>Name</TableHead><TableHead>Type</TableHead><TableHead>Status</TableHead></tr></TableHeader><TableBody><TableEmpty colSpan={3} icon={<I d={icons.doc} />} title="No results found" description="Try adjusting your search." action={<Button size="sm" variant="outline">Clear Filters</Button>} /></TableBody></Table></Sub>
             <Sub title="Skeleton"><TableSkeleton rows={2} columns={4} /></Sub>
-            <CodeBlock code={`<Table>
-  <TableHeader><tr>
-    <TableSortHead sortKey="name" activeSort={key} direction={dir} onSort={onSort}>Name</TableSortHead>
-    <TableHead>Status</TableHead>
-  </tr></TableHeader>
-  <TableBody>
-    <TableRow clickable>
-      <TableCell>Interview</TableCell>
-      <TableCell><Badge variant="success">Done</Badge></TableCell>
-    </TableRow>
-  </TableBody>
-</Table>
-<TablePagination page={1} pageSize={10} total={87} onPageChange={setPage} />`} />
           </Section>
 
-          <Section id="stat-card" title="StatCard">
+          <Section id="stat-card" title="StatCard" code={`<StatCardGrid>
+  <StatCard icon={<ClockIcon />} iconColor="purple" label="Hours" value="1,234" />
+  <StatCard variant="gradient" icon={...} label="Credits" value="$42" />
+</StatCardGrid>`}>
             <StatCardGrid>
               <StatCard icon={<I d={icons.clock} />} iconColor="purple" label="Hours" value="1,234" />
               <StatCard icon={<I d={icons.doc} />} iconColor="blue" label="Docs" value="567" />
               <StatCard icon={<I d={icons.users} />} iconColor="green" label="Users" value="89" />
               <StatCard variant="gradient" icon={<I d={icons.screen} />} iconColor="purple" label="Credits" value="$42" />
             </StatCardGrid>
-            <CodeBlock code={`<StatCardGrid>
-  <StatCard icon={<ClockIcon />} iconColor="purple" label="Hours" value="1,234" />
-  <StatCard variant="gradient" icon={...} label="Credits" value="$42" />
-</StatCardGrid>`} />
           </Section>
 
-          <Section id="badge" title="Badge">
-            <Sub title="Variants">
-              <CodeBlock code={`<Badge variant="success">Active</Badge>
+          <Section id="badge" title="Badge" code={`<Badge variant="success">Active</Badge>
 <Badge color="purple">Custom</Badge>
 <StatusBadge status="Active" />`}>
-                <div className="space-y-3">
-                  <div className="flex flex-wrap gap-2"><Badge>Default</Badge><Badge variant="success">Success</Badge><Badge variant="warning">Warning</Badge><Badge variant="error">Error</Badge><Badge variant="info">Info</Badge><Badge variant="outline">Outline</Badge><Badge variant="secondary">Secondary</Badge></div>
-                  <div className="flex flex-wrap gap-2"><Badge color="green">Green</Badge><Badge color="yellow">Yellow</Badge><Badge color="red">Red</Badge><Badge color="blue">Blue</Badge><Badge color="purple">Purple</Badge><Badge color="pink">Pink</Badge><Badge color="orange">Orange</Badge><Badge color="gray">Gray</Badge></div>
-                  <div className="flex flex-wrap gap-2"><StatusBadge status="Active" /><StatusBadge status="Pending" /><StatusBadge status="Failed" /><StatusBadge status="Completed" /></div>
-                </div>
-              </CodeBlock>
-            </Sub>
+            <Sub title="Variants"><div className="flex flex-wrap gap-2"><Badge>Default</Badge><Badge variant="success">Success</Badge><Badge variant="warning">Warning</Badge><Badge variant="error">Error</Badge><Badge variant="info">Info</Badge><Badge variant="outline">Outline</Badge><Badge variant="secondary">Secondary</Badge></div></Sub>
+            <Sub title="Colors"><div className="flex flex-wrap gap-2"><Badge color="green">Green</Badge><Badge color="yellow">Yellow</Badge><Badge color="red">Red</Badge><Badge color="blue">Blue</Badge><Badge color="purple">Purple</Badge><Badge color="pink">Pink</Badge><Badge color="orange">Orange</Badge><Badge color="gray">Gray</Badge></div></Sub>
+            <Sub title="StatusBadge"><div className="flex flex-wrap gap-2"><StatusBadge status="Active" /><StatusBadge status="Pending" /><StatusBadge status="Failed" /><StatusBadge status="Completed" /></div></Sub>
           </Section>
 
-          <Section id="info-card" title="InfoCard">
-            <CodeBlock code={`<InfoCard color="blue" title="Tip" description="Shortcuts make editing faster." />
+          <Section id="info-card" title="InfoCard" code={`<InfoCard color="blue" title="Tip" description="Shortcuts make editing faster." />
 <InfoCard color="red" title="Action" description="Cannot be undone." />`}>
-              <div className="space-y-2">
-                <InfoCard color="blue" title="Tip" description="Shortcuts make editing faster." />
-                <InfoCard color="yellow" title="Warning" description="Trial expires in 3 days." />
-                <InfoCard color="red" title="Action" description="Cannot be undone." />
-                <InfoCard color="green" title="Success" description="All systems operational." />
-              </div>
-            </CodeBlock>
+            <div className="space-y-2">
+              <InfoCard color="blue" title="Tip" description="Shortcuts make editing faster." />
+              <InfoCard color="yellow" title="Warning" description="Trial expires in 3 days." />
+              <InfoCard color="red" title="Action" description="Cannot be undone." />
+              <InfoCard color="green" title="Success" description="All systems operational." />
+            </div>
           </Section>
 
           {/* ════════════════════════════════════════════════════════════════════ */}
@@ -653,19 +698,24 @@ function DemoContent() {
           {/* ════════════════════════════════════════════════════════════════════ */}
           <CategoryHeader title="Feedback" />
 
-          <Section id="toast" title="Toast">
-            <CodeBlock code={`const toast = useToast();
+          <Section id="toast" title="Toast" code={`const toast = useToast();
 toast.success("Saved");                    // title only
 toast.success("Saved", "Changes saved.");  // title + message
 toast.error("Error", "Something went wrong.");`}>
-              <div>
-                <p className="text-xs text-muted-foreground mb-3">Hover to pause. Errors persist 15s.</p>
-                <ToastDemo />
-              </div>
-            </CodeBlock>
+            <p className="text-xs text-muted-foreground mb-3">Hover to pause. Errors persist 15s.</p>
+            <ToastDemo />
           </Section>
 
-          <Section id="dialog" title="Dialog & ConfirmDialog">
+          <Section id="dialog" title="Dialog & ConfirmDialog" code={`<ConfirmDialog
+  open={open}
+  onClose={() => setOpen(false)}
+  onConfirm={handleDelete}
+  title="Delete document?"
+  description="This action cannot be undone."
+  variant="danger"
+  confirmLabel="Delete"
+/>
+{/* Legacy aliases: isOpen, message, confirmText, cancelText, onCancel */}`}>
             <div className="flex gap-2">
               <Button size="sm" variant="outline" onClick={() => setDialogOpen(true)}>Open Dialog</Button>
               <Button size="sm" variant="danger" onClick={() => setConfirmOpen(true)}>Delete Item</Button>
@@ -676,67 +726,19 @@ toast.error("Error", "Something went wrong.");`}>
               <DialogFooter><Button variant="ghost" size="sm" onClick={() => setDialogOpen(false)}>Cancel</Button><Button size="sm" onClick={() => setDialogOpen(false)}>Save</Button></DialogFooter>
             </Dialog>
             <ConfirmDialog open={confirmOpen} onClose={() => setConfirmOpen(false)} onConfirm={() => setConfirmOpen(false)} title="Delete document?" description="This action cannot be undone." variant="danger" confirmLabel="Delete" />
-            <CodeBlock code={`<ConfirmDialog
-  open={open}
-  onClose={() => setOpen(false)}
-  onConfirm={handleDelete}
-  title="Delete document?"
-  description="This action cannot be undone."
-  variant="danger"
-  confirmLabel="Delete"
-/>
-{/* Legacy aliases: isOpen, message, confirmText, cancelText, onCancel */}`} />
           </Section>
 
-          <Section id="empty-state" title="EmptyState">
-            <CodeBlock code={`<EmptyState
-  icon={<DocIcon />}
-  title="No documents"
+          <Section id="empty-state" title="EmptyState" code={`<EmptyState icon={<DocIcon />} title="No documents"
   description="Upload your first document."
-  action={<Button size="sm">Upload</Button>}
-/>`}>
-              <EmptyState icon={<I d={icons.doc} />} title="No documents" description="Upload your first document." action={<Button size="sm">Upload</Button>} height="sm" />
-            </CodeBlock>
+  action={<Button size="sm">Upload</Button>} />`}>
+            <EmptyState icon={<I d={icons.doc} />} title="No documents" description="Upload your first document." action={<Button size="sm">Upload</Button>} height="sm" />
           </Section>
 
-          <Section id="error-state" title="ErrorState">
-            <CodeBlock code={`<ErrorState variant="inline" message="Failed to load." onRetry={refetch} />
+          <Section id="error-state" title="ErrorState" code={`<ErrorState variant="inline" message="Failed to load." onRetry={refetch} />
 <ErrorState variant="card" title="Error" message="Could not fetch." onRetry={refetch} />`}>
-              <div className="space-y-4">
-                <ErrorState variant="inline" message="Failed to load transcript." onRetry={() => { }} />
-                <Card><ErrorState variant="card" title="Load Failed" message="Could not fetch data." onRetry={() => { }} /></Card>
-              </div>
-            </CodeBlock>
-          </Section>
-
-          <Section id="skeleton" title="Skeleton">
-            <div className="space-y-6">
-              <Sub title="Text">
-                <div className="max-w-sm space-y-2"><Skeleton className="h-6 w-40" /><SkeletonText lines={3} /></div>
-                <CodeBlock code={`<Skeleton className="h-6 w-40" />
-<SkeletonText lines={3} />`} />
-              </Sub>
-              <Sub title="Grid (count prop)">
-                <GridSkeleton count={6} columns={3} />
-                <CodeBlock code={`<GridSkeleton count={6} columns={3} />`} />
-              </Sub>
-              <Sub title="Form (flat / sections)">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <div><p className="text-[10px] text-muted-foreground mb-2">variant=&quot;flat&quot;</p><FormSkeleton fields={3} /></div>
-                  <div><p className="text-[10px] text-muted-foreground mb-2">variant=&quot;sections&quot;</p><FormSkeleton sections={2} /></div>
-                </div>
-                <CodeBlock code={`<FormSkeleton fields={3} />          {/* flat fields */}
-<FormSkeleton sections={2} />        {/* card-wrapped sections */}`} />
-              </Sub>
-              <Sub title="Page Skeleton">
-                <PageSkeleton showCards={true} cardCount={3} tableRows={3} />
-                <CodeBlock code={`<PageSkeleton showCards={true} cardCount={3} tableRows={3} />
-<PageSkeleton showCards={false} tableRows={5} />`} />
-              </Sub>
-              <Sub title="Detail Skeleton">
-                <DetailSkeleton />
-                <CodeBlock code={`<DetailSkeleton />`} />
-              </Sub>
+            <div className="space-y-4">
+              <ErrorState variant="inline" message="Failed to load transcript." onRetry={() => { }} />
+              <Card><ErrorState variant="card" title="Load Failed" message="Could not fetch data." onRetry={() => { }} /></Card>
             </div>
           </Section>
 
@@ -745,7 +747,17 @@ toast.error("Error", "Something went wrong.");`}>
           {/* ════════════════════════════════════════════════════════════════════ */}
           <CategoryHeader title="Utilities" />
 
-          <Section id="dropdown" title="DropdownMenu">
+          <Section id="dropdown" title="DropdownMenu" code={`<DropdownMenu trigger={<MoreButton />}>
+  <DropdownMenuHeader>Actions</DropdownMenuHeader>
+  <DropdownMenuItem>Edit</DropdownMenuItem>
+  <DropdownMenuDivider />
+  <DropdownMenuItem variant="danger">Delete</DropdownMenuItem>
+</DropdownMenu>
+
+{/* Triggerless: omit trigger, control with open prop */}
+<DropdownMenu open={open} onOpenChange={setOpen}>
+  <DropdownMenuItem>Option A</DropdownMenuItem>
+</DropdownMenu>`}>
             <Sub title="With trigger (recommended)">
               <DropdownMenu trigger={<MoreButton />} align="left">
                 <DropdownMenuHeader>Actions</DropdownMenuHeader>
@@ -754,12 +766,6 @@ toast.error("Error", "Something went wrong.");`}>
                 <DropdownMenuDivider />
                 <DropdownMenuItem variant="danger">Delete</DropdownMenuItem>
               </DropdownMenu>
-              <CodeBlock code={`<DropdownMenu trigger={<MoreButton />}>
-  <DropdownMenuHeader>Actions</DropdownMenuHeader>
-  <DropdownMenuItem>Edit</DropdownMenuItem>
-  <DropdownMenuDivider />
-  <DropdownMenuItem variant="danger">Delete</DropdownMenuItem>
-</DropdownMenu>`} />
             </Sub>
             <Sub title="Triggerless (legacy compat)">
               <div className="relative inline-block">
@@ -769,56 +775,71 @@ toast.error("Error", "Something went wrong.");`}>
                   <DropdownMenuItem onClick={() => setDropdownOpen(false)}>Option B</DropdownMenuItem>
                 </DropdownMenu>
               </div>
-              <CodeBlock code={`{/* Omit trigger for external state control */}
-<DropdownMenu open={open} onOpenChange={setOpen} align="left">
-  <DropdownMenuItem>Option A</DropdownMenuItem>
-</DropdownMenu>`} />
             </Sub>
           </Section>
 
-          <Section id="tooltip" title="Tooltip">
-            <CodeBlock code={`<Tooltip content="Edit item" side="top">
+          <Section id="tooltip" title="Tooltip" code={`<Tooltip content="Edit item" side="top">
   <Button variant="outline">Hover me</Button>
 </Tooltip>`}>
-              <div className="flex flex-wrap gap-3">
-                <Tooltip content="Top tooltip" side="top"><Button variant="outline" size="sm">Top</Button></Tooltip>
-                <Tooltip content="Bottom tooltip" side="bottom"><Button variant="outline" size="sm">Bottom</Button></Tooltip>
-                <Tooltip content="Left tooltip" side="left"><Button variant="outline" size="sm">Left</Button></Tooltip>
-                <Tooltip content="Right tooltip" side="right"><Button variant="outline" size="sm">Right</Button></Tooltip>
-              </div>
-            </CodeBlock>
+            <div className="flex flex-wrap gap-3">
+              <Tooltip content="Top tooltip" side="top"><Button variant="outline" size="sm">Top</Button></Tooltip>
+              <Tooltip content="Bottom tooltip" side="bottom"><Button variant="outline" size="sm">Bottom</Button></Tooltip>
+              <Tooltip content="Left tooltip" side="left"><Button variant="outline" size="sm">Left</Button></Tooltip>
+              <Tooltip content="Right tooltip" side="right"><Button variant="outline" size="sm">Right</Button></Tooltip>
+            </div>
           </Section>
 
-          <Section id="avatar" title="Avatar">
-            <CodeBlock code={`<Avatar name="Vatsal Shah" size="lg" />
+          <Section id="avatar" title="Avatar" code={`<Avatar name="Vatsal Shah" size="lg" />
 <Avatar name="Jane Doe" variant="rounded" />
 <Avatar name="John" src="/john.jpg" />`}>
-              <div className="flex flex-wrap items-center gap-4">
-                <Avatar name="Vatsal Shah" size="sm" />
-                <Avatar name="Vatsal Shah" />
-                <Avatar name="Vatsal Shah" size="lg" />
-                <Avatar name="Jane Doe" size="lg" variant="rounded" />
-                <Avatar name="John" src="https://api.dicebear.com/8.x/avataaars/svg?seed=John" size="lg" />
-              </div>
-            </CodeBlock>
+            <div className="flex flex-wrap items-center gap-4">
+              <Avatar name="Vatsal Shah" size="sm" />
+              <Avatar name="Vatsal Shah" />
+              <Avatar name="Vatsal Shah" size="lg" />
+              <Avatar name="Jane Doe" size="lg" variant="rounded" />
+              <Avatar name="John" src="https://api.dicebear.com/8.x/avataaars/svg?seed=John" size="lg" />
+            </div>
           </Section>
 
-          <Section id="progress" title="Progress">
-            <CodeBlock code={`<Progress value={65} />
+          <Section id="progress" title="Progress" code={`<Progress value={65} />
 <Progress value={45} variant="gradient" />
 <Progress value={72} showLabel />`}>
-              <div className="space-y-4">
-                <Progress value={65} />
-                <Progress value={45} variant="gradient" />
-                <Progress value={72} showLabel />
-              </div>
-            </CodeBlock>
+            <div className="max-w-md space-y-4">
+              <Progress value={65} />
+              <Progress value={45} variant="gradient" />
+              <Progress value={72} showLabel />
+            </div>
+          </Section>
+
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          {/*  SKELETON                                                          */}
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          <CategoryHeader title="Skeleton" />
+
+          <Section id="skeleton" title="Loading Skeletons" code={`<Skeleton className="h-6 w-40" />
+<SkeletonText lines={3} />
+<GridSkeleton count={6} columns={3} />
+<FormSkeleton fields={3} />          {/* flat fields */}
+<FormSkeleton sections={2} />        {/* card-wrapped sections */}
+<PageSkeleton showCards={true} cardCount={3} tableRows={3} />`}>
+            <div className="space-y-6">
+              <Sub title="Text"><div className="max-w-sm space-y-2"><Skeleton className="h-6 w-40" /><SkeletonText lines={3} /></div></Sub>
+              <Sub title="Grid"><GridSkeleton count={6} columns={3} /></Sub>
+              <Sub title="Form (flat / sections)">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div><p className="text-[10px] text-muted-foreground mb-2">variant=&quot;flat&quot;</p><FormSkeleton fields={3} /></div>
+                  <div><p className="text-[10px] text-muted-foreground mb-2">variant=&quot;sections&quot;</p><FormSkeleton sections={2} /></div>
+                </div>
+              </Sub>
+              <Sub title="Page"><PageSkeleton showCards={true} cardCount={3} tableRows={3} /></Sub>
+
+            </div>
           </Section>
 
           <footer className="mt-12 pt-6 border-t border-border text-center pb-6">
             <p className="text-xs text-muted-foreground">
               <a href="https://speakai.co?ref=design-system" target="_blank" rel="noopener noreferrer" className="font-medium text-foreground hover:text-primary transition-colors">@speakai/ui</a>
-              {" "} — 25 components
+              {" "} — 26 components
             </p>
           </footer>
         </div>

@@ -221,17 +221,18 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
         }}
         className={cn("relative inline-block", className)}
       >
-        <button
-          ref={triggerRef}
-          type="button"
+        <div
+          ref={triggerRef as unknown as React.RefObject<HTMLDivElement>}
+          role="button"
+          tabIndex={0}
           aria-haspopup="true"
           aria-expanded={isOpen}
           onClick={toggle}
-          onKeyDown={handleTriggerKeyDown}
-          className="inline-flex"
+          onKeyDown={handleTriggerKeyDown as unknown as React.KeyboardEventHandler<HTMLDivElement>}
+          className="inline-flex cursor-pointer"
         >
           {trigger}
-        </button>
+        </div>
 
         {isOpen && (
           <div

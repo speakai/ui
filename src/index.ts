@@ -46,7 +46,6 @@ export {
   CardSkeleton,
   GridSkeleton,
   FormSkeleton,
-  DetailSkeleton,
 } from "./components/Skeleton";
 export type {
   SkeletonProps,
@@ -56,7 +55,6 @@ export type {
   CardSkeletonProps,
   GridSkeletonProps,
   FormSkeletonProps,
-  DetailSkeletonProps,
 } from "./components/Skeleton";
 
 export { EmptyState } from "./components/EmptyState";
@@ -123,6 +121,10 @@ export type { AvatarProps, AvatarSize, AvatarVariant } from "./components/Avatar
 // Switch
 export { Switch } from "./components/Switch";
 export type { SwitchProps, SwitchSize } from "./components/Switch";
+
+// Checkbox
+export { Checkbox } from "./components/Checkbox";
+export type { CheckboxProps, CheckboxSize } from "./components/Checkbox";
 
 // Progress
 export { Progress } from "./components/Progress";
