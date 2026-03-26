@@ -118,17 +118,31 @@ StatCardsSkeletonGrid.displayName = "StatCardsSkeletonGrid";
 
 // ── PageSkeleton ───────────────────────────────────────────────────────────────
 
-export const PageSkeleton = forwardRef<HTMLDivElement, { className?: string }>(
-  ({ className }, ref) => (
+export interface PageSkeletonProps {
+  /** Show stat card skeletons. Default true. */
+  showCards?: boolean;
+  /** Number of stat cards. Default 4. */
+  cardCount?: number;
+  /** Number of table-like rows in the content area. Default 5. */
+  tableRows?: number;
+  className?: string;
+}
+
+export const PageSkeleton = forwardRef<HTMLDivElement, PageSkeletonProps>(
+  ({ showCards = true, cardCount = 4, tableRows = 5, className }, ref) => (
     <div
       ref={ref}
       aria-hidden="true"
       className={cn("space-y-6", className)}
     >
       <PageHeaderSkeleton />
-      <StatCardsSkeletonGrid />
-      <div className="rounded-lg border border-border bg-card p-6">
-        <SkeletonText lines={6} />
+      {showCards && <StatCardsSkeletonGrid count={cardCount} />}
+      <div className="rounded-lg border border-border bg-card overflow-hidden">
+        <div className="divide-y divide-border">
+          {Array.from({ length: tableRows }).map((_, i) => (
+            <div key={i} className="h-14 animate-pulse bg-muted/30" />
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -189,7 +203,10 @@ CardSkeleton.displayName = "CardSkeleton";
 
 export interface GridSkeletonProps {
   columns?: 2 | 3 | 4;
+  /** Number of grid rows. Total cards = rows × columns. Ignored when `count` is provided. */
   rows?: number;
+  /** Total number of cards to render. Takes precedence over `rows`. */
+  count?: number;
   variant?: "default" | "agent";
   className?: string;
 }
@@ -201,51 +218,170 @@ const gridColsMap = {
 } as const;
 
 export const GridSkeleton = forwardRef<HTMLDivElement, GridSkeletonProps>(
-  ({ columns = 3, rows = 1, variant = "default", className }, ref) => (
-    <div
-      ref={ref}
-      aria-hidden="true"
-      className={cn("grid gap-4", gridColsMap[columns], className)}
-    >
-      {Array.from({ length: columns * rows }).map((_, i) => (
-        <CardSkeleton key={i} variant={variant} />
-      ))}
-    </div>
-  )
+  ({ columns = 3, rows = 1, count, variant = "default", className }, ref) => {
+    const total = count ?? columns * rows;
+    return (
+      <div
+        ref={ref}
+        aria-hidden="true"
+        className={cn("grid gap-4", gridColsMap[columns], className)}
+      >
+        {Array.from({ length: total }).map((_, i) => (
+          <CardSkeleton key={i} variant={variant} />
+        ))}
+      </div>
+    );
+  }
 );
 GridSkeleton.displayName = "GridSkeleton";
 
 // ── FormSkeleton ───────────────────────────────────────────────────────────────
 
 export interface FormSkeletonProps {
+  /** Number of individual form fields (flat variant). Default 4. */
   fields?: number;
+  /** Number of card-wrapped sections (sections variant). Alias for switching to sections mode. */
+  sections?: number;
+  /** "flat" renders label+input pairs. "sections" renders card-wrapped groups. Default "flat", or "sections" when `sections` prop is provided. */
+  variant?: "flat" | "sections";
   className?: string;
 }
 
 const fieldWidthPattern = ["w-24", "w-20", "w-28", "w-16"] as const;
 
 export const FormSkeleton = forwardRef<HTMLDivElement, FormSkeletonProps>(
-  ({ fields = 4, className }, ref) => (
-    <div
-      ref={ref}
-      aria-hidden="true"
-      className={cn("space-y-5", className)}
-    >
-      {Array.from({ length: fields }).map((_, i) => (
-        <div key={i} className="space-y-2">
-          <div
-            className={cn(
-              "h-3 animate-pulse rounded-lg bg-muted",
-              fieldWidthPattern[i % fieldWidthPattern.length]
-            )}
-          />
-          <div className="h-10 w-full animate-pulse rounded-lg bg-muted" />
+  ({ fields = 4, sections, variant: variantProp, className }, ref) => {
+    const variant = variantProp ?? (sections != null ? "sections" : "flat");
+
+    if (variant === "sections") {
+      const sectionCount = sections ?? fields;
+      return (
+        <div ref={ref} aria-hidden="true" className={cn("space-y-6", className)}>
+          {Array.from({ length: sectionCount }).map((_, i) => (
+            <div key={i} className="rounded-lg border border-border bg-card p-6">
+              <div className="h-5 w-40 animate-pulse rounded-lg bg-muted mb-5" />
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="h-3 w-24 animate-pulse rounded-lg bg-muted" />
+                  <div className="h-10 w-full animate-pulse rounded-lg bg-muted" />
+                </div>
+                <div className="space-y-2">
+                  <div className="h-3 w-32 animate-pulse rounded-lg bg-muted" />
+                  <div className="h-10 w-full animate-pulse rounded-lg bg-muted" />
+                </div>
+                {i === 0 && (
+                  <div className="space-y-2">
+                    <div className="h-3 w-28 animate-pulse rounded-lg bg-muted" />
+                    <div className="h-24 w-full animate-pulse rounded-lg bg-muted" />
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
-      ))}
-      <div className="flex justify-end pt-2">
-        <div className="h-10 w-28 animate-pulse rounded-lg bg-muted" />
+      );
+    }
+
+    return (
+      <div
+        ref={ref}
+        aria-hidden="true"
+        className={cn("space-y-5", className)}
+      >
+        {Array.from({ length: fields }).map((_, i) => (
+          <div key={i} className="space-y-2">
+            <div
+              className={cn(
+                "h-3 animate-pulse rounded-lg bg-muted",
+                fieldWidthPattern[i % fieldWidthPattern.length]
+              )}
+            />
+            <div className="h-10 w-full animate-pulse rounded-lg bg-muted" />
+          </div>
+        ))}
+        <div className="flex justify-end pt-2">
+          <div className="h-10 w-28 animate-pulse rounded-lg bg-muted" />
+        </div>
+      </div>
+    );
+  }
+);
+FormSkeleton.displayName = "FormSkeleton";
+
+// ── DetailSkeleton ──────────────────────────────────────────────────────────────
+
+export interface DetailSkeletonProps {
+  className?: string;
+}
+
+export const DetailSkeleton = forwardRef<HTMLDivElement, DetailSkeletonProps>(
+  ({ className }, ref) => (
+    <div ref={ref} aria-hidden="true" className={cn("mx-auto max-w-6xl", className)}>
+      {/* Back link */}
+      <div className="mb-6 h-5 w-32 animate-pulse rounded-lg bg-muted" />
+
+      {/* Main card */}
+      <div className="rounded-lg border border-border bg-card p-8">
+        {/* Header with avatar and actions */}
+        <div className="mb-6 flex items-start justify-between border-b border-border pb-6">
+          <div className="flex items-center gap-4">
+            <div className="h-20 w-20 animate-pulse rounded-full bg-muted" />
+            <div>
+              <div className="mb-2 h-8 w-48 animate-pulse rounded-lg bg-muted" />
+              <div className="h-5 w-20 animate-pulse rounded-full bg-muted" />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <div className="h-10 w-24 animate-pulse rounded-lg bg-muted" />
+            <div className="h-10 w-24 animate-pulse rounded-lg bg-muted" />
+            <div className="h-10 w-24 animate-pulse rounded-lg bg-muted" />
+          </div>
+        </div>
+
+        <div className="space-y-8">
+          {/* Section 1 — info grid */}
+          <div>
+            <div className="mb-4 h-6 w-32 animate-pulse rounded-lg bg-muted" />
+            <div className="grid grid-cols-2 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="rounded-lg bg-muted/30 p-4">
+                  <div className="mb-2 h-4 w-24 animate-pulse rounded-lg bg-muted" />
+                  <div className="h-5 w-32 animate-pulse rounded-lg bg-muted" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="border-t border-border" />
+
+          {/* Section 2 — description + grid */}
+          <div>
+            <div className="mb-4 h-6 w-40 animate-pulse rounded-lg bg-muted" />
+            <div className="mb-4 rounded-lg bg-muted/30 p-4">
+              <div className="mb-2 h-4 w-full animate-pulse rounded-lg bg-muted" />
+              <div className="h-4 w-3/4 animate-pulse rounded-lg bg-muted" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="rounded-lg bg-muted/30 p-4">
+                <div className="mb-2 h-4 w-32 animate-pulse rounded-lg bg-muted" />
+                <div className="h-5 w-24 animate-pulse rounded-lg bg-muted" />
+              </div>
+              <div className="rounded-lg bg-muted/30 p-4">
+                <div className="mb-2 h-4 w-28 animate-pulse rounded-lg bg-muted" />
+                <div className="h-5 w-20 animate-pulse rounded-lg bg-muted" />
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-border" />
+
+          {/* Action button */}
+          <div className="border-t border-border pt-6">
+            <div className="h-12 w-full animate-pulse rounded-lg bg-muted" />
+          </div>
+        </div>
       </div>
     </div>
   )
 );
-FormSkeleton.displayName = "FormSkeleton";
+DetailSkeleton.displayName = "DetailSkeleton";

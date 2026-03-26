@@ -9,7 +9,7 @@ export { Card } from "./components/Card";
 export type { CardProps, CardVariant } from "./components/Card";
 
 export { Badge, StatusBadge } from "./components/Badge";
-export type { BadgeProps, BadgeVariant, BadgeSize, StatusBadgeProps } from "./components/Badge";
+export type { BadgeProps, BadgeVariant, BadgeSize, BadgeColor, StatusBadgeProps } from "./components/Badge";
 
 export { Input, SearchInput, Select, Textarea } from "./components/Input";
 export type { InputProps, SearchInputProps, SelectProps, TextareaProps } from "./components/Input";
@@ -46,14 +46,17 @@ export {
   CardSkeleton,
   GridSkeleton,
   FormSkeleton,
+  DetailSkeleton,
 } from "./components/Skeleton";
 export type {
   SkeletonProps,
   SkeletonTextProps,
   StatCardsSkeletonGridProps,
+  PageSkeletonProps,
   CardSkeletonProps,
   GridSkeletonProps,
   FormSkeletonProps,
+  DetailSkeletonProps,
 } from "./components/Skeleton";
 
 export { EmptyState } from "./components/EmptyState";

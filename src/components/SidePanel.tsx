@@ -90,9 +90,9 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
       return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [open, backdrop, onClose]);
 
-    // Lock body scroll when open
+    // Lock body scroll when open with backdrop (modal mode)
     useEffect(() => {
-      if (open) {
+      if (open && backdrop) {
         document.body.style.overflow = "hidden";
       } else {
         document.body.style.overflow = "";
@@ -100,7 +100,7 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
       return () => {
         document.body.style.overflow = "";
       };
-    }, [open]);
+    }, [open, backdrop]);
 
     const handleBackdropClick = useCallback(() => {
       onClose();

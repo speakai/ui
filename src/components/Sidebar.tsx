@@ -280,7 +280,7 @@ function SidebarNavItem({ item, collapsed, renderLink, onNavigate, depth = 0 }: 
   const hasChildren = item.children && item.children.length > 0;
 
   const baseClasses = cn(
-    "group relative flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors",
+    "group relative flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-sm font-medium text-left transition-colors",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
     item.active
       ? "bg-primary/10 text-primary"

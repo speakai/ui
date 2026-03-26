@@ -75,10 +75,10 @@ Every component updates automatically. See the [Live Preview](https://speakai.gi
 | Component | Variants |
 |-----------|----------|
 | **Button** | `primary` `secondary` `danger` `ghost` `outline` `gradient` `glass` `solid` |
-| **Input** | Default, error state |
-| **SearchInput** | With search icon |
-| **Select** | Styled native select |
-| **Textarea** | Auto-height |
+| **Input** | Default, error as boolean or message string |
+| **SearchInput** | With search icon, `containerClassName` |
+| **Select** | Children-based or `options` array prop |
+| **Textarea** | Auto-height, error as boolean or message string |
 | **Switch** | Toggle with label |
 
 ### Layout
@@ -92,10 +92,10 @@ Every component updates automatically. See the [Live Preview](https://speakai.gi
 | **SectionHeader** | Smaller heading with action |
 | **Tabs** | `default` `underline` `pills` — with keyboard arrow navigation |
 
-### Data
+### Data Display
 | Component | Description |
 |-----------|-------------|
-| **Table** | Full system: Header, Body, Row, Head, Cell |
+| **Table** | Full system: Header, Body, Row, Head, Cell, `scrollable` prop |
 | **TableSortHead** | Sortable column headers |
 | **TablePagination** | Page controls with size selector |
 | **TableActions** | Inline row action buttons |
@@ -109,16 +109,16 @@ Every component updates automatically. See the [Live Preview](https://speakai.gi
 |-----------|-------------|
 | **Toast** | `useToast()` hook — pause-on-hover, entry/exit animations |
 | **Dialog** | Modal with focus trap, 5 sizes |
-| **ConfirmDialog** | `danger` `warning` `info` — with confirm/cancel |
+| **ConfirmDialog** | `danger` `warning` `info` — with confirm/cancel, loading state, legacy prop aliases |
 | **EmptyState** | Icon + title + description + action |
 | **ErrorState** | `page` `card` `inline` — with retry |
-| **Skeleton** | 9 variants (page, card, form, grid, table) |
+| **Skeleton** | 10 variants (page, card, form, grid, table, detail) |
 
 ### Utilities
 | Component | Description |
 |-----------|-------------|
 | **Tooltip** | 4 positions, auto-flip on viewport edge |
-| **DropdownMenu** | Full keyboard nav, ARIA roles, click-outside |
+| **DropdownMenu** | Full keyboard nav, ARIA roles, click-outside, optional trigger |
 | **Avatar** | Image with initials fallback, gradient background |
 | **Progress** | Bar with default/gradient, optional label |
 | **ThemeToggle** | Icon button cycling light/dark/system |
@@ -166,6 +166,66 @@ WCAG 2.1 AA compliant:
   /* Shape */
   --radius: 0.75rem;
 }
+```
+
+## Migration from voice-agent-client
+
+If migrating from the inline `@/components/ui` in voice-agent-client, these backward-compatible APIs make the swap smoother:
+
+### DropdownMenu (triggerless mode)
+
+```tsx
+// Old: DropdownMenu was just a positioned panel
+<div className="relative">
+  <MoreButton onClick={() => setOpen(!open)} />
+  <DropdownMenu open={open}>
+    <DropdownMenuItem>Edit</DropdownMenuItem>
+  </DropdownMenu>
+</div>
+
+// New (recommended): pass trigger prop for built-in state + keyboard nav
+<DropdownMenu trigger={<MoreButton />}>
+  <DropdownMenuItem>Edit</DropdownMenuItem>
+</DropdownMenu>
+```
+
+### Select (options array)
+
+```tsx
+// Both styles work:
+<Select options={[{ value: "a", label: "A" }]} placeholder="Pick one" />
+<Select><option value="a">A</option></Select>
+```
+
+### Input/Select/Textarea error
+
+```tsx
+<Input error={true} />           // red border only
+<Input error="Name is required" /> // red border + message
+```
+
+### ConfirmDialog (legacy props)
+
+```tsx
+// Legacy voice-agent-client props still work:
+<ConfirmDialog
+  isOpen={open}          // alias for `open`
+  message="Are you sure?" // alias for `description`
+  confirmText="Delete"   // alias for `confirmLabel`
+  cancelText="Cancel"    // alias for `cancelLabel`
+  onCancel={close}       // alias for `onClose`
+  onConfirm={handleDelete}
+  variant="danger"
+/>
+```
+
+### Skeleton components
+
+```tsx
+<PageSkeleton showCards={false} tableRows={8} />
+<GridSkeleton count={6} columns={3} />   // count = total cards
+<FormSkeleton sections={3} />            // card-wrapped sections
+<DetailSkeleton />                       // detail page skeleton
 ```
 
 ## Development

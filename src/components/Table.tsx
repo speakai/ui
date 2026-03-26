@@ -22,11 +22,14 @@ function getSkeletonWidth(rowIndex: number, colIndex: number): string {
 
 // ── Table ────────────────────────────────────────────────────────────────────
 
-export interface TableProps extends HTMLAttributes<HTMLTableElement> {}
+export interface TableProps extends HTMLAttributes<HTMLTableElement> {
+  /** Set to false to disable horizontal scroll. Default true. */
+  scrollable?: boolean;
+}
 
 export const Table = forwardRef<HTMLTableElement, TableProps>(
-  ({ className, children, ...props }, ref) => (
-    <div className="w-full overflow-x-auto rounded-lg border border-border bg-card">
+  ({ className, children, scrollable = true, ...props }, ref) => (
+    <div className={cn("w-full rounded-lg border border-border bg-card", scrollable ? "overflow-x-auto" : "overflow-hidden")}>
       <table
         ref={ref}
         className={cn("w-full caption-bottom text-sm", className)}
@@ -204,45 +207,68 @@ TableActionButton.displayName = "TableActionButton";
 export interface TableSkeletonProps {
   columns?: number;
   rows?: number;
+  /** Height of each skeleton row (e.g. "h-16"). When provided, renders simple bar rows instead of column cells. */
+  rowHeight?: string;
   className?: string;
 }
 
 export const TableSkeleton = forwardRef<HTMLDivElement, TableSkeletonProps>(
-  ({ columns = 4, rows = 5, className }, ref) => (
-    <div
-      ref={ref}
-      className={cn(
-        "w-full overflow-x-auto rounded-lg border border-border bg-card",
-        className
-      )}
-    >
-      <table className="w-full">
-        <thead className="border-b border-border bg-muted/50">
-          <tr>
-            {Array.from({ length: columns }).map((_, i) => (
-              <th key={i} scope="col" className="px-4 py-3">
-                <div className="h-3 w-20 animate-pulse rounded-lg bg-muted" />
-              </th>
+  ({ columns = 4, rows = 5, rowHeight, className }, ref) => {
+    // Simple bar mode (voice-agent-client compat)
+    if (rowHeight) {
+      return (
+        <div
+          ref={ref}
+          className={cn(
+            "w-full overflow-hidden rounded-lg border border-border bg-card",
+            className
+          )}
+        >
+          <div className="divide-y divide-border">
+            {Array.from({ length: rows }).map((_, i) => (
+              <div key={i} className={cn(rowHeight, "animate-pulse bg-muted/30")} />
             ))}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border">
-          {Array.from({ length: rows }).map((_, rowIdx) => (
-            <tr key={rowIdx} className="bg-card">
-              {Array.from({ length: columns }).map((_, colIdx) => (
-                <td key={colIdx} className="px-4 py-3">
-                  <div
-                    className="h-4 animate-pulse rounded-lg bg-muted"
-                    style={{ width: getSkeletonWidth(rowIdx, colIdx) }}
-                  />
-                </td>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          "w-full overflow-x-auto rounded-lg border border-border bg-card",
+          className
+        )}
+      >
+        <table className="w-full">
+          <thead className="border-b border-border bg-muted/50">
+            <tr>
+              {Array.from({ length: columns }).map((_, i) => (
+                <th key={i} scope="col" className="px-4 py-3">
+                  <div className="h-3 w-20 animate-pulse rounded-lg bg-muted" />
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )
+          </thead>
+          <tbody className="divide-y divide-border">
+            {Array.from({ length: rows }).map((_, rowIdx) => (
+              <tr key={rowIdx} className="bg-card">
+                {Array.from({ length: columns }).map((_, colIdx) => (
+                  <td key={colIdx} className="px-4 py-3">
+                    <div
+                      className="h-4 animate-pulse rounded-lg bg-muted"
+                      style={{ width: getSkeletonWidth(rowIdx, colIdx) }}
+                    />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
 );
 TableSkeleton.displayName = "TableSkeleton";
 

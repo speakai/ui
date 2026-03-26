@@ -6,7 +6,7 @@ import {
   Button, Card, Badge, StatusBadge, Input, SearchInput, Select, Textarea,
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableActions, TableActionButton, TableSkeleton, TableSortHead, TablePagination, TableEmpty,
   ToastProvider, useToast,
-  Skeleton, SkeletonText, PageHeaderSkeleton, GridSkeleton, FormSkeleton,
+  Skeleton, SkeletonText, PageHeaderSkeleton, GridSkeleton, FormSkeleton, DetailSkeleton, PageSkeleton,
   EmptyState, ErrorState,
   Avatar, Switch, Progress,
   DropdownMenu, DropdownMenuItem, DropdownMenuHeader, DropdownMenuDivider, MoreButton,
@@ -72,30 +72,62 @@ const icons = {
   clock: "M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
   screen: "M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5",
   swatch: "M4.098 19.902a3.75 3.75 0 0 0 5.304 0l6.401-6.402M6.75 21A3.75 3.75 0 0 1 3 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 0 0 3.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008Z",
+  check: "M4.5 12.75l6 6 9-13.5",
+  toggle: "M5.636 5.636a9 9 0 1 0 12.728 0M12 3v9",
 };
 
-/* ─── Sidebar Sections ──────────────────────────────────────────────────────── */
+/* ─── Grouped Sidebar Sections ────────────────────────────────────────────── */
 
-const navItems = [
-  { id: "button", icon: icons.puzzle, label: "Button" },
-  { id: "card", icon: icons.layout, label: "Card" },
-  { id: "badge", icon: icons.sparkle, label: "Badge" },
-  { id: "input", icon: icons.pencil, label: "Input" },
-  { id: "table", icon: icons.table, label: "Table" },
-  { id: "toast", icon: icons.bell, label: "Toast" },
-  { id: "tabs", icon: icons.layout, label: "Tabs" },
-  { id: "stat-card", icon: icons.screen, label: "Stat Card" },
-  { id: "page-header", icon: icons.doc, label: "Page Header" },
-  { id: "info-card", icon: icons.chat, label: "Info Card" },
-  { id: "dropdown", icon: icons.cog, label: "Dropdown" },
-  { id: "tooltip", icon: icons.chat, label: "Tooltip" },
-  { id: "dialog", icon: icons.layout, label: "Dialog" },
-  { id: "empty-state", icon: icons.doc, label: "Empty State" },
-  { id: "error-state", icon: icons.bell, label: "Error State" },
-  { id: "skeleton", icon: icons.layout, label: "Skeleton" },
-  { id: "avatar", icon: icons.users, label: "Avatar" },
-  { id: "switch", icon: icons.cog, label: "Switch" },
-  { id: "progress", icon: icons.screen, label: "Progress" },
+const sidebarGroups = [
+  {
+    id: "forms",
+    label: "Forms & Actions",
+    items: [
+      { id: "button", icon: icons.puzzle, label: "Button" },
+      { id: "input", icon: icons.pencil, label: "Input & Select" },
+      { id: "switch", icon: icons.toggle, label: "Switch" },
+    ],
+  },
+  {
+    id: "layout",
+    label: "Layout",
+    items: [
+      { id: "card", icon: icons.layout, label: "Card" },
+      { id: "page-header", icon: icons.doc, label: "Page Header" },
+      { id: "tabs", icon: icons.layout, label: "Tabs" },
+    ],
+  },
+  {
+    id: "data",
+    label: "Data Display",
+    items: [
+      { id: "table", icon: icons.table, label: "Table" },
+      { id: "stat-card", icon: icons.screen, label: "Stat Card" },
+      { id: "badge", icon: icons.sparkle, label: "Badge" },
+      { id: "info-card", icon: icons.chat, label: "Info Card" },
+    ],
+  },
+  {
+    id: "feedback",
+    label: "Feedback",
+    items: [
+      { id: "toast", icon: icons.bell, label: "Toast" },
+      { id: "dialog", icon: icons.layout, label: "Dialog" },
+      { id: "empty-state", icon: icons.doc, label: "Empty State" },
+      { id: "error-state", icon: icons.bell, label: "Error State" },
+      { id: "skeleton", icon: icons.layout, label: "Skeleton" },
+    ],
+  },
+  {
+    id: "utilities",
+    label: "Utilities",
+    items: [
+      { id: "dropdown", icon: icons.cog, label: "Dropdown Menu" },
+      { id: "tooltip", icon: icons.chat, label: "Tooltip" },
+      { id: "avatar", icon: icons.users, label: "Avatar" },
+      { id: "progress", icon: icons.screen, label: "Progress" },
+    ],
+  },
 ];
 
 function useSidebarSections(): SidebarSection[] {
@@ -106,19 +138,17 @@ function useSidebarSections(): SidebarSection[] {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  return [
-    {
-      id: "components",
-      label: "Components",
-      items: navItems.map((n) => ({
-        id: n.id,
-        label: n.label,
-        icon: <I4 d={n.icon} />,
-        active: active === n.id,
-        onClick: () => handleClick(n.id),
-      })),
-    },
-  ];
+  return sidebarGroups.map((group) => ({
+    id: group.id,
+    label: group.label,
+    items: group.items.map((n) => ({
+      id: n.id,
+      label: n.label,
+      icon: <I4 d={n.icon} />,
+      active: active === n.id,
+      onClick: () => handleClick(n.id),
+    })),
+  }));
 }
 
 /* ─── Sidebar Header ────────────────────────────────────────────────────────── */
@@ -127,10 +157,39 @@ function SidebarHeader() {
   const { collapsed } = useSidebar();
   return (
     <div className="flex items-center gap-2 min-w-0">
-      <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-gradient-from to-gradient-to text-white">
-        <I4 d={icons.sparkle} />
-      </div>
+      <img src="/logo.jpg" alt="Speak logo" className="h-7 w-7 flex-shrink-0 rounded-lg object-contain" />
       {!collapsed && <span className="text-sm font-semibold text-foreground truncate">@speakai/ui</span>}
+    </div>
+  );
+}
+
+/* ─── CodeBlock with copy button ────────────────────────────────────────────── */
+
+function CodeBlock({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  return (
+    <div className="relative mt-3 rounded-lg border border-border bg-muted/30 group">
+      <button
+        onClick={handleCopy}
+        className="absolute right-2 top-2 rounded-md p-1.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-muted hover:text-foreground"
+        aria-label="Copy code"
+      >
+        {copied ? (
+          <svg className="h-4 w-4 text-success" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d={icons.check} /></svg>
+        ) : (
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d={icons.copy} /></svg>
+        )}
+      </button>
+      <pre className="overflow-x-auto p-3.5 text-[11px] leading-relaxed text-muted-foreground font-mono">
+        <code>{code}</code>
+      </pre>
     </div>
   );
 }
@@ -169,15 +228,24 @@ function ToastDemo() {
 
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
-    <section id={id} className="mb-12 scroll-mt-6">
-      <h2 className="text-base font-semibold text-foreground mb-4 pb-2 border-b border-border">{title}</h2>
+    <section id={id} className="mb-10 scroll-mt-6">
+      <h3 className="text-base font-semibold text-foreground mb-4 pb-2 border-b border-border">{title}</h3>
       {children}
     </section>
   );
 }
 
 function Sub({ title, children }: { title: string; children: React.ReactNode }) {
-  return <div className="mb-6"><h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2.5">{title}</h3>{children}</div>;
+  return <div className="mb-6"><h4 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2.5">{title}</h4>{children}</div>;
+}
+
+function CategoryHeader({ title }: { title: string }) {
+  return (
+    <div className="mt-14 mb-6 first:mt-0">
+      <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+      <div className="mt-2 h-px bg-gradient-to-r from-gradient-from/40 to-transparent" />
+    </div>
+  );
 }
 
 /* ─── Config Panel (SidePanel) ──────────────────────────────────────────────── */
@@ -190,15 +258,12 @@ function ConfigPanel({ config, onChange, open, onClose }: { config: ThemeConfig;
   return (
     <SidePanel open={open} onClose={onClose} title="Theme Configurator" side="right" size="sm" backdrop={false}>
       <div className="p-4 space-y-5">
-        {/* Mode */}
         {mounted && (
           <div>
             <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">Mode</label>
             <ThemeSelector theme={theme as "light" | "dark" | "system"} onChange={(t) => setTheme(t)} />
           </div>
         )}
-
-        {/* Presets */}
         <div>
           <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">Presets</label>
           <div className="grid grid-cols-2 gap-1.5">
@@ -210,8 +275,6 @@ function ConfigPanel({ config, onChange, open, onClose }: { config: ThemeConfig;
             ))}
           </div>
         </div>
-
-        {/* Sliders */}
         <div>
           <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex justify-between"><span>Primary</span><span className="text-foreground">{config.primaryHue}</span></label>
           <input type="range" min="0" max="360" value={config.primaryHue} onChange={(e) => onChange({ ...config, primaryHue: +e.target.value })} className="w-full h-1.5 rounded-full appearance-none cursor-pointer accent-primary" style={{ background: "linear-gradient(to right, hsl(0,80%,55%), hsl(60,80%,55%), hsl(120,80%,55%), hsl(180,80%,55%), hsl(240,80%,55%), hsl(300,80%,55%), hsl(360,80%,55%))" }} />
@@ -230,8 +293,6 @@ function ConfigPanel({ config, onChange, open, onClose }: { config: ThemeConfig;
             {FONTS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
           </select>
         </div>
-
-        {/* CSS Output */}
         <div>
           <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">CSS Variables</label>
           <pre className="rounded-lg border border-border bg-muted/50 p-2.5 text-[10px] leading-relaxed text-muted-foreground overflow-x-auto font-mono">
@@ -244,7 +305,6 @@ function ConfigPanel({ config, onChange, open, onClose }: { config: ThemeConfig;
 }`}
           </pre>
         </div>
-
         <button onClick={() => onChange({ primaryHue: 271, gradientToHue: 330, radius: 0.75, font: "inter" })} className="w-full rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
           Reset Defaults
         </button>
@@ -257,7 +317,6 @@ function ConfigPanel({ config, onChange, open, onClose }: { config: ThemeConfig;
 
 function DemoContent() {
   const sidebarSections = useSidebarSections();
-  const { setMobileOpen } = useSidebar();
   const [configOpen, setConfigOpen] = useState(true);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
@@ -274,14 +333,11 @@ function DemoContent() {
     const isMonochrome = c.primaryHue === 0 && c.gradientToHue === 0;
 
     if (isMonochrome) {
-      // B&W: crisp black primary, subtle gray gradient
       root.style.setProperty("--primary", "0 0% 9%");
       root.style.setProperty("--primary-foreground", "0 0% 100%");
       root.style.setProperty("--ring", "0 0% 9%");
       root.style.setProperty("--gradient-from", "0 0% 9%");
       root.style.setProperty("--gradient-to", "0 0% 35%");
-
-      // Check if dark mode — invert for dark
       const isDark = document.documentElement.classList.contains("dark");
       if (isDark) {
         root.style.setProperty("--primary", "0 0% 95%");
@@ -304,7 +360,6 @@ function DemoContent() {
     setConfig(c);
   }, []);
 
-  // Apply default config on mount
   useEffect(() => {
     applyConfig(config);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -318,7 +373,6 @@ function DemoContent() {
         footer={<SidebarUser name="Design System" email="v0.1.0" />}
       />
 
-      {/* Floating config button */}
       <Tooltip content="Theme Configurator" side="left">
         <button
           onClick={() => setConfigOpen(true)}
@@ -344,13 +398,71 @@ function DemoContent() {
             </div>
           </div>
 
-          {/* ── Components ── */}
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          {/*  FORMS & ACTIONS                                                   */}
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          <CategoryHeader title="Forms & Actions" />
 
           <Section id="button" title="Button">
-            <Sub title="Variants"><div className="flex flex-wrap gap-2"><Button>Primary</Button><Button variant="secondary">Secondary</Button><Button variant="danger">Danger</Button><Button variant="outline">Outline</Button><Button variant="ghost">Ghost</Button><Button variant="gradient">Gradient</Button><Button variant="glass">Glass</Button><Button variant="solid">Solid</Button></div></Sub>
-            <Sub title="Sizes"><div className="flex flex-wrap gap-2 items-center"><Button size="sm">Small</Button><Button>Default</Button><Button size="lg">Large</Button><Button size="icon"><I4 d={icons.plus} /></Button></div></Sub>
-            <Sub title="States"><div className="flex flex-wrap gap-2"><Button isLoading>Saving</Button><Button disabled>Disabled</Button></div></Sub>
+            <Sub title="Variants">
+              <div className="flex flex-wrap gap-2"><Button>Primary</Button><Button variant="secondary">Secondary</Button><Button variant="danger">Danger</Button><Button variant="outline">Outline</Button><Button variant="ghost">Ghost</Button><Button variant="gradient">Gradient</Button><Button variant="glass">Glass</Button><Button variant="solid">Solid</Button></div>
+              <CodeBlock code={`<Button>Primary</Button>
+<Button variant="danger">Danger</Button>
+<Button variant="gradient">Gradient</Button>`} />
+            </Sub>
+            <Sub title="Sizes">
+              <div className="flex flex-wrap gap-2 items-center"><Button size="sm">Small</Button><Button>Default</Button><Button size="lg">Large</Button><Button size="icon"><I4 d={icons.plus} /></Button></div>
+              <CodeBlock code={`<Button size="sm">Small</Button>
+<Button size="icon"><PlusIcon /></Button>`} />
+            </Sub>
+            <Sub title="States">
+              <div className="flex flex-wrap gap-2"><Button isLoading>Saving</Button><Button disabled>Disabled</Button></div>
+              <CodeBlock code={`<Button isLoading>Saving</Button>`} />
+            </Sub>
           </Section>
+
+          <Section id="input" title="Input & Select">
+            <div className="max-w-sm space-y-4">
+              <Sub title="Input">
+                <Input placeholder="Default input..." />
+                <CodeBlock code={`<Input placeholder="Enter name..." />
+<Input error="Required" />   {/* string: border + message */}
+<Input error={true} />       {/* boolean: border only */}`} />
+              </Sub>
+              <Sub title="SearchInput">
+                <SearchInput placeholder="Search..." value={searchValue} onChange={(e) => setSearchValue(e.target.value)} containerClassName="max-w-xs" />
+                <CodeBlock code={`<SearchInput placeholder="Search..." containerClassName="max-w-xs" />`} />
+              </Sub>
+              <Sub title="Select (options prop)">
+                <Select options={[{ value: "sm", label: "Small" }, { value: "md", label: "Medium" }, { value: "lg", label: "Large" }]} placeholder="Pick a size..." />
+                <CodeBlock code={`<Select
+  options={[{ value: "sm", label: "Small" }, ...]}
+  placeholder="Pick a size..."
+/>`} />
+              </Sub>
+              <Sub title="Select (children)">
+                <Select defaultValue=""><option value="" disabled>Select type...</option><option value="audio">Audio</option><option value="video">Video</option></Select>
+                <CodeBlock code={`<Select>
+  <option value="audio">Audio</option>
+</Select>`} />
+              </Sub>
+              <Sub title="Textarea">
+                <Textarea placeholder="Write something..." />
+                <CodeBlock code={`<Textarea placeholder="Write something..." />`} />
+              </Sub>
+            </div>
+          </Section>
+
+          <Section id="switch" title="Switch">
+            <SwitchDemo />
+            <CodeBlock code={`<Switch checked={on} onChange={setOn} label="Notifications" />
+<Switch checked={on} onChange={setOn} size="sm" disabled />`} />
+          </Section>
+
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          {/*  LAYOUT                                                            */}
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          <CategoryHeader title="Layout" />
 
           <Section id="card" title="Card">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -360,62 +472,25 @@ function DemoContent() {
               <Card variant="glass"><p className="text-sm font-medium">Glass</p><p className="text-xs text-muted-foreground mt-1">Frosted</p></Card>
             </div>
             <Card showGradientAccent className="mt-3"><p className="text-sm font-medium">Gradient Accent</p></Card>
+            <CodeBlock code={`<Card variant="elevated">Content</Card>
+<Card variant="glass">Frosted</Card>
+<Card showGradientAccent>Accent top border</Card>`} />
           </Section>
 
-          <Section id="badge" title="Badge">
-            <Sub title="Variants"><div className="flex flex-wrap gap-2"><Badge>Default</Badge><Badge variant="success">Success</Badge><Badge variant="warning">Warning</Badge><Badge variant="error">Error</Badge><Badge variant="info">Info</Badge><Badge variant="outline">Outline</Badge><Badge variant="secondary">Secondary</Badge></div></Sub>
-            <Sub title="Colors"><div className="flex flex-wrap gap-2"><Badge color="green">Green</Badge><Badge color="yellow">Yellow</Badge><Badge color="red">Red</Badge><Badge color="blue">Blue</Badge><Badge color="purple">Purple</Badge><Badge color="pink">Pink</Badge><Badge color="orange">Orange</Badge><Badge color="gray">Gray</Badge></div></Sub>
-            <Sub title="StatusBadge"><div className="flex flex-wrap gap-2"><StatusBadge status="Active" /><StatusBadge status="Pending" /><StatusBadge status="Failed" /><StatusBadge status="Completed" /></div></Sub>
-          </Section>
-
-          <Section id="input" title="Input">
-            <div className="max-w-sm space-y-3">
-              <Input placeholder="Default input..." />
-              <Input placeholder="Error state..." error="This field is required" />
-              <SearchInput placeholder="Search..." value={searchValue} onChange={(e) => setSearchValue(e.target.value)} />
-              <Select defaultValue="">
-                <option value="" disabled>Select type...</option>
-                <option value="audio">Audio</option>
-                <option value="video">Video</option>
-                <option value="text">Text</option>
-              </Select>
-              <Textarea placeholder="Write something..." />
-            </div>
-          </Section>
-
-          <Section id="table" title="Table">
-            <Sub title="Sortable + Actions">
-              <Table>
-                <TableHeader>
-                  <tr>
-                    <TableSortHead sortKey="name" activeSort={sortKey} direction={sortDir} onSort={(k, d) => { setSortKey(d ? k : null); setSortDir(d); }}>Name</TableSortHead>
-                    <TableSortHead sortKey="type" activeSort={sortKey} direction={sortDir} onSort={(k, d) => { setSortKey(d ? k : null); setSortDir(d); }}>Type</TableSortHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </tr>
-                </TableHeader>
-                <TableBody>
-                  <TableRow clickable><TableCell className="font-medium">Interview Recording</TableCell><TableCell>Audio</TableCell><TableCell><Badge variant="success">Done</Badge></TableCell><TableCell><TableActions><Tooltip content="Edit"><TableActionButton label="Edit"><I4 d={icons.pencil} /></TableActionButton></Tooltip><Tooltip content="Copy"><TableActionButton label="Copy"><I4 d={icons.copy} /></TableActionButton></Tooltip><Tooltip content="Delete"><TableActionButton label="Delete" variant="danger"><I4 d={icons.trash} /></TableActionButton></Tooltip></TableActions></TableCell></TableRow>
-                  <TableRow clickable><TableCell className="font-medium">Product Demo</TableCell><TableCell>Video</TableCell><TableCell><Badge variant="warning">Processing</Badge></TableCell><TableCell><TableActions><TableActionButton label="Edit"><I4 d={icons.pencil} /></TableActionButton><TableActionButton label="Delete" variant="danger"><I4 d={icons.trash} /></TableActionButton></TableActions></TableCell></TableRow>
-                  <TableRow clickable><TableCell className="font-medium">Meeting Notes</TableCell><TableCell>Text</TableCell><TableCell><Badge variant="error">Failed</Badge></TableCell><TableCell><TableActions><TableActionButton label="Edit"><I4 d={icons.pencil} /></TableActionButton></TableActions></TableCell></TableRow>
-                </TableBody>
-              </Table>
-            </Sub>
-            <Sub title="Pagination">
-              <TablePagination page={tablePage} pageSize={pageSize} total={87} onPageChange={setTablePage} onPageSizeChange={setPageSize} />
-            </Sub>
-            <Sub title="Empty State">
-              <Table>
-                <TableHeader><tr><TableHead>Name</TableHead><TableHead>Type</TableHead><TableHead>Status</TableHead><TableHead>Actions</TableHead></tr></TableHeader>
-                <TableBody><TableEmpty colSpan={4} icon={<I d={icons.doc} />} title="No results found" description="Try adjusting your search or filters" action={<Button size="sm" variant="outline">Clear Filters</Button>} /></TableBody>
-              </Table>
-            </Sub>
-            <Sub title="Skeleton"><TableSkeleton rows={2} columns={4} /></Sub>
-          </Section>
-
-          <Section id="toast" title="Toast">
-            <p className="text-xs text-muted-foreground mb-3">Hover to pause. Errors persist 15s.</p>
-            <ToastDemo />
+          <Section id="page-header" title="PageHeader">
+            <Card>
+              <PageHeader title="Your Agents" gradientText="Agents" description="Deploy and monitor your AI fleet." action={<Button size="sm">New</Button>} />
+              <div className="border-t border-border pt-3 mt-2">
+                <SectionHeader title="Activity" action={<Button variant="ghost" size="sm">View All</Button>} />
+              </div>
+            </Card>
+            <CodeBlock code={`<PageHeader
+  title="Your Agents"
+  gradientText="Agents"
+  description="Deploy and monitor your AI fleet."
+  action={<Button size="sm">New</Button>}
+/>
+<SectionHeader title="Activity" action={...} />`} />
           </Section>
 
           <Section id="tabs" title="Tabs">
@@ -429,21 +504,69 @@ function DemoContent() {
             </Sub>
             <Sub title="Underline">
               <Tabs defaultTab="t1">
-                <TabsList variant="underline"><TabsTrigger value="t1" variant="underline">Transcript</TabsTrigger><TabsTrigger value="t2" variant="underline">Sentiment</TabsTrigger><TabsTrigger value="t3" variant="underline">Insights</TabsTrigger></TabsList>
+                <TabsList variant="underline"><TabsTrigger value="t1" variant="underline">Transcript</TabsTrigger><TabsTrigger value="t2" variant="underline">Sentiment</TabsTrigger></TabsList>
                 <TabsContent value="t1"><p className="text-sm text-muted-foreground">Transcript view</p></TabsContent>
                 <TabsContent value="t2"><p className="text-sm text-muted-foreground">Sentiment view</p></TabsContent>
-                <TabsContent value="t3"><p className="text-sm text-muted-foreground">Insights view</p></TabsContent>
               </Tabs>
             </Sub>
             <Sub title="Pills">
               <Tabs defaultTab="all">
-                <TabsList variant="pills"><TabsTrigger value="all" variant="pills">All</TabsTrigger><TabsTrigger value="audio" variant="pills">Audio</TabsTrigger><TabsTrigger value="video" variant="pills">Video</TabsTrigger><TabsTrigger value="text" variant="pills">Text</TabsTrigger></TabsList>
+                <TabsList variant="pills"><TabsTrigger value="all" variant="pills">All</TabsTrigger><TabsTrigger value="audio" variant="pills">Audio</TabsTrigger><TabsTrigger value="video" variant="pills">Video</TabsTrigger></TabsList>
                 <TabsContent value="all"><p className="text-sm text-muted-foreground">All media</p></TabsContent>
                 <TabsContent value="audio"><p className="text-sm text-muted-foreground">Audio only</p></TabsContent>
                 <TabsContent value="video"><p className="text-sm text-muted-foreground">Video only</p></TabsContent>
-                <TabsContent value="text"><p className="text-sm text-muted-foreground">Text only</p></TabsContent>
               </Tabs>
             </Sub>
+            <CodeBlock code={`<Tabs defaultTab="overview">
+  <TabsList>
+    <TabsTrigger value="overview">Overview</TabsTrigger>
+  </TabsList>
+  <TabsContent value="overview">...</TabsContent>
+</Tabs>`} />
+          </Section>
+
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          {/*  DATA DISPLAY                                                      */}
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          <CategoryHeader title="Data Display" />
+
+          <Section id="table" title="Table">
+            <Sub title="Sortable + Actions">
+              <Table>
+                <TableHeader>
+                  <tr>
+                    <TableSortHead sortKey="name" activeSort={sortKey} direction={sortDir} onSort={(k, d) => { setSortKey(d ? k : null); setSortDir(d); }}>Name</TableSortHead>
+                    <TableSortHead sortKey="type" activeSort={sortKey} direction={sortDir} onSort={(k, d) => { setSortKey(d ? k : null); setSortDir(d); }}>Type</TableSortHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </tr>
+                </TableHeader>
+                <TableBody>
+                  <TableRow clickable><TableCell className="font-medium">Interview Recording</TableCell><TableCell>Audio</TableCell><TableCell><Badge variant="success">Done</Badge></TableCell><TableCell><TableActions><Tooltip content="Edit"><TableActionButton label="Edit"><I4 d={icons.pencil} /></TableActionButton></Tooltip><Tooltip content="Delete"><TableActionButton label="Delete" variant="danger"><I4 d={icons.trash} /></TableActionButton></Tooltip></TableActions></TableCell></TableRow>
+                  <TableRow clickable><TableCell className="font-medium">Product Demo</TableCell><TableCell>Video</TableCell><TableCell><Badge variant="warning">Processing</Badge></TableCell><TableCell><TableActions><TableActionButton label="Edit"><I4 d={icons.pencil} /></TableActionButton></TableActions></TableCell></TableRow>
+                </TableBody>
+              </Table>
+            </Sub>
+            <Sub title="Pagination">
+              <TablePagination page={tablePage} pageSize={pageSize} total={87} onPageChange={setTablePage} onPageSizeChange={setPageSize} />
+            </Sub>
+            <Sub title="Empty">
+              <Table><TableHeader><tr><TableHead>Name</TableHead><TableHead>Type</TableHead><TableHead>Status</TableHead></tr></TableHeader><TableBody><TableEmpty colSpan={3} icon={<I d={icons.doc} />} title="No results found" description="Try adjusting your search." action={<Button size="sm" variant="outline">Clear Filters</Button>} /></TableBody></Table>
+            </Sub>
+            <Sub title="Skeleton"><TableSkeleton rows={2} columns={4} /></Sub>
+            <CodeBlock code={`<Table>
+  <TableHeader><tr>
+    <TableSortHead sortKey="name" activeSort={key} direction={dir} onSort={onSort}>Name</TableSortHead>
+    <TableHead>Status</TableHead>
+  </tr></TableHeader>
+  <TableBody>
+    <TableRow clickable>
+      <TableCell>Interview</TableCell>
+      <TableCell><Badge variant="success">Done</Badge></TableCell>
+    </TableRow>
+  </TableBody>
+</Table>
+<TablePagination page={1} pageSize={10} total={87} onPageChange={setPage} />`} />
           </Section>
 
           <Section id="stat-card" title="StatCard">
@@ -453,39 +576,44 @@ function DemoContent() {
               <StatCard icon={<I d={icons.users} />} iconColor="green" label="Users" value="89" />
               <StatCard variant="gradient" icon={<I d={icons.screen} />} iconColor="purple" label="Credits" value="$42" />
             </StatCardGrid>
+            <CodeBlock code={`<StatCardGrid>
+  <StatCard icon={<ClockIcon />} iconColor="purple" label="Hours" value="1,234" />
+  <StatCard variant="gradient" icon={...} label="Credits" value="$42" />
+</StatCardGrid>`} />
           </Section>
 
-          <Section id="page-header" title="PageHeader">
-            <Card><PageHeader title="Your Agents" gradientText="Agents" description="Deploy and monitor your AI fleet." action={<Button size="sm">New</Button>} /><div className="border-t border-border pt-3 mt-2"><SectionHeader title="Activity" action={<Button variant="ghost" size="sm">View All</Button>} /></div></Card>
+          <Section id="badge" title="Badge">
+            <Sub title="Variants"><div className="flex flex-wrap gap-2"><Badge>Default</Badge><Badge variant="success">Success</Badge><Badge variant="warning">Warning</Badge><Badge variant="error">Error</Badge><Badge variant="info">Info</Badge><Badge variant="outline">Outline</Badge><Badge variant="secondary">Secondary</Badge></div></Sub>
+            <Sub title="Colors"><div className="flex flex-wrap gap-2"><Badge color="green">Green</Badge><Badge color="yellow">Yellow</Badge><Badge color="red">Red</Badge><Badge color="blue">Blue</Badge><Badge color="purple">Purple</Badge><Badge color="pink">Pink</Badge><Badge color="orange">Orange</Badge><Badge color="gray">Gray</Badge></div></Sub>
+            <Sub title="StatusBadge"><div className="flex flex-wrap gap-2"><StatusBadge status="Active" /><StatusBadge status="Pending" /><StatusBadge status="Failed" /><StatusBadge status="Completed" /></div></Sub>
+            <CodeBlock code={`<Badge variant="success">Active</Badge>
+<Badge color="purple">Custom</Badge>
+<StatusBadge status="Active" />`} />
           </Section>
 
           <Section id="info-card" title="InfoCard">
             <div className="space-y-2">
-              <InfoCard color="purple" title="Pricing" description="$0.10/min" />
               <InfoCard color="blue" title="Tip" description="Shortcuts make editing faster." />
               <InfoCard color="yellow" title="Warning" description="Trial expires in 3 days." />
               <InfoCard color="red" title="Action" description="Cannot be undone." />
               <InfoCard color="green" title="Success" description="All systems operational." />
             </div>
+            <CodeBlock code={`<InfoCard color="blue" title="Tip" description="Shortcuts make editing faster." />
+<InfoCard color="red" title="Action" description="Cannot be undone." />`} />
           </Section>
 
-          <Section id="dropdown" title="DropdownMenu">
-            <DropdownMenu trigger={<MoreButton />} align="left">
-              <DropdownMenuHeader>Actions</DropdownMenuHeader>
-              <DropdownMenuItem>Edit</DropdownMenuItem>
-              <DropdownMenuItem>Duplicate</DropdownMenuItem>
-              <DropdownMenuDivider />
-              <DropdownMenuItem variant="danger">Delete</DropdownMenuItem>
-            </DropdownMenu>
-          </Section>
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          {/*  FEEDBACK                                                          */}
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          <CategoryHeader title="Feedback" />
 
-          <Section id="tooltip" title="Tooltip">
-            <div className="flex flex-wrap gap-3">
-              <Tooltip content="Top tooltip" side="top"><Button variant="outline" size="sm">Top</Button></Tooltip>
-              <Tooltip content="Bottom tooltip" side="bottom"><Button variant="outline" size="sm">Bottom</Button></Tooltip>
-              <Tooltip content="Left tooltip" side="left"><Button variant="outline" size="sm">Left</Button></Tooltip>
-              <Tooltip content="Right tooltip" side="right"><Button variant="outline" size="sm">Right</Button></Tooltip>
-            </div>
+          <Section id="toast" title="Toast">
+            <p className="text-xs text-muted-foreground mb-3">Hover to pause. Errors persist 15s.</p>
+            <ToastDemo />
+            <CodeBlock code={`const toast = useToast();
+toast.success("Saved");                    // title only
+toast.success("Saved", "Changes saved.");  // title + message
+toast.error("Error", "Something went wrong.");`} />
           </Section>
 
           <Section id="dialog" title="Dialog & ConfirmDialog">
@@ -498,11 +626,27 @@ function DemoContent() {
               <DialogBody><Input placeholder="Document name..." /><Textarea className="mt-3" placeholder="Description..." /></DialogBody>
               <DialogFooter><Button variant="ghost" size="sm" onClick={() => setDialogOpen(false)}>Cancel</Button><Button size="sm" onClick={() => setDialogOpen(false)}>Save</Button></DialogFooter>
             </Dialog>
-            <ConfirmDialog open={confirmOpen} onClose={() => setConfirmOpen(false)} onConfirm={() => setConfirmOpen(false)} title="Delete document?" description="This action cannot be undone. The document and all associated data will be permanently removed." variant="danger" confirmLabel="Delete" />
+            <ConfirmDialog open={confirmOpen} onClose={() => setConfirmOpen(false)} onConfirm={() => setConfirmOpen(false)} title="Delete document?" description="This action cannot be undone." variant="danger" confirmLabel="Delete" />
+            <CodeBlock code={`<ConfirmDialog
+  open={open}
+  onClose={() => setOpen(false)}
+  onConfirm={handleDelete}
+  title="Delete document?"
+  description="This action cannot be undone."
+  variant="danger"
+  confirmLabel="Delete"
+/>
+{/* Legacy aliases: isOpen, message, confirmText, cancelText, onCancel */}`} />
           </Section>
 
           <Section id="empty-state" title="EmptyState">
             <EmptyState icon={<I d={icons.doc} />} title="No documents" description="Upload your first document." action={<Button size="sm">Upload</Button>} height="sm" />
+            <CodeBlock code={`<EmptyState
+  icon={<DocIcon />}
+  title="No documents"
+  description="Upload your first document."
+  action={<Button size="sm">Upload</Button>}
+/>`} />
           </Section>
 
           <Section id="error-state" title="ErrorState">
@@ -510,14 +654,87 @@ function DemoContent() {
               <ErrorState variant="inline" message="Failed to load transcript." onRetry={() => {}} />
               <Card><ErrorState variant="card" title="Load Failed" message="Could not fetch data." onRetry={() => {}} /></Card>
             </div>
+            <CodeBlock code={`<ErrorState variant="inline" message="Failed to load." onRetry={refetch} />
+<ErrorState variant="card" title="Error" message="Could not fetch." onRetry={refetch} />`} />
           </Section>
 
           <Section id="skeleton" title="Skeleton">
             <div className="space-y-6">
-              <Sub title="Text"><div className="max-w-sm space-y-2"><Skeleton className="h-6 w-40" /><SkeletonText lines={3} /></div></Sub>
-              <Sub title="Cards"><GridSkeleton rows={3} columns={3} /></Sub>
-              <Sub title="Form"><FormSkeleton fields={3} /></Sub>
+              <Sub title="Text">
+                <div className="max-w-sm space-y-2"><Skeleton className="h-6 w-40" /><SkeletonText lines={3} /></div>
+                <CodeBlock code={`<Skeleton className="h-6 w-40" />
+<SkeletonText lines={3} />`} />
+              </Sub>
+              <Sub title="Grid (count prop)">
+                <GridSkeleton count={6} columns={3} />
+                <CodeBlock code={`<GridSkeleton count={6} columns={3} />`} />
+              </Sub>
+              <Sub title="Form (flat / sections)">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div><p className="text-[10px] text-muted-foreground mb-2">variant=&quot;flat&quot;</p><FormSkeleton fields={3} /></div>
+                  <div><p className="text-[10px] text-muted-foreground mb-2">variant=&quot;sections&quot;</p><FormSkeleton sections={2} /></div>
+                </div>
+                <CodeBlock code={`<FormSkeleton fields={3} />          {/* flat fields */}
+<FormSkeleton sections={2} />        {/* card-wrapped sections */}`} />
+              </Sub>
+              <Sub title="Page Skeleton">
+                <PageSkeleton showCards={true} cardCount={3} tableRows={3} />
+                <CodeBlock code={`<PageSkeleton showCards={true} cardCount={3} tableRows={3} />
+<PageSkeleton showCards={false} tableRows={5} />`} />
+              </Sub>
+              <Sub title="Detail Skeleton">
+                <DetailSkeleton />
+                <CodeBlock code={`<DetailSkeleton />`} />
+              </Sub>
             </div>
+          </Section>
+
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          {/*  UTILITIES                                                         */}
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          <CategoryHeader title="Utilities" />
+
+          <Section id="dropdown" title="DropdownMenu">
+            <Sub title="With trigger (recommended)">
+              <DropdownMenu trigger={<MoreButton />} align="left">
+                <DropdownMenuHeader>Actions</DropdownMenuHeader>
+                <DropdownMenuItem>Edit</DropdownMenuItem>
+                <DropdownMenuItem>Duplicate</DropdownMenuItem>
+                <DropdownMenuDivider />
+                <DropdownMenuItem variant="danger">Delete</DropdownMenuItem>
+              </DropdownMenu>
+              <CodeBlock code={`<DropdownMenu trigger={<MoreButton />}>
+  <DropdownMenuHeader>Actions</DropdownMenuHeader>
+  <DropdownMenuItem>Edit</DropdownMenuItem>
+  <DropdownMenuDivider />
+  <DropdownMenuItem variant="danger">Delete</DropdownMenuItem>
+</DropdownMenu>`} />
+            </Sub>
+            <Sub title="Triggerless (legacy compat)">
+              <div className="relative inline-block">
+                <Button size="sm" variant="outline" onClick={() => setDropdownOpen(!dropdownOpen)}>Toggle Menu</Button>
+                <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen} align="left">
+                  <DropdownMenuItem onClick={() => setDropdownOpen(false)}>Option A</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setDropdownOpen(false)}>Option B</DropdownMenuItem>
+                </DropdownMenu>
+              </div>
+              <CodeBlock code={`{/* Omit trigger for external state control */}
+<DropdownMenu open={open} onOpenChange={setOpen} align="left">
+  <DropdownMenuItem>Option A</DropdownMenuItem>
+</DropdownMenu>`} />
+            </Sub>
+          </Section>
+
+          <Section id="tooltip" title="Tooltip">
+            <div className="flex flex-wrap gap-3">
+              <Tooltip content="Top tooltip" side="top"><Button variant="outline" size="sm">Top</Button></Tooltip>
+              <Tooltip content="Bottom tooltip" side="bottom"><Button variant="outline" size="sm">Bottom</Button></Tooltip>
+              <Tooltip content="Left tooltip" side="left"><Button variant="outline" size="sm">Left</Button></Tooltip>
+              <Tooltip content="Right tooltip" side="right"><Button variant="outline" size="sm">Right</Button></Tooltip>
+            </div>
+            <CodeBlock code={`<Tooltip content="Edit item" side="top">
+  <Button variant="outline">Hover me</Button>
+</Tooltip>`} />
           </Section>
 
           <Section id="avatar" title="Avatar">
@@ -528,19 +745,20 @@ function DemoContent() {
               <Avatar name="Jane Doe" size="lg" variant="rounded" />
               <Avatar name="John" src="https://api.dicebear.com/8.x/avataaars/svg?seed=John" size="lg" />
             </div>
-          </Section>
-
-          <Section id="switch" title="Switch">
-            <SwitchDemo />
+            <CodeBlock code={`<Avatar name="Vatsal Shah" size="lg" />
+<Avatar name="Jane Doe" variant="rounded" />
+<Avatar name="John" src="/john.jpg" />`} />
           </Section>
 
           <Section id="progress" title="Progress">
             <div className="max-w-md space-y-4">
               <Sub title="Default"><Progress value={65} /></Sub>
               <Sub title="Gradient"><Progress value={45} variant="gradient" /></Sub>
-              <Sub title="Small"><Progress value={80} size="sm" /></Sub>
               <Sub title="With Label"><Progress value={72} showLabel /></Sub>
             </div>
+            <CodeBlock code={`<Progress value={65} />
+<Progress value={45} variant="gradient" />
+<Progress value={72} showLabel />`} />
           </Section>
 
           <footer className="mt-12 pt-6 border-t border-border text-center pb-6">

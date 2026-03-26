@@ -13,7 +13,8 @@ import { cn } from "../utils/cn";
 // ── DropdownMenu ─────────────────────────────────────────────────────────────
 
 export interface DropdownMenuProps {
-  trigger: ReactNode;
+  /** Trigger element — when provided, DropdownMenu manages open/close internally. When omitted, use the `open` prop to control visibility externally. */
+  trigger?: ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   align?: "left" | "right";
@@ -185,6 +186,31 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
       },
       [setOpen]
     );
+
+    // Triggerless mode — just render the positioned menu when open
+    if (!trigger) {
+      if (!isOpen) return null;
+      return (
+        <div
+          ref={(node) => {
+            (containerRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+            if (typeof ref === "function") ref(node);
+            else if (ref) ref.current = node;
+          }}
+          role="menu"
+          onKeyDown={handleMenuKeyDown}
+          className={cn(
+            "absolute z-50 mt-2 rounded-lg border border-border bg-popover py-1 shadow-md",
+            "animate-scale-in",
+            align === "right" ? "right-0" : "left-0",
+            width,
+            className
+          )}
+        >
+          {children}
+        </div>
+      );
+    }
 
     return (
       <div

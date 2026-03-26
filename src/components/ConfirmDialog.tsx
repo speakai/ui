@@ -10,13 +10,28 @@ import { Button } from "./Button";
 export type ConfirmDialogVariant = "danger" | "warning" | "info";
 
 export interface ConfirmDialogProps extends Omit<HTMLAttributes<HTMLDivElement>, "title"> {
-  open: boolean;
-  onClose: () => void;
+  /** Whether the dialog is visible. Alias: `isOpen` */
+  open?: boolean;
+  /** @deprecated Use `open` instead */
+  isOpen?: boolean;
+  /** Called when the dialog should close. Alias: `onCancel` */
+  onClose?: () => void;
+  /** @deprecated Use `onClose` instead */
+  onCancel?: () => void;
   onConfirm: () => void;
   title: string;
+  /** Body text. Alias: `message` */
   description?: string;
+  /** @deprecated Use `description` instead */
+  message?: string;
+  /** Confirm button label. Alias: `confirmText` */
   confirmLabel?: string;
+  /** @deprecated Use `confirmLabel` instead */
+  confirmText?: string;
+  /** Cancel button label. Alias: `cancelText` */
   cancelLabel?: string;
+  /** @deprecated Use `cancelLabel` instead */
+  cancelText?: string;
   variant?: ConfirmDialogVariant;
   isLoading?: boolean;
   icon?: ReactNode;
@@ -53,13 +68,18 @@ const variantStyles: Record<ConfirmDialogVariant, { icon: string; button: "dange
 export const ConfirmDialog = forwardRef<HTMLDivElement, ConfirmDialogProps>(
   (
     {
-      open,
-      onClose,
+      open: openProp,
+      isOpen,
+      onClose: onCloseProp,
+      onCancel,
       onConfirm,
       title,
-      description,
-      confirmLabel = "Confirm",
-      cancelLabel = "Cancel",
+      description: descriptionProp,
+      message,
+      confirmLabel: confirmLabelProp,
+      confirmText,
+      cancelLabel: cancelLabelProp,
+      cancelText,
       variant = "danger",
       isLoading = false,
       icon,
@@ -68,6 +88,12 @@ export const ConfirmDialog = forwardRef<HTMLDivElement, ConfirmDialogProps>(
     },
     ref
   ) => {
+    // Resolve aliased props (prefer canonical names)
+    const open = openProp ?? isOpen ?? false;
+    const onClose = onCloseProp ?? onCancel ?? (() => {});
+    const description = descriptionProp ?? message;
+    const confirmLabel = confirmLabelProp ?? confirmText ?? "Confirm";
+    const cancelLabel = cancelLabelProp ?? cancelText ?? "Cancel";
     const styles = variantStyles[variant];
 
     return (

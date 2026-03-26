@@ -22,7 +22,8 @@ const defaultRing = "border-input";
 // ── Input ─────────────────────────────────────────────────────────────────────
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
-  error?: string;
+  /** Pass `true` for red border only, or a string to show an error message below the input. */
+  error?: boolean | string;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
@@ -40,7 +41,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         )}
         {...props}
       />
-      {error && (
+      {typeof error === "string" && error && (
         <p className="mt-1.5 text-xs text-destructive">{error}</p>
       )}
     </div>
@@ -52,11 +53,14 @@ Input.displayName = "Input";
 // ── SearchInput ───────────────────────────────────────────────────────────────
 
 export interface SearchInputProps
-  extends InputHTMLAttributes<HTMLInputElement> {}
+  extends InputHTMLAttributes<HTMLInputElement> {
+  /** Optional class name for the wrapper div */
+  containerClassName?: string;
+}
 
 export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
-  ({ className, ...props }, ref) => (
-    <div className="relative w-full">
+  ({ className, containerClassName, ...props }, ref) => (
+    <div className={cn("relative w-full", containerClassName)}>
       <svg
         className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
         xmlns="http://www.w3.org/2000/svg"
@@ -93,11 +97,16 @@ SearchInput.displayName = "SearchInput";
 
 export interface SelectProps
   extends SelectHTMLAttributes<HTMLSelectElement> {
-  error?: string;
+  /** Pass `true` for red border only, or a string to show an error message below the select. */
+  error?: boolean | string;
+  /** Shorthand — renders `<option>` elements. When `children` are also provided, `children` take precedence. */
+  options?: Array<{ value: string; label: string }>;
+  /** Placeholder option (shown as first disabled option when using `options` prop) */
+  placeholder?: string;
 }
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, error, children, id, ...props }, ref) => (
+  ({ className, error, children, options, placeholder, id, ...props }, ref) => (
     <div className="relative w-full">
       <select
         ref={ref}
@@ -111,7 +120,16 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         )}
         {...props}
       >
-        {children}
+        {children ?? (
+          <>
+            {placeholder && <option value="">{placeholder}</option>}
+            {options?.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </>
+        )}
       </select>
       <svg
         className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
@@ -128,7 +146,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           d="M19.5 8.25l-7.5 7.5-7.5-7.5"
         />
       </svg>
-      {error && (
+      {typeof error === "string" && error && (
         <p className="mt-1.5 text-xs text-destructive">{error}</p>
       )}
     </div>
@@ -141,7 +159,8 @@ Select.displayName = "Select";
 
 export interface TextareaProps
   extends TextareaHTMLAttributes<HTMLTextAreaElement> {
-  error?: string;
+  /** Pass `true` for red border only, or a string to show an error message below the textarea. */
+  error?: boolean | string;
 }
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
@@ -159,7 +178,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         )}
         {...props}
       />
-      {error && (
+      {typeof error === "string" && error && (
         <p className="mt-1.5 text-xs text-destructive">{error}</p>
       )}
     </div>
