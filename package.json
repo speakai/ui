@@ -1,21 +1,71 @@
 {
-  "name": "speak-ui",
-  "private": true,
-  "workspaces": [
-    "packages/*",
-    "demo"
+  "name": "@speakai/ui",
+  "version": "0.1.1",
+  "description": "Speak AI design system — React + Tailwind UI components with dark/light mode, WCAG AA, and full CSS variable customization",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./styles.css": "./dist/styles.css"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": [
+    "*.css"
   ],
   "scripts": {
-    "dev": "npm run dev -w demo",
-    "build": "npm run build --workspaces --if-present",
-    "build:ui": "npm run build -w @speakai/ui",
-    "build:recorder": "npm run build -w @speakai/recorder",
-    "build:editor": "npm run build -w @speakai/editor",
-    "build:player": "npm run build -w @speakai/player",
-    "clean": "npm run clean --workspaces --if-present",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "build": "tsup",
+    "dev:lib": "tsup --watch",
+    "dev": "cd demo && npm run dev",
+    "demo:build": "cd demo && npm run build",
+    "demo:export": "cd demo && npm run build",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit -p tsconfig.build.json",
+    "prepublishOnly": "npm run build"
   },
-  "engines": {
-    "node": ">=18"
-  }
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18",
+    "tailwindcss": ">=3.4.0"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.5.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "tailwindcss": "^3.4.0",
+    "tsup": "^8.4.0",
+    "typescript": "^5.4.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/speakai/ui.git"
+  },
+  "keywords": [
+    "react",
+    "tailwindcss",
+    "design-system",
+    "ui-components",
+    "dark-mode",
+    "accessible",
+    "speak-ai"
+  ],
+  "license": "MIT",
+  "homepage": "https://speakai.github.io/ui"
 }

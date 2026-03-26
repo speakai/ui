@@ -24,10 +24,10 @@
     ],
     "paths": {
       "@speakai/ui": [
-        "../packages/ui/src"
+        "../src"
       ],
       "@speakai/ui/*": [
-        "../packages/ui/src/*"
+        "../src/*"
       ]
     }
   },
