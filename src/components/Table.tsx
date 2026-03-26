@@ -86,7 +86,7 @@ export const TableRow = forwardRef<HTMLTableRowElement, TableRowProps>(
     const handleKeyDown = (e: KeyboardEvent<HTMLTableRowElement>) => {
       if (clickable && (e.key === "Enter" || e.key === " ")) {
         e.preventDefault();
-        onClick?.(e as unknown as React.MouseEvent<HTMLTableRowElement>);
+        (e.currentTarget as HTMLElement).click();
       }
       props.onKeyDown?.(e);
     };
@@ -101,7 +101,7 @@ export const TableRow = forwardRef<HTMLTableRowElement, TableRowProps>(
         className={cn(
           "bg-card transition-colors",
           clickable &&
-            "cursor-pointer hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+            "cursor-pointer hover:bg-muted/50 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
           className
         )}
         {...props}
@@ -189,7 +189,7 @@ export const TableActionButton = forwardRef<
     aria-label={label}
     className={cn(
       "inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
-      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+      "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
       variant === "danger"
         ? "text-muted-foreground hover:bg-danger/10 hover:text-danger"
         : "text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -403,7 +403,7 @@ export const TablePagination = forwardRef<HTMLDivElement, TablePaginationProps>(
                   onPageSizeChange(Number(e.target.value));
                   onPageChange(1);
                 }}
-                className="h-7 rounded-md border border-border bg-background px-1.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="w-16 rounded-md border border-border bg-background py-1 px-2 text-xs text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
               >
                 {pageSizeOptions.map((s) => (
                   <option key={s} value={s}>{s}</option>
@@ -422,7 +422,7 @@ export const TablePagination = forwardRef<HTMLDivElement, TablePaginationProps>(
             aria-label="Previous page"
             className={cn(
               "inline-flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-colors",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
               hasPrev
                 ? "text-muted-foreground hover:bg-muted hover:text-foreground"
                 : "pointer-events-none text-muted-foreground/30"
@@ -445,7 +445,7 @@ export const TablePagination = forwardRef<HTMLDivElement, TablePaginationProps>(
                 aria-current={p === page ? "page" : undefined}
                 className={cn(
                   "inline-flex h-8 w-8 items-center justify-center rounded-lg text-xs font-medium transition-colors",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
                   p === page
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -463,7 +463,7 @@ export const TablePagination = forwardRef<HTMLDivElement, TablePaginationProps>(
             aria-label="Next page"
             className={cn(
               "inline-flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-colors",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
               hasNext
                 ? "text-muted-foreground hover:bg-muted hover:text-foreground"
                 : "pointer-events-none text-muted-foreground/30"

@@ -57,7 +57,7 @@ export const ThemeToggle = forwardRef<HTMLButtonElement, ThemeToggleProps>(
         className={cn(
           "inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors",
           "text-muted-foreground hover:bg-muted hover:text-foreground",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
           className
         )}
         {...props}
@@ -105,9 +105,9 @@ export const ThemeSelector = forwardRef<HTMLDivElement, ThemeSelectorProps>(
             onClick={() => onChange?.(value)}
             className={cn(
               "inline-flex h-8 items-center justify-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-colors",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
               currentTheme === value
-                ? "bg-card text-foreground shadow-sm"
+                ? "bg-card text-foreground shadow-xs"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >

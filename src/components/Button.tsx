@@ -21,20 +21,20 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90",
+    "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
   secondary:
-    "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
+    "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
   danger:
-    "bg-danger text-danger-foreground shadow-sm hover:bg-danger/90",
+    "bg-danger text-danger-foreground shadow-xs hover:bg-danger/90",
   ghost: "hover:bg-accent hover:text-accent-foreground",
   outline:
-    "border border-input bg-background text-foreground shadow-sm hover:bg-accent hover:text-accent-foreground",
+    "border border-input bg-background text-foreground shadow-xs hover:bg-accent hover:text-accent-foreground",
   gradient:
-    "bg-gradient-to-r from-gradient-from to-gradient-to text-primary-foreground shadow-sm hover:opacity-90",
+    "bg-gradient-to-r from-gradient-from to-gradient-to text-primary-foreground shadow-xs hover:opacity-90",
   glass:
-    "bg-background/10 backdrop-blur-xl border border-border/20 text-foreground hover:bg-background/20 shadow-sm",
+    "bg-background/10 backdrop-blur-xl border border-border/20 text-foreground hover:bg-background/20 shadow-xs",
   solid:
-    "bg-foreground text-background shadow-sm hover:bg-foreground/90",
+    "bg-foreground text-background shadow-xs hover:bg-foreground/90",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
@@ -65,7 +65,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(
           "inline-flex items-center justify-center whitespace-nowrap rounded-lg font-medium transition-colors",
           "active:scale-[0.98]",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+          "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
           "disabled:pointer-events-none disabled:opacity-50",
           variantStyles[variant],
           sizeStyles[size],

@@ -134,14 +134,14 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(
         {/* Header */}
         {header && (
           <div className={cn(
-            "flex h-14 items-center border-b border-border flex-shrink-0",
+            "flex h-14 items-center border-b border-border shrink-0",
             collapsed ? "justify-center px-2" : "gap-2 px-3"
           )}>
             {header}
             <button
               onClick={() => setCollapsed(!collapsed)}
               className={cn(
-                "rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring hidden md:flex",
+                "rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring hidden md:flex",
                 collapsed ? "mx-auto mt-0" : "ml-auto"
               )}
               aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -179,7 +179,7 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(
 
         {/* Footer */}
         {footer && (
-          <div className="flex-shrink-0 border-t border-border p-3">
+          <div className="shrink-0 border-t border-border p-3">
             {footer}
           </div>
         )}
@@ -204,7 +204,7 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(
         {/* Mobile backdrop */}
         {mobileOpen && (
           <div
-            className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm md:hidden"
+            className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-xs md:hidden"
             onClick={() => setMobileOpen(false)}
             aria-hidden="true"
           />
@@ -221,7 +221,7 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(
           <div className="absolute right-2 top-3">
             <button
               onClick={() => setMobileOpen(false)}
-              className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
               aria-label="Close sidebar"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
@@ -236,7 +236,7 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(
         <div className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-card px-3 md:hidden">
           <button
             onClick={() => setMobileOpen(true)}
-            className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
             aria-label="Open menu"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
@@ -281,7 +281,7 @@ function SidebarNavItem({ item, collapsed, renderLink, onNavigate, depth = 0 }: 
 
   const baseClasses = cn(
     "group relative flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-sm font-medium text-left transition-colors",
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+    "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
     item.active
       ? "bg-primary/10 text-primary"
       : "text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -299,7 +299,7 @@ function SidebarNavItem({ item, collapsed, renderLink, onNavigate, depth = 0 }: 
   );
 
   const iconEl = item.icon && (
-    <span className={cn("flex h-5 w-5 flex-shrink-0 items-center justify-center", collapsed && "h-5 w-5")}>
+    <span className={cn("flex h-5 w-5 shrink-0 items-center justify-center", collapsed && "h-5 w-5")}>
       {item.icon}
     </span>
   );
@@ -309,7 +309,7 @@ function SidebarNavItem({ item, collapsed, renderLink, onNavigate, depth = 0 }: 
   );
 
   const badgeEl = !collapsed && item.badge && (
-    <span className="flex-shrink-0">{item.badge}</span>
+    <span className="shrink-0">{item.badge}</span>
   );
 
   const tooltipEl = collapsed && <CollapsedTooltip label={item.label} />;
@@ -329,7 +329,7 @@ function SidebarNavItem({ item, collapsed, renderLink, onNavigate, depth = 0 }: 
           {tooltipEl}
           {!collapsed && (
             <svg
-              className={cn("h-4 w-4 flex-shrink-0 text-muted-foreground transition-transform duration-150", expanded && "rotate-90")}
+              className={cn("h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-150", expanded && "rotate-90")}
               fill="none"
               viewBox="0 0 24 24"
               strokeWidth={1.5}
@@ -448,7 +448,7 @@ export const SidebarUser = forwardRef<HTMLDivElement, SidebarUserProps & HTMLAtt
 
     return (
       <div ref={ref} className={cn("flex items-center gap-3", collapsed && "justify-center", className)} {...props}>
-        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-gradient-from to-gradient-to text-xs font-semibold text-primary-foreground">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-gradient-from to-gradient-to text-xs font-semibold text-primary-foreground">
           {avatar || name.charAt(0).toUpperCase()}
         </div>
         {!collapsed && (

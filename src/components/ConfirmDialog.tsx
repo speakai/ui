@@ -100,7 +100,7 @@ export const ConfirmDialog = forwardRef<HTMLDivElement, ConfirmDialogProps>(
       <Dialog ref={ref} open={open} onClose={onClose} size="sm" className={className} {...props}>
         <DialogBody>
           <div className="flex gap-4">
-            <div className={cn("flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full", styles.icon)}>
+            <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-full", styles.icon)}>
               {icon || defaultIcons[variant]}
             </div>
             <div className="min-w-0">

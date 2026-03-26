@@ -41,7 +41,7 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
     const isOpen = isControlled ? controlledOpen : internalOpen;
 
     const containerRef = useRef<HTMLDivElement>(null);
-    const triggerRef = useRef<HTMLButtonElement>(null);
+    const triggerRef = useRef<HTMLDivElement>(null);
     const menuRef = useRef<HTMLDivElement>(null);
     const focusIndexRef = useRef(-1);
 
@@ -178,7 +178,7 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
     );
 
     const handleTriggerKeyDown = useCallback(
-      (e: KeyboardEvent<HTMLButtonElement>) => {
+      (e: KeyboardEvent<HTMLDivElement>) => {
         if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
           e.preventDefault();
           setOpen(true);
@@ -222,13 +222,13 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
         className={cn("relative inline-block", className)}
       >
         <div
-          ref={triggerRef as unknown as React.RefObject<HTMLDivElement>}
+          ref={triggerRef}
           role="button"
           tabIndex={0}
           aria-haspopup="true"
           aria-expanded={isOpen}
           onClick={toggle}
-          onKeyDown={handleTriggerKeyDown as unknown as React.KeyboardEventHandler<HTMLDivElement>}
+          onKeyDown={handleTriggerKeyDown}
           className="inline-flex cursor-pointer"
         >
           {trigger}
@@ -274,7 +274,7 @@ export const DropdownMenuItem = forwardRef<
     tabIndex={-1}
     className={cn(
       "flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors",
-      "focus:bg-muted focus:text-foreground focus:outline-none",
+      "focus:bg-muted focus:text-foreground focus:outline-hidden",
       "hover:bg-muted hover:text-foreground",
       variant === "danger"
         ? "text-danger hover:bg-danger/10 hover:text-danger focus:bg-danger/10 focus:text-danger"
@@ -285,7 +285,7 @@ export const DropdownMenuItem = forwardRef<
     disabled={disabled}
     {...props}
   >
-    {icon && <span className="flex-shrink-0" aria-hidden="true">{icon}</span>}
+    {icon && <span className="shrink-0" aria-hidden="true">{icon}</span>}
     {children}
   </button>
 ));
@@ -341,7 +341,7 @@ export const MoreButton = forwardRef<HTMLButtonElement, MoreButtonProps>(
       className={cn(
         "inline-flex items-center justify-center rounded-lg p-2 text-muted-foreground transition-colors",
         "hover:bg-accent hover:text-accent-foreground",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+        "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         className
       )}
       {...props}

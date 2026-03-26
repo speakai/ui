@@ -34,9 +34,9 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
           disabled={disabled}
           aria-invalid={error ? true : undefined}
           className={cn(
-            "shrink-0 cursor-pointer rounded border transition-colors",
+            "shrink-0 cursor-pointer rounded-sm border border-border transition-colors",
             "accent-primary text-primary",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+            "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
             styles.box,
             error ? "border-danger" : "border-input",
             disabled && "cursor-not-allowed opacity-50",

@@ -164,7 +164,7 @@ function SidebarHeader() {
   const { collapsed } = useSidebar();
   return (
     <a href="https://speakai.co?ref=design-system" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 min-w-0 transition-opacity hover:opacity-80">
-      <img src="/ui/logo.jpg" alt="Speak" className="h-7 w-7 flex-shrink-0 rounded-lg object-cover" />
+      <img src="/ui/logo.jpg" alt="Speak" className="h-7 w-7 shrink-0 rounded-lg object-cover" />
       {!collapsed && <span className="text-sm font-semibold text-foreground truncate">@speakai/ui</span>}
     </a>
   );
@@ -377,7 +377,7 @@ function ConfigPanel({ config, onChange, open, onClose }: { config: ThemeConfig;
           <div className="grid grid-cols-2 gap-1.5">
             {Object.entries(PRESETS).map(([name, preset]) => (
               <button key={name} onClick={() => onChange({ ...config, ...preset })} className="flex items-center gap-2 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors">
-                <span className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ background: `hsl(${preset.primaryHue}, ${preset.primaryHue === 0 ? 0 : 80}%, 55%)` }} />
+                <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: `hsl(${preset.primaryHue}, ${preset.primaryHue === 0 ? 0 : 80}%, 55%)` }} />
                 {name}
               </button>
             ))}
@@ -405,10 +405,10 @@ function ConfigPanel({ config, onChange, open, onClose }: { config: ThemeConfig;
           <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">CSS Variables</label>
           <pre className="rounded-lg border border-border bg-muted/50 p-2.5 text-[10px] leading-relaxed text-muted-foreground overflow-x-auto font-mono">
             {`:root {
-  --primary: ${config.primaryHue} 80% 55%;
-  --gradient-from: ${config.primaryHue} 80% 55%;
-  --gradient-to: ${config.gradientToHue} 80% 55%;
-  --radius: ${config.radius}rem;
+  --color-primary: hsl(${config.primaryHue} 80% 55%);
+  --color-gradient-from: hsl(${config.primaryHue} 80% 55%);
+  --color-gradient-to: hsl(${config.gradientToHue} 80% 55%);
+  --radius-lg: ${config.radius}rem;
   --font-sans: ${FONTS.find(f => f.value === config.font)?.css};
 }`}
           </pre>
@@ -441,28 +441,32 @@ function DemoContent() {
     const isMonochrome = c.primaryHue === 0 && c.gradientToHue === 0;
 
     if (isMonochrome) {
-      root.style.setProperty("--primary", "0 0% 9%");
-      root.style.setProperty("--primary-foreground", "0 0% 100%");
-      root.style.setProperty("--ring", "0 0% 9%");
-      root.style.setProperty("--gradient-from", "0 0% 9%");
-      root.style.setProperty("--gradient-to", "0 0% 35%");
+      root.style.setProperty("--color-primary", "hsl(0 0% 9%)");
+      root.style.setProperty("--color-primary-foreground", "hsl(0 0% 100%)");
+      root.style.setProperty("--color-ring", "hsl(0 0% 9%)");
+      root.style.setProperty("--color-gradient-from", "hsl(0 0% 9%)");
+      root.style.setProperty("--color-gradient-to", "hsl(0 0% 35%)");
       const isDark = document.documentElement.classList.contains("dark");
       if (isDark) {
-        root.style.setProperty("--primary", "0 0% 95%");
-        root.style.setProperty("--primary-foreground", "0 0% 9%");
-        root.style.setProperty("--ring", "0 0% 95%");
-        root.style.setProperty("--gradient-from", "0 0% 95%");
-        root.style.setProperty("--gradient-to", "0 0% 60%");
+        root.style.setProperty("--color-primary", "hsl(0 0% 95%)");
+        root.style.setProperty("--color-primary-foreground", "hsl(0 0% 9%)");
+        root.style.setProperty("--color-ring", "hsl(0 0% 95%)");
+        root.style.setProperty("--color-gradient-from", "hsl(0 0% 95%)");
+        root.style.setProperty("--color-gradient-to", "hsl(0 0% 60%)");
       }
     } else {
-      root.style.setProperty("--primary", `${c.primaryHue} 80% 55%`);
-      root.style.setProperty("--primary-foreground", "0 0% 100%");
-      root.style.setProperty("--ring", `${c.primaryHue} 80% 55%`);
-      root.style.setProperty("--gradient-from", `${c.primaryHue} 80% 55%`);
-      root.style.setProperty("--gradient-to", `${c.gradientToHue} 80% 55%`);
+      root.style.setProperty("--color-primary", `hsl(${c.primaryHue} 80% 55%)`);
+      root.style.setProperty("--color-primary-foreground", "hsl(0 0% 100%)");
+      root.style.setProperty("--color-ring", `hsl(${c.primaryHue} 80% 55%)`);
+      root.style.setProperty("--color-gradient-from", `hsl(${c.primaryHue} 80% 55%)`);
+      root.style.setProperty("--color-gradient-to", `hsl(${c.gradientToHue} 80% 55%)`);
     }
 
-    root.style.setProperty("--radius", `${c.radius}rem`);
+    root.style.setProperty("--radius-lg", `${c.radius}rem`);
+    root.style.setProperty("--radius-xl", `${c.radius + 0.25}rem`);
+    root.style.setProperty("--radius-2xl", `${c.radius + 0.5}rem`);
+    root.style.setProperty("--radius-md", `${Math.max(0, c.radius - 0.375)}rem`);
+    root.style.setProperty("--radius-sm", `${Math.max(0, c.radius - 0.5)}rem`);
     const fontDef = FONTS.find(f => f.value === c.font);
     if (fontDef) root.style.setProperty("--font-sans", fontDef.css);
     setConfig(c);
@@ -484,7 +488,7 @@ function DemoContent() {
       <Tooltip content="Theme Configurator" side="left">
         <button
           onClick={() => setConfigOpen(true)}
-          className="fixed bottom-6 right-6 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-gradient-from to-gradient-to text-white shadow-lg transition-transform hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="fixed bottom-6 right-6 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-gradient-from to-gradient-to text-white shadow-lg transition-transform hover:scale-105 active:scale-95 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           aria-label="Open theme configurator"
         >
           <I d={icons.swatch} />

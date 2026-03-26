@@ -59,7 +59,7 @@ export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(
           onKeyDown={handleKeyDown}
           className={cn(
             "relative inline-flex shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+            "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
             trackSizes[size],
             checked ? "bg-primary" : "bg-muted",
             disabled && "cursor-not-allowed opacity-50"
@@ -69,7 +69,7 @@ export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(
           <span
             aria-hidden="true"
             className={cn(
-              "pointer-events-none inline-block rounded-full bg-white shadow-sm ring-0 transition-transform duration-200",
+              "pointer-events-none inline-block rounded-full bg-white shadow-xs ring-0 transition-transform duration-200",
               thumbSizes[size],
               checked ? thumbTranslate[size].on : thumbTranslate[size].off
             )}

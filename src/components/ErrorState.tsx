@@ -86,7 +86,7 @@ export const ErrorState = forwardRef<HTMLDivElement, ErrorStateProps>(
           )}
           {...props}
         >
-          <WarningIcon className="flex-shrink-0 text-danger" />
+          <WarningIcon className="shrink-0 text-danger" />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-danger">{title}</p>
             {message && (

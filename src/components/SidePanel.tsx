@@ -124,7 +124,7 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
         {backdrop && (
           <div
             className={cn(
-              "fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm transition-opacity duration-200",
+              "fixed inset-0 z-40 bg-foreground/20 backdrop-blur-xs transition-opacity duration-200",
               open ? "opacity-100" : "pointer-events-none opacity-0"
             )}
             onClick={handleBackdropClick}
@@ -153,13 +153,13 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
         >
           {/* Header */}
           {header || (title && (
-            <div className="flex h-14 flex-shrink-0 items-center justify-between border-b border-border px-4">
+            <div className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4">
               <div className="flex items-center gap-2 min-w-0">
                 {showBack && onBack && (
                   <button
                     onClick={onBack}
                     aria-label="Go back"
-                    className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
@@ -171,7 +171,7 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
               <button
                 onClick={onClose}
                 aria-label="Close panel"
-                className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -187,7 +187,7 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
 
           {/* Footer */}
           {footer && (
-            <div className="flex-shrink-0 border-t border-border px-4 py-3">
+            <div className="shrink-0 border-t border-border px-4 py-3">
               {footer}
             </div>
           )}

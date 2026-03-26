@@ -163,21 +163,21 @@ export const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(
     const triggerVariantStyles = {
       default: cn(
         "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
         isActive
-          ? "bg-card text-foreground shadow-sm"
+          ? "bg-card text-foreground shadow-xs"
           : "text-muted-foreground hover:text-foreground"
       ),
       underline: cn(
         "relative pb-3 text-sm font-medium transition-colors",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm",
+        "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-xs",
         isActive
           ? "text-foreground"
           : "text-muted-foreground hover:text-foreground"
       ),
       pills: cn(
         "rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
         isActive
           ? "bg-primary text-primary-foreground"
           : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -232,7 +232,7 @@ export const TabsContent = forwardRef<HTMLDivElement, TabsContentProps>(
         role="tabpanel"
         id={`tabpanel-${value}`}
         tabIndex={0}
-        className={cn("mt-4 animate-fade-in focus-visible:outline-none", className)}
+        className={cn("mt-4 animate-fade-in focus-visible:outline-hidden", className)}
         {...props}
       >
         {children}

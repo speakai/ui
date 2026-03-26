@@ -10,7 +10,7 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
 
 const variantStyles: Record<CardVariant, string> = {
   default:
-    "bg-card text-card-foreground border border-border shadow-sm",
+    "bg-card text-card-foreground border border-border shadow-xs",
   outline:
     "bg-transparent border-2 border-border hover:border-border/80 transition-colors",
   elevated:
