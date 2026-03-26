@@ -1,159 +1,181 @@
 # @speakai/ui
 
-Monorepo for Speak AI's shared React component packages — design system, media player, recorder, and transcript editor.
+[![npm version](https://img.shields.io/npm/v/@speakai/ui.svg)](https://www.npmjs.com/package/@speakai/ui)
+[![npm downloads](https://img.shields.io/npm/dm/@speakai/ui.svg)](https://www.npmjs.com/package/@speakai/ui)
+[![license](https://img.shields.io/npm/l/@speakai/ui.svg)](https://github.com/speakai/ui/blob/main/LICENSE)
 
-## Packages
+Speak AI's design system — 25 React + Tailwind components with dark/light mode, WCAG AA accessibility, and full CSS variable customization.
 
-| Package | Version | Description |
-|---------|---------|-------------|
-| [`@speakai/ui`](./packages/ui) | 0.1.0 | Design system — 14 React + Tailwind components with dark/light mode, WCAG AA, and full CSS variable customization |
-| [`@speakai/player`](./packages/player) | 0.1.0 | Media player — video.js wrapper with transcript sync *(planned)* |
-| [`@speakai/recorder`](./packages/recorder) | 0.1.0 | Recorder — audio/video recording with device selection and live transcript *(planned)* |
-| [`@speakai/editor`](./packages/editor) | 0.1.0 | Transcript editor — ProseMirror-based editing with speaker labels *(planned)* |
+**[Live Preview & Design Guide →](https://speakai.github.io/ui)**
 
-## Quick Start
+## Install
 
 ```bash
 npm install @speakai/ui
 ```
 
-```tsx
-import { Button, Card, Badge, ToastProvider, useToast } from "@speakai/ui";
-import "@speakai/ui/styles.css";
+## Setup
+
+### 1. Import styles
+
+```css
+/* your app's globals.css */
+@import "@speakai/ui/styles.css";
 ```
 
-## Customization
+### 2. Configure Tailwind
 
-Every visual aspect is controlled by CSS variables. Override them in your app to customize without touching source code:
+```ts
+// tailwind.config.ts
+export default {
+  content: [
+    "./src/**/*.{ts,tsx}",
+    "./node_modules/@speakai/ui/dist/**/*.{js,mjs}",
+  ],
+  // ...
+};
+```
+
+### 3. Use components
+
+```tsx
+import { Button, Card, Badge, ToastProvider, useToast } from "@speakai/ui";
+
+function App() {
+  return (
+    <ToastProvider>
+      <Card>
+        <Badge variant="success">Live</Badge>
+        <Button variant="primary">Get Started</Button>
+      </Card>
+    </ToastProvider>
+  );
+}
+```
+
+## Customize
+
+Override CSS variables to match your brand — zero source code changes:
 
 ```css
 :root {
-  /* Brand colors */
-  --primary: 210 80% 50%;           /* Change to blue */
-  --gradient-from: 210 80% 50%;     /* Gradient start */
-  --gradient-to: 170 80% 50%;       /* Gradient end */
-
-  /* Status colors */
-  --success: 160 84% 39%;
-  --warning: 38 92% 50%;
-  --info: 217 91% 60%;
-  --destructive: 0 84% 60%;
-
-  /* Typography */
+  --primary: 210 80% 50%;           /* any color */
+  --gradient-from: 210 80% 50%;
+  --gradient-to: 170 80% 50%;
   --font-sans: "Inter", sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
-
-  /* Shape */
   --radius: 0.5rem;
-
-  /* Surfaces (light mode) */
-  --background: 0 0% 100%;
-  --foreground: 222 84% 5%;
-  --card: 0 0% 100%;
-  --border: 214 32% 91%;
-  --muted: 210 40% 96%;
-  --muted-foreground: 215 16% 47%;
-}
-
-.dark {
-  --background: 222 84% 5%;
-  --foreground: 210 40% 98%;
-  --card: 222 84% 5%;
-  --border: 217 33% 18%;
-  --muted: 217 33% 18%;
-  --muted-foreground: 215 20% 65%;
 }
 ```
 
-## Components
+Every component updates automatically. See the [Live Preview](https://speakai.github.io/ui) for a real-time theme configurator.
 
-### Layout & Structure
-- **Card** — `default` | `outline` | `elevated` | `glass` + optional gradient accent
-- **PageHeader** — Title with gradient text, description, action slot
-- **SectionHeader** — Smaller heading with optional action
-- **InfoCard** — Colored callout (purple, blue, green, yellow, red, gray)
-- **StatCard** — Dashboard stat with icon, label, value + gradient variant
+## Components (25)
 
-### Forms & Inputs
-- **Button** — `default` | `secondary` | `destructive` | `outline` | `ghost` | `glass` + loading state
-- **Input** — With error state, 16px font to prevent iOS zoom
-- **SearchInput** — Input with search icon
-- **Select** — Styled native select
-- **Textarea** — Auto-height textarea
+### Forms & Actions
+| Component | Variants |
+|-----------|----------|
+| **Button** | `primary` `secondary` `danger` `ghost` `outline` `gradient` `glass` `solid` |
+| **Input** | Default, error state |
+| **SearchInput** | With search icon |
+| **Select** | Styled native select |
+| **Textarea** | Auto-height |
+| **Switch** | Toggle with label |
 
-### Data Display
-- **Table** — Full table system with clickable rows and keyboard navigation
-- **Badge** — `default` | `success` | `warning` | `destructive` | `info` | `outline` | `secondary`
-- **StatusBadge** — Auto-maps status strings to badge variants
+### Layout
+| Component | Description |
+|-----------|-------------|
+| **Card** | `default` `outline` `elevated` `glass` + gradient accent |
+| **Sidebar** | Collapsible, mobile drawer, keyboard nav, custom link renderer |
+| **SidebarLayout** | Content area that adjusts to sidebar width |
+| **SidePanel** | Right/left slide-over drawer |
+| **PageHeader** | Title with gradient text + action slot |
+| **SectionHeader** | Smaller heading with action |
+| **Tabs** | `default` `underline` `pills` — with keyboard arrow navigation |
+
+### Data
+| Component | Description |
+|-----------|-------------|
+| **Table** | Full system: Header, Body, Row, Head, Cell |
+| **TableSortHead** | Sortable column headers |
+| **TablePagination** | Page controls with size selector |
+| **TableActions** | Inline row action buttons |
+| **TableEmpty** | Empty state row |
+| **StatCard** | Dashboard stat with icon + gradient variant |
+| **Badge** | `success` `warning` `error` `info` + 8 color options |
+| **InfoCard** | Colored callout (6 themes) |
 
 ### Feedback
-- **Toast** — `useToast()` hook with pause-on-hover and entry/exit animations
-- **EmptyState** — Icon + title + description + action
-- **ErrorState** — `page` | `card` | `inline` variants with retry
-- **Skeleton** — Page, card, form, grid, table skeleton variants
+| Component | Description |
+|-----------|-------------|
+| **Toast** | `useToast()` hook — pause-on-hover, entry/exit animations |
+| **Dialog** | Modal with focus trap, 5 sizes |
+| **ConfirmDialog** | `danger` `warning` `info` — with confirm/cancel |
+| **EmptyState** | Icon + title + description + action |
+| **ErrorState** | `page` `card` `inline` — with retry |
+| **Skeleton** | 9 variants (page, card, form, grid, table) |
 
-### Overlay
-- **DropdownMenu** — Full keyboard nav (arrow keys, escape), ARIA roles, click-outside dismiss
+### Utilities
+| Component | Description |
+|-----------|-------------|
+| **Tooltip** | 4 positions, auto-flip on viewport edge |
+| **DropdownMenu** | Full keyboard nav, ARIA roles, click-outside |
+| **Avatar** | Image with initials fallback, gradient background |
+| **Progress** | Bar with default/gradient, optional label |
+| **ThemeToggle** | Icon button cycling light/dark/system |
+| **ThemeSelector** | Segmented control for theme selection |
 
 ## Accessibility
 
 WCAG 2.1 AA compliant:
 
 - `focus-visible` ring on all interactive elements
-- `aria-busy` on loading buttons, `aria-invalid` on error inputs
-- `role="menu"` / `role="menuitem"` with full keyboard navigation
-- `role="alert"` on error states, `aria-live="polite"` on toasts
-- `aria-hidden="true"` on decorative elements
-- Minimum 40px touch targets, 16px input text
+- `aria-busy`, `aria-invalid`, `aria-live`, `role="alert"`, `role="menu"`
+- Dialog focus trap, Tabs arrow key nav, DropdownMenu keyboard cycling
+- 40px minimum touch targets, 16px input text (prevents iOS zoom)
+- Decorative elements hidden via `aria-hidden`
 
-## Demo
+## CSS Variables Reference
 
-```bash
-npm install
-npm run dev     # http://localhost:4444
+```css
+:root {
+  /* Brand */
+  --primary: 271 91% 65%;
+  --primary-foreground: 0 0% 100%;
+  --gradient-from: 271 91% 65%;
+  --gradient-to: 330 81% 60%;
+
+  /* Status */
+  --success: 160 84% 39%;
+  --warning: 38 92% 50%;
+  --info: 217 91% 60%;
+  --destructive: 0 84% 60%;
+
+  /* Surfaces */
+  --background: 0 0% 100%;
+  --foreground: 222 84% 5%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 84% 5%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+  --border: 214 32% 91%;
+
+  /* Typography */
+  --font-sans: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  /* Shape */
+  --radius: 0.75rem;
+}
 ```
-
-The demo includes a **live theme configurator** panel — adjust primary color, gradient, font family, and border radius in real-time to preview how CSS variables propagate across all components.
 
 ## Development
 
 ```bash
-npm install                  # Install all workspaces
-npm run build:ui             # Build @speakai/ui
-npm run build:recorder       # Build @speakai/recorder
-npm run build:editor         # Build @speakai/editor
-npm run build:player         # Build @speakai/player
-npm run build                # Build all
+npm install       # install dependencies
+npm run build     # build library
+npm run dev       # start demo at localhost:5555
 ```
 
-### Publishing
+## License
 
-Each package publishes independently to GitHub Packages. Only publish what you changed:
-
-```bash
-cd packages/ui && npm publish
-```
-
-## Architecture
-
-```
-speak-ui/
-├── packages/
-│   ├── ui/                   @speakai/ui (design system)
-│   │   ├── src/components/   14 React components
-│   │   ├── src/utils/        cn() class merge utility
-│   │   ├── src/styles/       CSS variables & design tokens
-│   │   └── tailwind.config.ts
-│   ├── player/               @speakai/player (planned)
-│   ├── recorder/             @speakai/recorder (planned)
-│   └── editor/               @speakai/editor (planned)
-├── demo/                     Next.js demo with live configurator
-└── package.json              npm workspaces root
-```
-
-## Tech Stack
-
-- React 19 + TypeScript
-- Tailwind CSS 3.4 with HSL CSS variable tokens
-- tsup (CJS + ESM + .d.ts)
-- npm workspaces
+MIT
