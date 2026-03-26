@@ -1,9 +1,22 @@
 import type { Config } from "tailwindcss";
+import forms from "@tailwindcss/forms";
+import typography from "@tailwindcss/typography";
+import aspectRatio from "@tailwindcss/aspect-ratio";
 
 const config: Config = {
   content: ["./src/**/*.{ts,tsx}"],
   darkMode: "class",
   theme: {
+    container: {
+      center: true,
+      padding: {
+        DEFAULT: "1rem",
+        sm: "2rem",
+        lg: "4rem",
+        xl: "5rem",
+        "2xl": "6rem",
+      },
+    },
     extend: {
       fontFamily: {
         sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "-apple-system", "sans-serif"],
@@ -22,6 +35,10 @@ const config: Config = {
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
         },
         danger: {
           DEFAULT: "hsl(var(--danger))",
@@ -114,9 +131,23 @@ const config: Config = {
         "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         gradient: "gradient 8s linear infinite",
       },
+      typography: {
+        DEFAULT: {
+          css: {
+            maxWidth: "65ch",
+            color: "inherit",
+            a: {
+              color: "var(--tw-prose-links)",
+              "&:hover": {
+                color: "var(--tw-prose-links-hover)",
+              },
+            },
+          },
+        },
+      },
     },
   },
-  plugins: [],
+  plugins: [forms, typography, aspectRatio],
 };
 
 export default config;

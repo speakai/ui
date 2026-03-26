@@ -836,10 +836,15 @@ toast.error("Error", "Something went wrong.");`}>
             </div>
           </Section>
 
-          <footer className="mt-12 pt-6 border-t border-border text-center pb-6">
+          <footer className="mt-12 pt-6 border-t border-border text-center pb-6 space-y-1">
             <p className="text-xs text-muted-foreground">
               <a href="https://speakai.co?ref=design-system" target="_blank" rel="noopener noreferrer" className="font-medium text-foreground hover:text-primary transition-colors">@speakai/ui</a>
               {" "} — 26 components
+            </p>
+            <p className="text-xs text-muted-foreground">
+              <a href="https://github.com/speakai/ui" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">GitHub</a>
+              {" · "}
+              <a href="https://www.npmjs.com/package/@speakai/ui" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">npm</a>
             </p>
           </footer>
         </div>
