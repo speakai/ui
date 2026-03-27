@@ -61,7 +61,7 @@ export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(
             "relative inline-flex shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200",
             "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
             trackSizes[size],
-            checked ? "bg-primary" : "bg-muted",
+            checked ? "bg-primary" : "bg-border dark:bg-foreground/25",
             disabled && "cursor-not-allowed opacity-50"
           )}
           {...props}

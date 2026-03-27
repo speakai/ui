@@ -146,8 +146,6 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
         ref={overlayRef}
         className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/20 backdrop-blur-xs animate-fade-in"
         onClick={handleBackdropClick}
-        role="dialog"
-        aria-modal="true"
       >
         <div
           ref={(node) => {
@@ -159,6 +157,8 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
               (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
             }
           }}
+          role="dialog"
+          aria-modal="true"
           className={cn(
             "w-full rounded-lg border border-border bg-card shadow-xl animate-scale-in",
             sizeMap[size],

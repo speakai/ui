@@ -77,7 +77,7 @@ export const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
         )}
         <p
           className={cn(
-            "mt-3 text-xs font-medium uppercase tracking-wider",
+            "mt-3 text-sm font-medium",
             isGradient ? "text-primary-foreground/70" : "text-muted-foreground"
           )}
         >

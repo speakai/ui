@@ -7,6 +7,13 @@ dist/
 .next/
 out/
 next-env.d.ts
+demo/package-lock.json
+
+# Testing
+coverage/
+test-results/
+playwright-report/
+blob-report/
 
 # IDE
 .idea/
@@ -21,3 +28,11 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
+.npmrc
+
+# Generated reports
+TEST_REPORT.md
+
+# Logs
+*.log
+npm-debug.log*

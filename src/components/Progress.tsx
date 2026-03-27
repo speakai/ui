@@ -17,7 +17,7 @@ const trackSizes: Record<ProgressSize, string> = {
 };
 
 export const Progress = forwardRef<HTMLDivElement, ProgressProps>(
-  ({ value, size = "default", variant = "default", showLabel = false, className, ...props }, ref) => {
+  ({ value, size = "default", variant = "default", showLabel = false, className, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy, ...props }, ref) => {
     const clampedValue = Math.min(100, Math.max(0, value));
 
     return (
@@ -31,6 +31,8 @@ export const Progress = forwardRef<HTMLDivElement, ProgressProps>(
           aria-valuenow={clampedValue}
           aria-valuemin={0}
           aria-valuemax={100}
+          aria-label={ariaLabel}
+          aria-labelledby={ariaLabelledBy}
           className={cn(
             "w-full overflow-hidden rounded-full bg-muted",
             trackSizes[size]

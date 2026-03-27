@@ -12,6 +12,11 @@
  */
 
 /* ──────────────────────────────────────────────
+   Source hints — classes in compiled component JS that Tailwind must generate
+   ────────────────────────────────────────────── */
+@source inline("sm:w-80 sm:w-[420px] sm:w-[500px] sm:w-[640px] w-full");
+
+/* ──────────────────────────────────────────────
    Class-based dark mode (works with next-themes)
    ────────────────────────────────────────────── */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -233,6 +238,12 @@ kbd,
 pre,
 samp {
   font-family: var(--font-mono);
+}
+
+/* Tailwind v4: buttons default to cursor:default — restore pointer */
+button:not(:disabled),
+[role="button"]:not(:disabled) {
+  cursor: pointer;
 }
 
 /* ──────────────────────────────────────────────

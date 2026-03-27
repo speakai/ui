@@ -38,7 +38,7 @@ export const PageHeader = forwardRef<HTMLDivElement, PageHeaderProps>(
           </p>
         )}
       </div>
-      {action && <div className="mt-3 sm:mt-0">{action}</div>}
+      {action && <div className="mt-3 shrink-0 sm:mt-0">{action}</div>}
     </div>
   )
 );

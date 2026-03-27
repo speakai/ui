@@ -122,7 +122,7 @@ export const TableHead = forwardRef<HTMLTableCellElement, TableHeadProps>(
       ref={ref}
       scope="col"
       className={cn(
-        "px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground",
+        "px-4 py-3 text-left text-sm font-medium text-muted-foreground",
         className
       )}
       {...props}
@@ -141,7 +141,7 @@ export const TableCell = forwardRef<HTMLTableCellElement, TableCellProps>(
     <td
       ref={ref}
       className={cn(
-        "px-6 py-4 text-sm text-card-foreground",
+        "px-4 py-3 text-sm text-card-foreground",
         className
       )}
       {...props}
@@ -245,7 +245,7 @@ export const TableSkeleton = forwardRef<HTMLDivElement, TableSkeletonProps>(
           <thead className="border-b border-border bg-muted/50">
             <tr>
               {Array.from({ length: columns }).map((_, i) => (
-                <th key={i} scope="col" className="px-6 py-3">
+                <th key={i} scope="col" className="px-4 py-3">
                   <div className="h-3 w-20 animate-pulse rounded-lg bg-muted" />
                 </th>
               ))}
@@ -255,7 +255,7 @@ export const TableSkeleton = forwardRef<HTMLDivElement, TableSkeletonProps>(
             {Array.from({ length: rows }).map((_, rowIdx) => (
               <tr key={rowIdx} className="bg-card">
                 {Array.from({ length: columns }).map((_, colIdx) => (
-                  <td key={colIdx} className="px-6 py-4">
+                  <td key={colIdx} className="px-4 py-3">
                     <div
                       className="h-4 animate-pulse rounded-lg bg-muted"
                       style={{ width: getSkeletonWidth(rowIdx, colIdx) }}
@@ -305,7 +305,7 @@ export const TableSortHead = forwardRef<HTMLTableCellElement, TableSortHeadProps
         ref={ref}
         scope="col"
         className={cn(
-          "px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground",
+          "px-4 py-3 text-left text-sm font-medium text-muted-foreground",
           onSort && "cursor-pointer select-none transition-colors hover:text-foreground",
           className
         )}
@@ -315,15 +315,13 @@ export const TableSortHead = forwardRef<HTMLTableCellElement, TableSortHeadProps
       >
         <span className="inline-flex items-center gap-1">
           {children}
-          {onSort && (
-            <span className={cn("inline-flex flex-col -space-y-1", !isActive && "opacity-30")} aria-hidden="true">
-              <svg className={cn("h-3 w-3", isActive && direction === "asc" ? "text-foreground" : "text-muted-foreground/50")} viewBox="0 0 16 16" fill="currentColor">
-                <path d="M8 4l4 5H4l4-5z" />
-              </svg>
-              <svg className={cn("h-3 w-3", isActive && direction === "desc" ? "text-foreground" : "text-muted-foreground/50")} viewBox="0 0 16 16" fill="currentColor">
-                <path d="M8 12l4-5H4l4 5z" />
-              </svg>
+          {onSort && isActive && direction && (
+            <span className="text-foreground text-xs" aria-hidden="true">
+              {direction === "asc" ? "▲" : "▼"}
             </span>
+          )}
+          {onSort && (!isActive || !direction) && (
+            <span className="text-muted-foreground/40 text-xs" aria-hidden="true">↕</span>
           )}
         </span>
       </th>
@@ -384,15 +382,17 @@ export const TablePagination = forwardRef<HTMLDivElement, TablePaginationProps>(
       <div
         ref={ref}
         className={cn(
-          "flex flex-col gap-3 px-6 py-3 sm:flex-row sm:items-center sm:justify-between",
+          "flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between",
           className
         )}
         {...props}
       >
         {/* Left: info + page size */}
         <div className="flex items-center gap-4">
-          <p className="text-xs text-muted-foreground whitespace-nowrap">
-            {total === 0 ? "No results" : `${start}-${end} of ${total}`}
+          <p className="text-sm text-muted-foreground whitespace-nowrap">
+            {total === 0
+              ? "No results"
+              : `Page ${page} of ${totalPages} (${total.toLocaleString()} total)`}
           </p>
           {onPageSizeChange && (
             <div className="flex items-center gap-1.5">
@@ -413,65 +413,33 @@ export const TablePagination = forwardRef<HTMLDivElement, TablePaginationProps>(
           )}
         </div>
 
-        {/* Right: page buttons */}
-        <div className="flex items-center gap-1">
-          {/* Prev */}
+        {/* Right: Previous / Next */}
+        <div className="flex items-center gap-2">
           <button
             onClick={() => onPageChange(page - 1)}
             disabled={!hasPrev}
             aria-label="Previous page"
             className={cn(
-              "inline-flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-colors",
-              "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
+              "px-3 py-1.5 text-sm rounded-lg border border-border transition-colors",
               hasPrev
-                ? "text-muted-foreground hover:bg-muted hover:text-foreground"
-                : "pointer-events-none text-muted-foreground/30"
+                ? "text-foreground hover:bg-muted"
+                : "opacity-40 pointer-events-none text-muted-foreground"
             )}
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-            </svg>
+            Previous
           </button>
-
-          {/* Page numbers */}
-          {getPageNumbers().map((p, i) =>
-            p === "..." ? (
-              <span key={`ellipsis-${i}`} className="w-8 text-center text-xs text-muted-foreground">...</span>
-            ) : (
-              <button
-                key={p}
-                onClick={() => onPageChange(p)}
-                aria-label={`Page ${p}`}
-                aria-current={p === page ? "page" : undefined}
-                className={cn(
-                  "inline-flex h-8 w-8 items-center justify-center rounded-lg text-xs font-medium transition-colors",
-                  "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
-                  p === page
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                )}
-              >
-                {p}
-              </button>
-            )
-          )}
-
-          {/* Next */}
           <button
             onClick={() => onPageChange(page + 1)}
             disabled={!hasNext}
             aria-label="Next page"
             className={cn(
-              "inline-flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-colors",
-              "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
+              "px-3 py-1.5 text-sm rounded-lg border border-border transition-colors",
               hasNext
-                ? "text-muted-foreground hover:bg-muted hover:text-foreground"
-                : "pointer-events-none text-muted-foreground/30"
+                ? "text-foreground hover:bg-muted"
+                : "opacity-40 pointer-events-none text-muted-foreground"
             )}
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-            </svg>
+            Next
           </button>
         </div>
       </div>
