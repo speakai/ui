@@ -10,6 +10,8 @@ export interface StatCardProps extends HTMLAttributes<HTMLDivElement> {
   iconColor?: IconColor;
   label: string;
   value: string | number;
+  /** Optional class name applied to the value text (e.g. for custom colors) */
+  valueClassName?: string;
   variant?: "default" | "gradient";
 }
 
@@ -39,6 +41,7 @@ export const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
       iconColor = "purple",
       label,
       value,
+      valueClassName,
       variant = "default",
       className,
       ...props
@@ -83,7 +86,8 @@ export const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
         <p
           className={cn(
             "mt-1 text-xl font-semibold",
-            isGradient ? "text-primary-foreground" : "text-foreground"
+            isGradient ? "text-primary-foreground" : "text-foreground",
+            valueClassName
           )}
         >
           {value}
