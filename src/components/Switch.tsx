@@ -12,17 +12,17 @@ export interface SwitchProps extends Omit<HTMLAttributes<HTMLButtonElement>, "on
 }
 
 const trackSizes: Record<SwitchSize, string> = {
-  sm: "h-5 w-9",
+  sm: "h-6 w-10",
   default: "h-6 w-11",
 };
 
 const thumbSizes: Record<SwitchSize, string> = {
-  sm: "h-3.5 w-3.5",
+  sm: "h-4 w-4",
   default: "h-[18px] w-[18px]",
 };
 
 const thumbTranslate: Record<SwitchSize, { off: string; on: string }> = {
-  sm: { off: "translate-x-0.5", on: "translate-x-[18px]" },
+  sm: { off: "translate-x-0.5", on: "translate-x-5" },
   default: { off: "translate-x-0.5", on: "translate-x-[22px]" },
 };
 
@@ -69,7 +69,7 @@ export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(
           <span
             aria-hidden="true"
             className={cn(
-              "pointer-events-none inline-block rounded-full bg-white shadow-xs ring-0 transition-transform duration-200",
+              "pointer-events-none inline-block rounded-full bg-background shadow-xs ring-0 transition-transform duration-200",
               thumbSizes[size],
               checked ? thumbTranslate[size].on : thumbTranslate[size].off
             )}

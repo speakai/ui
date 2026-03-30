@@ -151,7 +151,7 @@ const ToastItem = ({ toast, onDismiss }: ToastItemProps) => {
   return (
     <div
       className={cn(
-        "pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-lg border border-border border-l-4 bg-card p-4 shadow-lg",
+        "pointer-events-auto flex w-full sm:max-w-sm items-start gap-3 rounded-lg border border-border border-l-4 bg-card p-4 shadow-lg",
         accentBorderMap[toast.type],
         "animate-slide-in-from-top transition-opacity duration-150",
         isExiting && "opacity-0"
@@ -209,7 +209,7 @@ export const ToastContainer = forwardRef<HTMLDivElement, ToastContainerProps>(
       role="status"
       aria-live="polite"
       className={cn(
-        "pointer-events-none fixed inset-x-0 top-0 z-[9999] flex flex-col items-center gap-3 p-4 sm:items-end sm:p-6",
+        "pointer-events-none fixed inset-x-0 top-0 z-[9999] flex flex-col items-start gap-3 p-4 sm:items-end sm:p-6",
         className
       )}
     >

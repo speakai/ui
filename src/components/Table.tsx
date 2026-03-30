@@ -188,7 +188,7 @@ export const TableActionButton = forwardRef<
     ref={ref}
     aria-label={label}
     className={cn(
-      "inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
+      "inline-flex h-10 w-10 items-center justify-center rounded-lg transition-colors",
       "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
       variant === "danger"
         ? "text-muted-foreground hover:bg-danger/10 hover:text-danger"

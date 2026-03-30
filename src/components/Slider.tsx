@@ -216,7 +216,7 @@ export const Slider = forwardRef<HTMLDivElement, SliderProps>(
             onMouseDown={handleMouseDown}
             onTouchStart={handleTouchStart}
             className={cn(
-              "absolute top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-primary bg-white shadow-sm transition-shadow",
+              "absolute top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-primary bg-background shadow-sm transition-shadow",
               !disabled && "hover:shadow-md active:scale-105",
               disabled && "pointer-events-none",
             )}

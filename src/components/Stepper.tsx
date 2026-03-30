@@ -51,7 +51,7 @@ export const Stepper = forwardRef<HTMLDivElement, StepperProps>(
         role="list"
         className={cn(
           "flex",
-          isHorizontal ? "flex-row items-start" : "flex-col",
+          isHorizontal ? "flex-col sm:flex-row items-start" : "flex-col",
           className,
         )}
         {...props}

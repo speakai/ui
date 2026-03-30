@@ -141,7 +141,7 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(
             <button
               onClick={() => setCollapsed(!collapsed)}
               className={cn(
-                "rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring hidden md:flex",
+                "rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring hidden md:flex",
                 collapsed ? "mx-auto mt-0" : "ml-auto"
               )}
               aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -213,7 +213,7 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(
         {/* Mobile drawer */}
         <aside
           className={cn(
-            "fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col border-r border-border bg-card shadow-2xl transition-transform duration-200 ease-in-out md:hidden",
+            "fixed inset-y-0 left-0 z-[60] flex w-[min(280px,calc(100vw-3rem))] flex-col border-r border-border bg-card shadow-2xl transition-transform duration-200 ease-in-out md:hidden",
             mobileOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
@@ -221,7 +221,7 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(
           <div className="absolute right-2 top-3">
             <button
               onClick={() => setMobileOpen(false)}
-              className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
+              className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
               aria-label="Close sidebar"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">

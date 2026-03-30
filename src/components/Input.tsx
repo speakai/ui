@@ -5,16 +5,7 @@ import {
   TextareaHTMLAttributes,
 } from "react";
 import { cn } from "../utils/cn";
-
-// ── Shared styles ─────────────────────────────────────────────────────────────
-
-const inputBase = [
-  "flex w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground",
-  "placeholder:text-muted-foreground",
-  "transition-colors",
-  "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-  "disabled:pointer-events-none disabled:opacity-50",
-].join(" ");
+import { inputBase } from "../utils/inputBase";
 
 const errorRing = "border-danger focus-visible:ring-danger";
 const defaultRing = "border-input";

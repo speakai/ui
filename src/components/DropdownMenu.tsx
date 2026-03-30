@@ -200,7 +200,7 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
           role="menu"
           onKeyDown={handleMenuKeyDown}
           className={cn(
-            "absolute z-50 mt-2 rounded-lg border border-border bg-popover py-1 shadow-md",
+            "absolute z-50 mt-2 max-h-[60vh] overflow-y-auto rounded-lg border border-border bg-popover py-1 shadow-md",
             "animate-scale-in",
             align === "right" ? "right-0" : "left-0",
             width,

@@ -122,7 +122,7 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
                   if (!isDisabled) onChange(option.value);
                 }}
                 className={cn(
-                  "mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full border-2 transition-colors",
+                  "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
                   "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                   isSelected
                     ? "border-primary bg-primary"
@@ -131,7 +131,7 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
                 )}
               >
                 {isSelected && (
-                  <span className="h-2 w-2 rounded-full bg-white" aria-hidden="true" />
+                  <span className="h-2 w-2 rounded-full bg-background" aria-hidden="true" />
                 )}
               </div>
               <div className="flex flex-col">

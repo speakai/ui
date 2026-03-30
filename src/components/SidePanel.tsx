@@ -139,7 +139,7 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
           aria-modal="true"
           aria-label={title}
           className={cn(
-            "fixed inset-y-0 z-50 flex flex-col border-border bg-card shadow-2xl transition-transform duration-200 ease-in-out",
+            "fixed inset-y-0 z-[60] flex flex-col border-border bg-card shadow-2xl transition-transform duration-200 ease-in-out",
             isRight ? "right-0 border-l" : "left-0 border-r",
             open
               ? "translate-x-0"
@@ -159,7 +159,7 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
                   <button
                     onClick={onBack}
                     aria-label="Go back"
-                    className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
+                    className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />

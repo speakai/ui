@@ -15,7 +15,7 @@ export interface CheckboxProps
 }
 
 const sizeStyles: Record<CheckboxSize, { box: string; label: string; description: string }> = {
-  sm: { box: "h-3.5 w-3.5", label: "text-xs", description: "text-xs" },
+  sm: { box: "h-4 w-4", label: "text-xs", description: "text-xs" },
   default: { box: "h-4 w-4", label: "text-sm", description: "text-xs" },
   lg: { box: "h-5 w-5", label: "text-base", description: "text-sm" },
 };

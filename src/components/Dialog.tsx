@@ -144,7 +144,7 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
     return (
       <div
         ref={overlayRef}
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/20 backdrop-blur-xs animate-fade-in"
+        className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-foreground/20 backdrop-blur-xs animate-fade-in"
         onClick={handleBackdropClick}
       >
         <div
@@ -232,7 +232,7 @@ export const DialogCloseButton = forwardRef<HTMLButtonElement, DialogCloseButton
       onClick={onClose}
       aria-label="Close dialog"
       className={cn(
-        "rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+        "rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
         "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
         className
       )}

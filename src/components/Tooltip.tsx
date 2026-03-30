@@ -131,7 +131,7 @@ export const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
             ref={tooltipRef}
             role="tooltip"
             className={cn(
-              "pointer-events-none absolute z-50 max-w-xs animate-fade-in",
+              "pointer-events-none absolute z-50 max-w-[min(20rem,calc(100vw-1rem))] animate-fade-in",
               "rounded-md border border-border bg-popover px-2.5 py-1.5 text-xs font-medium text-popover-foreground shadow-md",
               positionClasses[activeSide]
             )}
