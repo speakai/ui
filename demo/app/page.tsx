@@ -17,6 +17,9 @@ import {
   Tabs, TabsList, TabsTrigger, TabsContent,
   SidePanel,
   Sidebar, SidebarProvider, SidebarLayout, SidebarUser, useSidebar,
+  AuthCard, SSOButton, SSOButtons, PasswordInput,
+  ColorPicker, ImageUploader, FileDropzone, Chips,
+  RadioGroup, Accordion, AccordionItem, Breadcrumb, Slider,
   cn,
 } from "@speakai/ui";
 import type { SidebarSection } from "@speakai/ui";
@@ -74,6 +77,10 @@ const icons = {
   swatch: "M4.098 19.902a3.75 3.75 0 0 0 5.304 0l6.401-6.402M6.75 21A3.75 3.75 0 0 1 3 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 0 0 3.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008Z",
   check: "M4.5 12.75l6 6 9-13.5",
   toggle: "M5.636 5.636a9 9 0 1 0 12.728 0M12 3v9",
+  lock: "M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z",
+  upload: "M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5",
+  adjustments: "M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75",
+  chevronRight: "m8.25 4.5 7.5 7.5-7.5 7.5",
 };
 
 /* ─── Grouped Sidebar Sections ────────────────────────────────────────────── */
@@ -126,6 +133,35 @@ const sidebarGroups = [
       { id: "tooltip", icon: icons.chat, label: "Tooltip" },
       { id: "avatar", icon: icons.users, label: "Avatar" },
       { id: "progress", icon: icons.screen, label: "Progress" },
+    ],
+  },
+  {
+    id: "auth",
+    label: "Auth",
+    items: [
+      { id: "auth-card", icon: icons.lock, label: "AuthCard" },
+      { id: "sso-button", icon: icons.users, label: "SSO Buttons" },
+      { id: "password-input", icon: icons.lock, label: "Password Input" },
+    ],
+  },
+  {
+    id: "advanced-forms",
+    label: "Advanced Forms",
+    items: [
+      { id: "color-picker", icon: icons.swatch, label: "Color Picker" },
+      { id: "image-uploader", icon: icons.upload, label: "Image Uploader" },
+      { id: "file-dropzone", icon: icons.upload, label: "File Dropzone" },
+      { id: "chips", icon: icons.sparkle, label: "Chips" },
+    ],
+  },
+  {
+    id: "ui",
+    label: "UI Components",
+    items: [
+      { id: "radio-group", icon: icons.adjustments, label: "Radio Group" },
+      { id: "accordion", icon: icons.layout, label: "Accordion" },
+      { id: "breadcrumb", icon: icons.chevronRight, label: "Breadcrumb" },
+      { id: "slider", icon: icons.adjustments, label: "Slider" },
     ],
   },
   {
@@ -295,6 +331,112 @@ function ToastDemo() {
       <Button size="sm" variant="danger" onClick={() => toast.error("Error", "Something went wrong.")}>Error</Button>
       <Button size="sm" variant="outline" onClick={() => toast.info("Tip", "Use keyboard shortcuts.")}>Info</Button>
       <Button size="sm" variant="secondary" onClick={() => toast.warning("Warning", "Trial expires soon.")}>Warning</Button>
+    </div>
+  );
+}
+
+/* ─── ColorPicker Demo ─────────────────────────────────────────────────────── */
+
+function ColorPickerDemo() {
+  const [color1, setColor1] = useState("#a855f7");
+  const [color2, setColor2] = useState("#3b82f6");
+  return (
+    <div className="max-w-sm space-y-6">
+      <Sub title="With Presets">
+        <ColorPicker
+          value={color1}
+          onChange={setColor1}
+          label="Brand Color"
+          presetColors={["#a855f7", "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#ec4899"]}
+        />
+      </Sub>
+      <Sub title="Without Presets">
+        <ColorPicker value={color2} onChange={setColor2} label="Accent Color" />
+      </Sub>
+      <Sub title="Disabled">
+        <ColorPicker value="#6b7280" onChange={() => {}} label="Locked Color" disabled />
+      </Sub>
+    </div>
+  );
+}
+
+/* ─── Chips Demo ──────────────────────────────────────────────────────────── */
+
+function ChipsDemo() {
+  const [tags, setTags] = useState(["Meeting Notes", "Q4 Review"]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [limited, setLimited] = useState(["Audio", "Video"]);
+  return (
+    <div className="max-w-md space-y-6">
+      <Sub title="With Suggestions">
+        <Chips
+          value={tags}
+          onChange={setTags}
+          placeholder="Add a tag..."
+          suggestions={["Meeting Notes", "Interview", "Product Demo", "Earnings Call", "Webinar", "Podcast"]}
+        />
+      </Sub>
+      <Sub title="Without Suggestions">
+        <Chips value={categories} onChange={setCategories} placeholder="Type and press Enter..." />
+      </Sub>
+      <Sub title="Max 3 Items">
+        <Chips value={limited} onChange={setLimited} maxItems={3} placeholder="Max 3 tags..." />
+      </Sub>
+    </div>
+  );
+}
+
+/* ─── RadioGroup Demo ─────────────────────────────────────────────────────── */
+
+function RadioGroupDemo() {
+  const [outputFormat, setOutputFormat] = useState("transcript");
+  const [exportType, setExportType] = useState("pdf");
+  return (
+    <div className="space-y-6">
+      <Sub title="Vertical">
+        <RadioGroup
+          value={outputFormat}
+          onChange={setOutputFormat}
+          options={[
+            { value: "transcript", label: "Transcript", description: "Full text with timestamps" },
+            { value: "summary", label: "Summary", description: "AI-generated summary" },
+            { value: "keywords", label: "Keywords", description: "Extracted keywords and topics" },
+            { value: "disabled", label: "Custom Report", description: "Coming soon", disabled: true },
+          ]}
+        />
+      </Sub>
+      <Sub title="Horizontal">
+        <RadioGroup
+          value={exportType}
+          onChange={setExportType}
+          orientation="horizontal"
+          options={[
+            { value: "pdf", label: "PDF" },
+            { value: "docx", label: "DOCX" },
+            { value: "txt", label: "Plain Text" },
+          ]}
+        />
+      </Sub>
+    </div>
+  );
+}
+
+/* ─── Slider Demo ─────────────────────────────────────────────────────────── */
+
+function SliderDemo() {
+  const [confidence, setConfidence] = useState(75);
+  const [playback, setPlayback] = useState(1.5);
+  return (
+    <div className="max-w-sm space-y-6">
+      <Sub title="Default">
+        <Slider value={confidence} onChange={setConfidence} label="Confidence Threshold" />
+      </Sub>
+      <Sub title="Custom Range & Step">
+        <Slider value={playback} onChange={setPlayback} min={0.5} max={3} step={0.25} label="Playback Speed" />
+      </Sub>
+      <Sub title="Disabled">
+        <Slider value={50} onChange={() => {}} label="Volume" disabled />
+      </Sub>
     </div>
   );
 }
@@ -502,9 +644,9 @@ function DemoContent() {
             <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
               <span className="bg-gradient-to-r from-gradient-from to-gradient-to bg-clip-text text-transparent">Design System</span>
             </h1>
-            <p className="mt-1 text-sm text-muted-foreground">26 components, semantic tokens, WCAG AA, mobile-first</p>
+            <p className="mt-1 text-sm text-muted-foreground">37 components, semantic tokens, WCAG AA, mobile-first</p>
             <div className="mt-3 flex flex-wrap gap-1.5">
-              <Badge variant="success" size="sm">25 Components</Badge>
+              <Badge variant="success" size="sm">37 Components</Badge>
               <Badge variant="info" size="sm">CSS Variables</Badge>
               <Badge size="sm">Accessible</Badge>
             </div>
@@ -816,6 +958,240 @@ toast.error("Error", "Something went wrong.");`}>
           </Section>
 
           {/* ════════════════════════════════════════════════════════════════════ */}
+          {/*  AUTH                                                               */}
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          <CategoryHeader title="Auth" />
+
+          <Section id="auth-card" title="AuthCard" code={`<AuthCard
+  logo={<img src="/logo.svg" className="h-10 w-10" />}
+  title="Welcome Back"
+  subtitle="Sign in to continue">
+  <form>...</form>
+</AuthCard>`}>
+            <div className="space-y-6">
+              <Sub title="With Logo & Subtitle">
+                <AuthCard
+                  logo={<img src="/ui/logo.jpg" alt="Speak" className="h-10 w-10 rounded-lg" />}
+                  title="Welcome Back"
+                  subtitle="Sign in to your Speak account"
+                >
+                  <div className="space-y-4">
+                    <Input placeholder="Email address" />
+                    <PasswordInput placeholder="Password" />
+                    <Button className="w-full">Sign In</Button>
+                  </div>
+                </AuthCard>
+              </Sub>
+              <Sub title="Register Variant">
+                <AuthCard title="Create Account" subtitle="Start your free trial today">
+                  <div className="space-y-4">
+                    <SSOButtons action="register" onProviderClick={() => {}} />
+                    <Input placeholder="Full name" />
+                    <Input placeholder="Email address" />
+                    <PasswordInput placeholder="Create a password" />
+                    <Button className="w-full" variant="gradient">Get Started</Button>
+                  </div>
+                </AuthCard>
+              </Sub>
+            </div>
+          </Section>
+
+          <Section id="sso-button" title="SSO Buttons" code={`<SSOButton provider="google" action="login" />
+<SSOButtons action="register" onProviderClick={(p) => console.log(p)} />
+<SSOButtons isLoading />`}>
+            <div className="max-w-md space-y-6">
+              <Sub title="Individual Providers">
+                <div className="space-y-2">
+                  <SSOButton provider="google" />
+                  <SSOButton provider="apple" />
+                  <SSOButton provider="microsoft" />
+                </div>
+              </Sub>
+              <Sub title="Grouped (Login)">
+                <SSOButtons action="login" onProviderClick={() => {}} />
+              </Sub>
+              <Sub title="Grouped (Register)">
+                <SSOButtons action="register" onProviderClick={() => {}} />
+              </Sub>
+              <Sub title="Loading State">
+                <SSOButtons isLoading onProviderClick={() => {}} />
+              </Sub>
+            </div>
+          </Section>
+
+          <Section id="password-input" title="PasswordInput" code={`<PasswordInput placeholder="Enter password" label="Password" />
+<PasswordInput error="Must be at least 8 characters" />
+<PasswordInput disabled />`}>
+            <div className="max-w-md space-y-4">
+              <Sub title="Default"><PasswordInput placeholder="Enter your password" label="Password" /></Sub>
+              <Sub title="With Error"><PasswordInput placeholder="Enter your password" label="Password" error="Must be at least 8 characters" /></Sub>
+              <Sub title="Error (boolean)"><PasswordInput placeholder="Enter your password" error={true} /></Sub>
+              <Sub title="Disabled"><PasswordInput placeholder="Disabled" label="Password" disabled /></Sub>
+            </div>
+          </Section>
+
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          {/*  ADVANCED FORMS                                                    */}
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          <CategoryHeader title="Advanced Forms" />
+
+          <Section id="color-picker" title="ColorPicker" code={`<ColorPicker value="#a855f7" onChange={setColor} label="Brand Color"
+  presetColors={["#a855f7", "#3b82f6", "#10b981"]} />
+<ColorPicker value={color} onChange={setColor} disabled />`}>
+            <ColorPickerDemo />
+          </Section>
+
+          <Section id="image-uploader" title="ImageUploader" code={`<ImageUploader variant="dropzone" onChange={(file) => handleUpload(file)} />
+<ImageUploader variant="avatar" onChange={(file) => handleUpload(file)} />`}>
+            <div className="space-y-6">
+              <Sub title="Dropzone Variant">
+                <ImageUploader
+                  variant="dropzone"
+                  onChange={() => {}}
+                  placeholder="Drop a media thumbnail or click to browse"
+                />
+              </Sub>
+              <Sub title="Avatar Variant">
+                <div className="flex items-center gap-4">
+                  <ImageUploader variant="avatar" onChange={() => {}} placeholder="" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Profile Photo</p>
+                    <p className="text-xs text-muted-foreground">Upload a profile picture</p>
+                  </div>
+                </div>
+              </Sub>
+              <Sub title="Disabled">
+                <ImageUploader variant="dropzone" onChange={() => {}} disabled placeholder="Upload disabled" />
+              </Sub>
+            </div>
+          </Section>
+
+          <Section id="file-dropzone" title="FileDropzone" code={`<FileDropzone onFiles={(files) => console.log(files)} accept=".mp3,.wav,.mp4" />
+<FileDropzone onFiles={handleFiles} maxSize={50 * 1024 * 1024}>
+  <p>Custom content inside dropzone</p>
+</FileDropzone>`}>
+            <div className="space-y-6">
+              <Sub title="Default">
+                <FileDropzone onFiles={() => {}} accept=".mp3,.wav,.mp4,.m4a" />
+              </Sub>
+              <Sub title="Custom Children">
+                <FileDropzone onFiles={() => {}} accept="audio/*,video/*">
+                  <div className="flex flex-col items-center gap-2 text-center">
+                    <I d={icons.upload} />
+                    <p className="text-sm font-medium text-foreground">Upload Media Files</p>
+                    <p className="text-xs text-muted-foreground">Drag audio or video files to start transcription</p>
+                    <Button size="sm" variant="outline" onClick={(e) => e.stopPropagation()}>Browse Files</Button>
+                  </div>
+                </FileDropzone>
+              </Sub>
+              <Sub title="Disabled">
+                <FileDropzone onFiles={() => {}} disabled />
+              </Sub>
+            </div>
+          </Section>
+
+          <Section id="chips" title="Chips" code={`<Chips value={tags} onChange={setTags} placeholder="Add a tag..."
+  suggestions={["Interview", "Meeting", "Podcast"]} />
+<Chips value={items} onChange={setItems} maxItems={3} />`}>
+            <ChipsDemo />
+          </Section>
+
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          {/*  UI COMPONENTS                                                     */}
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          <CategoryHeader title="UI Components" />
+
+          <Section id="radio-group" title="RadioGroup" code={`<RadioGroup value={val} onChange={setVal} options={[
+  { value: "transcript", label: "Transcript", description: "Full text" },
+  { value: "summary", label: "Summary" },
+]} />
+<RadioGroup orientation="horizontal" options={[...]} />`}>
+            <RadioGroupDemo />
+          </Section>
+
+          <Section id="accordion" title="Accordion" code={`<Accordion type="single">
+  <AccordionItem title="What is Speak?">Content here</AccordionItem>
+  <AccordionItem title="How does it work?">Content here</AccordionItem>
+</Accordion>
+<Accordion type="multiple" defaultOpen={["faq-1"]}>...</Accordion>`}>
+            <div className="space-y-6">
+              <Sub title="Single Mode">
+                <Accordion type="single" defaultOpen={["faq-1"]}>
+                  <AccordionItem value="faq-1" title="What is Speak?">
+                    Speak is an AI-powered platform that transcribes, analyzes, and extracts insights from audio and video content.
+                  </AccordionItem>
+                  <AccordionItem value="faq-2" title="What file formats are supported?">
+                    We support MP3, WAV, MP4, M4A, WebM, and many more audio and video formats.
+                  </AccordionItem>
+                  <AccordionItem value="faq-3" title="How accurate is the transcription?">
+                    Our AI models achieve over 95% accuracy for clear English audio, with support for 80+ languages.
+                  </AccordionItem>
+                </Accordion>
+              </Sub>
+              <Sub title="Multiple Mode">
+                <Accordion type="multiple" defaultOpen={["plan-1", "plan-2"]}>
+                  <AccordionItem value="plan-1" title="Free Plan">
+                    5 hours of transcription per month. Basic analytics included.
+                  </AccordionItem>
+                  <AccordionItem value="plan-2" title="Pro Plan">
+                    Unlimited transcription, advanced analytics, custom vocabulary, and API access.
+                  </AccordionItem>
+                  <AccordionItem value="plan-3" title="Enterprise" disabled>
+                    Custom pricing with dedicated support. Contact sales for details.
+                  </AccordionItem>
+                </Accordion>
+              </Sub>
+            </div>
+          </Section>
+
+          <Section id="breadcrumb" title="Breadcrumb" code={`<Breadcrumb items={[
+  { label: "Home", href: "/" },
+  { label: "Media", href: "/media" },
+  { label: "Interview Recording" },
+]} />
+<Breadcrumb items={longList} maxItems={4} />`}>
+            <div className="space-y-6">
+              <Sub title="Default">
+                <Breadcrumb items={[
+                  { label: "Dashboard", href: "#" },
+                  { label: "Media Library", href: "#" },
+                  { label: "Interview Recording" },
+                ]} />
+              </Sub>
+              <Sub title="Custom Separator">
+                <Breadcrumb
+                  items={[
+                    { label: "Workspace", href: "#" },
+                    { label: "Projects", href: "#" },
+                    { label: "Q4 Analysis", href: "#" },
+                    { label: "Meeting Notes" },
+                  ]}
+                  separator={<I4 d={icons.chevronRight} />}
+                />
+              </Sub>
+              <Sub title="Truncated (maxItems=3)">
+                <Breadcrumb
+                  items={[
+                    { label: "Home", href: "#" },
+                    { label: "Workspace", href: "#" },
+                    { label: "Projects", href: "#" },
+                    { label: "Q4 Analysis", href: "#" },
+                    { label: "Recordings", href: "#" },
+                    { label: "Earnings Call 2024" },
+                  ]}
+                  maxItems={3}
+                />
+              </Sub>
+            </div>
+          </Section>
+
+          <Section id="slider" title="Slider" code={`<Slider value={75} onChange={setVal} label="Confidence" />
+<Slider value={1.5} onChange={setVal} min={0.5} max={3} step={0.25} label="Speed" />
+<Slider value={50} onChange={setVal} disabled />`}>
+            <SliderDemo />
+          </Section>
+
+          {/* ════════════════════════════════════════════════════════════════════ */}
           {/*  SKELETON                                                          */}
           {/* ════════════════════════════════════════════════════════════════════ */}
           <CategoryHeader title="Skeleton" />
@@ -843,7 +1219,7 @@ toast.error("Error", "Something went wrong.");`}>
           <footer className="mt-12 pt-6 border-t border-border text-center pb-6 space-y-1">
             <p className="text-xs text-muted-foreground">
               <a href="https://speakai.co?ref=design-system" target="_blank" rel="noopener noreferrer" className="font-medium text-foreground hover:text-primary transition-colors">@speakai/ui</a>
-              {" "} — 26 components
+              {" "} — 37 components
             </p>
             <p className="text-xs text-muted-foreground">
               <a href="https://github.com/speakai/ui" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">GitHub</a>

@@ -130,6 +130,34 @@ export type { CheckboxProps, CheckboxSize } from "./components/Checkbox";
 export { Progress } from "./components/Progress";
 export type { ProgressProps, ProgressSize, ProgressVariant } from "./components/Progress";
 
+// AuthCard
+export { AuthCard } from "./components/AuthCard";
+export type { AuthCardProps } from "./components/AuthCard";
+
+// SSOButton
+export { SSOButton, SSOButtons } from "./components/SSOButton";
+export type { SSOButtonProps, SSOButtonsProps, SSOProvider } from "./components/SSOButton";
+
+// PasswordInput
+export { PasswordInput } from "./components/PasswordInput";
+export type { PasswordInputProps } from "./components/PasswordInput";
+
+// ColorPicker
+export { ColorPicker } from "./components/ColorPicker";
+export type { ColorPickerProps } from "./components/ColorPicker";
+
+// ImageUploader
+export { ImageUploader } from "./components/ImageUploader";
+export type { ImageUploaderProps, ImageUploaderVariant } from "./components/ImageUploader";
+
+// FileDropzone
+export { FileDropzone } from "./components/FileDropzone";
+export type { FileDropzoneProps } from "./components/FileDropzone";
+
+// Chips
+export { Chips } from "./components/Chips";
+export type { ChipsProps } from "./components/Chips";
+
 // Sidebar
 export {
   Sidebar,
@@ -147,3 +175,51 @@ export type {
   SidebarItem,
   SidebarSection,
 } from "./components/Sidebar";
+
+// RadioGroup
+export { RadioGroup } from "./components/RadioGroup";
+export type { RadioGroupProps, RadioOption, RadioGroupOrientation } from "./components/RadioGroup";
+
+// Accordion
+export { Accordion, AccordionItem } from "./components/Accordion";
+export type { AccordionProps, AccordionItemProps } from "./components/Accordion";
+
+// Breadcrumb
+export { Breadcrumb } from "./components/Breadcrumb";
+export type { BreadcrumbProps, BreadcrumbItem } from "./components/Breadcrumb";
+
+// Slider
+export { Slider } from "./components/Slider";
+export type { SliderProps } from "./components/Slider";
+
+// OTPInput
+export { OTPInput } from "./components/OTPInput";
+export type { OTPInputProps } from "./components/OTPInput";
+
+// AuthDivider
+export { AuthDivider } from "./components/AuthDivider";
+export type { AuthDividerProps } from "./components/AuthDivider";
+
+// DatePicker
+export { DatePicker } from "./components/DatePicker";
+export type { DatePickerProps } from "./components/DatePicker";
+
+// TimePicker
+export { TimePicker } from "./components/TimePicker";
+export type { TimePickerProps } from "./components/TimePicker";
+
+// LanguageSelector
+export { LanguageSelector } from "./components/LanguageSelector";
+export type { LanguageSelectorProps, Language } from "./components/LanguageSelector";
+
+// PhoneInput
+export { PhoneInput } from "./components/PhoneInput";
+export type { PhoneInputProps } from "./components/PhoneInput";
+
+// Stepper
+export { Stepper } from "./components/Stepper";
+export type { StepperProps, StepperStep } from "./components/Stepper";
+
+// Popover
+export { Popover } from "./components/Popover";
+export type { PopoverProps } from "./components/Popover";

@@ -4,7 +4,7 @@
 [![npm downloads](https://img.shields.io/npm/dm/@speakai/ui.svg)](https://www.npmjs.com/package/@speakai/ui)
 [![license](https://img.shields.io/npm/l/@speakai/ui.svg)](https://github.com/speakai/ui/blob/main/LICENSE)
 
-Speak AI's design system — 26 React + Tailwind components with dark/light mode, WCAG AA accessibility, and full CSS variable customization.
+Speak AI's design system — 45 React + Tailwind components with dark/light mode, WCAG AA accessibility, and full CSS variable customization.
 
 **[Live Preview & Design Guide →](https://speakai.github.io/ui)**
 
@@ -39,7 +39,7 @@ export default {
 ### 3. Use components
 
 ```tsx
-import { Button, Card, Badge, ToastProvider, useToast } from "@speakai/ui";
+import { Button, Card, Badge, ToastProvider, useToast, AuthCard, Popover } from "@speakai/ui";
 
 function App() {
   return (
@@ -69,7 +69,17 @@ Override CSS variables to match your brand — zero source code changes:
 
 Every component updates automatically. See the [Live Preview](https://speakai.github.io/ui) for a real-time theme configurator.
 
-## Components (26)
+## Components (45)
+
+### Auth
+| Component | Description |
+|-----------|-------------|
+| **AuthCard** | Centered card with logo, title, and subtitle for login/register pages |
+| **SSOButton** | SSO provider button with built-in Google, Apple, Microsoft icons |
+| **SSOButtons** | Renders all SSO provider buttons with a shared `onProviderClick` handler |
+| **PasswordInput** | Input with show/hide toggle for password fields |
+| **OTPInput** | Multi-digit OTP code input with auto-focus advance, paste support |
+| **AuthDivider** | Horizontal rule with centered text (default "or") for separating auth methods |
 
 ### Forms & Actions
 | Component | Variants |
@@ -81,6 +91,12 @@ Every component updates automatically. See the [Live Preview](https://speakai.gi
 | **Textarea** | Auto-height, error as boolean or message string |
 | **Switch** | Toggle with label |
 | **Checkbox** | With label, description, sizes, error state |
+| **RadioGroup** | Vertical or horizontal radio options with keyboard navigation |
+| **ColorPicker** | Native color picker with optional hex input and preset swatches |
+| **ImageUploader** | Drag-and-drop image upload with preview, remove, and size validation |
+| **FileDropzone** | Multi-file drag-and-drop zone with type and size validation |
+| **Chips** | Tag input with autocomplete suggestions, add/remove chips |
+| **Slider** | Range input with optional label and live value display |
 
 ### Layout
 | Component | Description |
@@ -92,6 +108,8 @@ Every component updates automatically. See the [Live Preview](https://speakai.gi
 | **PageHeader** | Title with gradient text + action slot |
 | **SectionHeader** | Smaller heading with action |
 | **Tabs** | `default` `underline` `pills` — with keyboard arrow navigation |
+| **Accordion** | Expandable content sections, `single` or `multiple` mode |
+| **Stepper** | Step progress indicator, horizontal or vertical orientation |
 
 ### Data Display
 | Component | Description |
@@ -104,6 +122,7 @@ Every component updates automatically. See the [Live Preview](https://speakai.gi
 | **StatCard** | Dashboard stat with icon + gradient variant |
 | **Badge** | `success` `warning` `error` `info` + 8 color options |
 | **InfoCard** | Colored callout (6 themes) |
+| **Breadcrumb** | Navigation breadcrumbs with custom separator, auto-truncation |
 
 ### Feedback
 | Component | Description |
@@ -115,10 +134,19 @@ Every component updates automatically. See the [Live Preview](https://speakai.gi
 | **ErrorState** | `page` `card` `inline` — with retry |
 | **Skeleton** | 9 variants (page, card, form, grid, table) |
 
+### Selectors
+| Component | Description |
+|-----------|-------------|
+| **LanguageSelector** | Searchable language dropdown with flag display |
+| **PhoneInput** | Phone number input with country code selector |
+| **DatePicker** | Date selection with min/max constraints, label, and error state |
+| **TimePicker** | Time selection with step control, min/max, and error state |
+
 ### Utilities
 | Component | Description |
 |-----------|-------------|
 | **Tooltip** | 4 positions, auto-flip on viewport edge |
+| **Popover** | Positioned content panel with trigger, side/align options, controlled mode |
 | **DropdownMenu** | Full keyboard nav, ARIA roles, click-outside, optional trigger |
 | **Avatar** | Image with initials fallback, gradient background |
 | **Progress** | Bar with default/gradient, optional label |
@@ -184,6 +212,171 @@ WCAG 2.1 AA compliant:
   /* Shape */
   --radius: 0.75rem;
 }
+```
+
+## New Component Usage
+
+### Auth Components
+
+```tsx
+import { AuthCard, SSOButtons, AuthDivider, PasswordInput, OTPInput } from "@speakai/ui";
+
+function LoginPage() {
+  return (
+    <AuthCard logo={<Logo />} title="Welcome back" subtitle="Sign in to your account">
+      <SSOButtons action="login" onProviderClick={(provider) => handleSSO(provider)} />
+      <AuthDivider />
+      <Input placeholder="Email" />
+      <PasswordInput placeholder="Password" />
+      <Button variant="primary">Sign In</Button>
+    </AuthCard>
+  );
+}
+```
+
+```tsx
+// OTP verification
+<OTPInput length={6} value={otp} onChange={setOtp} autoFocus />
+<OTPInput length={4} value={otp} onChange={setOtp} error="Invalid code" />
+```
+
+### Form Components
+
+```tsx
+import { ColorPicker, ImageUploader, FileDropzone, Chips, Slider, RadioGroup } from "@speakai/ui";
+
+// Color picker with preset swatches
+<ColorPicker
+  value={color}
+  onChange={setColor}
+  presetColors={["#a855f7", "#3b82f6", "#ef4444"]}
+  label="Brand Color"
+/>
+
+// Image upload with preview
+<ImageUploader
+  value={imageUrl}
+  onChange={(file) => uploadImage(file)}
+  onRemove={() => setImageUrl(undefined)}
+  maxSize={5 * 1024 * 1024}
+/>
+
+// Multi-file drag-and-drop
+<FileDropzone
+  onFiles={(files) => handleUpload(files)}
+  accept="image/*,.pdf"
+  maxSize={10 * 1024 * 1024}
+/>
+
+// Tag input with suggestions
+<Chips
+  value={tags}
+  onChange={setTags}
+  placeholder="Add tag..."
+  suggestions={["react", "typescript", "tailwind"]}
+  maxItems={10}
+/>
+
+// Range slider
+<Slider value={volume} onChange={setVolume} min={0} max={100} label="Volume" showValue />
+
+// Radio group
+<RadioGroup
+  value={plan}
+  onChange={setPlan}
+  orientation="vertical"
+  options={[
+    { value: "free", label: "Free" },
+    { value: "pro", label: "Pro" },
+    { value: "enterprise", label: "Enterprise" },
+  ]}
+/>
+```
+
+### Layout Components
+
+```tsx
+import { Accordion, AccordionItem, Stepper, Breadcrumb, Popover } from "@speakai/ui";
+
+// Accordion (single or multiple mode)
+<Accordion type="single">
+  <AccordionItem title="Getting Started" value="start">
+    <p>Welcome to the platform...</p>
+  </AccordionItem>
+  <AccordionItem title="Configuration" value="config">
+    <p>Configure your settings...</p>
+  </AccordionItem>
+</Accordion>
+
+// Stepper
+<Stepper
+  currentStep={1}
+  orientation="horizontal"
+  steps={[
+    { label: "Account", description: "Create your account" },
+    { label: "Profile", description: "Set up your profile" },
+    { label: "Done", description: "All set" },
+  ]}
+/>
+
+// Breadcrumb with truncation
+<Breadcrumb
+  maxItems={4}
+  items={[
+    { label: "Home", href: "/" },
+    { label: "Settings", href: "/settings" },
+    { label: "Team", href: "/settings/team" },
+    { label: "Members" },
+  ]}
+/>
+
+// Popover
+<Popover trigger={<Button variant="outline">Options</Button>} side="bottom" align="start">
+  <div className="p-4">Popover content here</div>
+</Popover>
+```
+
+### Selector Components
+
+```tsx
+import { LanguageSelector, PhoneInput, DatePicker, TimePicker } from "@speakai/ui";
+
+// Language selector with search
+<LanguageSelector
+  value={lang}
+  onChange={setLang}
+  searchable
+  languages={[
+    { code: "en", name: "English" },
+    { code: "es", name: "Spanish" },
+    { code: "fr", name: "French" },
+  ]}
+/>
+
+// Phone input with country code
+<PhoneInput
+  value={phone}
+  onChange={setPhone}
+  defaultCountry="US"
+  label="Phone Number"
+/>
+
+// Date and time pickers
+<DatePicker
+  value={date}
+  onChange={setDate}
+  label="Start Date"
+  min={new Date()}
+/>
+
+<TimePicker
+  value={time}
+  onChange={setTime}
+  label="Start Time"
+  step={900}
+  min="09:00"
+  max="17:00"
+/>
 ```
 
 ## Migration from voice-agent-client
