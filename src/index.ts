@@ -224,34 +224,6 @@ export type { StepperProps, StepperStep } from "./components/Stepper";
 export { Popover } from "./components/Popover";
 export type { PopoverProps } from "./components/Popover";
 
-// MediaPlayer
-export { MediaPlayer } from "./components/MediaPlayer";
-export type { MediaPlayerProps, MediaPlayerCaption } from "./components/MediaPlayer";
-
-// Hooks
-export { useMediaSync } from "./hooks/useMediaSync";
-export type { UseMediaSyncReturn } from "./hooks/useMediaSync";
-
-// Transcript — ProseMirror schema, plugins, and utilities
-export { transcriptSchema } from "./transcript/schema";
-export {
-  createHighlightPlugin,
-  highlightPluginKey,
-  updateHighlightTime,
-} from "./transcript/plugins/highlight";
-export {
-  createFindReplacePlugin,
-  findReplacePluginKey,
-  setSearchQuery,
-  nextMatch,
-  prevMatch,
-  replaceCurrentMatch,
-  replaceAllMatches,
-  getMatchCount,
-} from "./transcript/plugins/find-replace";
-export {
-  createSpeakerFilterPlugin,
-  speakerFilterPluginKey,
-  setSpeakerFilter,
-} from "./transcript/plugins/speaker-filter";
-export { extractSegmentsFromDoc } from "./transcript/utils/entities";
+// MediaPlayer, useMediaSync, and Transcript utilities are in a separate entry point:
+//   import { MediaPlayer } from "@speakai/ui/media"
+// This avoids forcing prosemirror on consumers who only need UI components.

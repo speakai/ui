@@ -3,13 +3,13 @@ import { copyFileSync, readFileSync, writeFileSync, readdirSync } from "fs";
 import { join } from "path";
 
 export default defineConfig({
-  entry: ["src/index.ts"],
+  entry: ["src/index.ts", "src/media.ts", "src/transcript.ts"],
   format: ["cjs", "esm"],
   dts: true,
   splitting: true,
   sourcemap: true,
   clean: true,
-  external: ["react", "react-dom"],
+  external: ["react", "react-dom", /^prosemirror-/],
   treeshake: true,
   tsconfig: "tsconfig.build.json",
   onSuccess: async () => {

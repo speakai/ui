@@ -160,7 +160,7 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
           role="dialog"
           aria-modal="true"
           className={cn(
-            "w-full rounded-lg border border-border bg-card shadow-xl animate-scale-in",
+            "w-full max-h-[calc(100vh-2rem)] flex flex-col rounded-lg border border-border bg-card shadow-xl animate-scale-in",
             sizeMap[size],
             className
           )}
@@ -180,7 +180,7 @@ export const DialogHeader = forwardRef<HTMLDivElement, DialogHeaderProps>(
   ({ className, children, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("flex items-start justify-between border-b border-border px-5 py-4", className)}
+      className={cn("flex shrink-0 items-start justify-between border-b border-border px-5 py-4", className)}
       {...props}
     >
       {children}
@@ -195,7 +195,7 @@ export const DialogBody = forwardRef<HTMLDivElement, DialogBodyProps>(
   ({ className, children, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("px-5 py-4", className)}
+      className={cn("flex-1 overflow-y-auto px-5 py-4", className)}
       {...props}
     >
       {children}
@@ -210,7 +210,7 @@ export const DialogFooter = forwardRef<HTMLDivElement, DialogFooterProps>(
   ({ className, children, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("flex items-center justify-end gap-3 border-t border-border px-5 py-4", className)}
+      className={cn("flex shrink-0 items-center justify-end gap-3 border-t border-border px-5 py-4", className)}
       {...props}
     >
       {children}

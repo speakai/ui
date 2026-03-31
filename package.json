@@ -11,6 +11,16 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     },
+    "./media": {
+      "types": "./dist/media.d.ts",
+      "import": "./dist/media.mjs",
+      "require": "./dist/media.js"
+    },
+    "./transcript": {
+      "types": "./dist/transcript.d.ts",
+      "import": "./dist/transcript.mjs",
+      "require": "./dist/transcript.js"
+    },
     "./styles.css": "./dist/styles.css"
   },
   "files": [
@@ -36,17 +46,25 @@
   "peerDependencies": {
     "react": ">=18",
     "react-dom": ">=18",
-    "tailwindcss": ">=4.0.0"
-  },
-  "dependencies": {
-    "@speakai/shared": "^1.7.0",
-    "clsx": "^2.1.1",
+    "tailwindcss": ">=4.0.0",
     "prosemirror-commands": "^1.7.1",
     "prosemirror-history": "^1.5.0",
     "prosemirror-keymap": "^1.2.3",
     "prosemirror-model": "^1.25.4",
     "prosemirror-state": "^1.4.4",
-    "prosemirror-view": "^1.41.7",
+    "prosemirror-view": "^1.41.7"
+  },
+  "peerDependenciesMeta": {
+    "prosemirror-commands": { "optional": true },
+    "prosemirror-history": { "optional": true },
+    "prosemirror-keymap": { "optional": true },
+    "prosemirror-model": { "optional": true },
+    "prosemirror-state": { "optional": true },
+    "prosemirror-view": { "optional": true }
+  },
+  "dependencies": {
+    "@speakai/shared": "^1.7.0",
+    "clsx": "^2.1.1",
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
