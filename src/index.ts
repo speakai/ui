@@ -231,3 +231,27 @@ export type { MediaPlayerProps, MediaPlayerCaption } from "./components/MediaPla
 // Hooks
 export { useMediaSync } from "./hooks/useMediaSync";
 export type { UseMediaSyncReturn } from "./hooks/useMediaSync";
+
+// Transcript — ProseMirror schema, plugins, and utilities
+export { transcriptSchema } from "./transcript/schema";
+export {
+  createHighlightPlugin,
+  highlightPluginKey,
+  updateHighlightTime,
+} from "./transcript/plugins/highlight";
+export {
+  createFindReplacePlugin,
+  findReplacePluginKey,
+  setSearchQuery,
+  nextMatch,
+  prevMatch,
+  replaceCurrentMatch,
+  replaceAllMatches,
+  getMatchCount,
+} from "./transcript/plugins/find-replace";
+export {
+  createSpeakerFilterPlugin,
+  speakerFilterPluginKey,
+  setSpeakerFilter,
+} from "./transcript/plugins/speaker-filter";
+export { extractSegmentsFromDoc } from "./transcript/utils/entities";
