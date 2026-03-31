@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.7.0 (2026-03-31)
+
+- Added transcript ProseMirror schema & plugins
+
 ## v0.6.0 (2026-03-31)
 
 - Added MediaPlayer component and useMediaSync hook, overhauled README docs and added inputBase utility
