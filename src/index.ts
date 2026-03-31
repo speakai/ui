@@ -224,6 +224,10 @@ export type { StepperProps, StepperStep } from "./components/Stepper";
 export { Popover } from "./components/Popover";
 export type { PopoverProps } from "./components/Popover";
 
+// BottomSheet
+export { BottomSheet } from "./components/BottomSheet";
+export type { BottomSheetProps } from "./components/BottomSheet";
+
 // MediaPlayer, useMediaSync, and Transcript utilities are in a separate entry point:
 //   import { MediaPlayer } from "@speakai/ui/media"
 // This avoids forcing prosemirror on consumers who only need UI components.

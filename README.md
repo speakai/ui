@@ -25,7 +25,7 @@ Speak AI's design system — 45+ React + Tailwind components with dark/light mod
   - [Forms: Button, Input, SearchInput, Select, Textarea, Switch, Checkbox, RadioGroup, ColorPicker, ImageUploader, FileDropzone, Chips, Slider](#form-components)
   - [Layout: Card, Sidebar, SidePanel, PageHeader, SectionHeader, Tabs, Accordion, Stepper](#layout-components)
   - [Data Display: Table system, StatCard, Badge, InfoCard, Breadcrumb](#data-display-components)
-  - [Feedback: Toast, Dialog, ConfirmDialog, EmptyState, ErrorState](#feedback-components)
+  - [Feedback: Toast, Dialog, ConfirmDialog, BottomSheet, EmptyState, ErrorState](#feedback-components)
   - [Skeleton: PageSkeleton, GridSkeleton, FormSkeleton, TableSkeleton, Skeleton](#skeleton-components)
   - [Selectors: LanguageSelector, PhoneInput, DatePicker, TimePicker](#selector-components)
   - [Utilities: Tooltip, Popover, DropdownMenu, Avatar, Progress, ThemeToggle, ThemeSelector](#utility-components)
@@ -231,7 +231,7 @@ import {
 import {
   ToastProvider, useToast,
   Dialog, DialogHeader, DialogBody, DialogFooter, DialogCloseButton,
-  ConfirmDialog,
+  ConfirmDialog, BottomSheet,
   EmptyState, ErrorState
 } from "@speakai/ui";
 
@@ -1397,6 +1397,50 @@ Pre-built confirmation modal for destructive or warning actions.
 
 ---
 
+#### `BottomSheet`
+
+Mobile bottom sheet that slides up from the bottom of the screen. Supports drag-to-dismiss, snap points, backdrop overlay, focus trap, and body scroll lock.
+
+```tsx
+const [open, setOpen] = useState(false);
+
+<BottomSheet open={open} onClose={() => setOpen(false)}>
+  <div className="px-4 pb-6">
+    <h2 className="text-lg font-semibold text-foreground">Sheet Title</h2>
+    <p className="mt-2 text-sm text-muted-foreground">Sheet content here.</p>
+  </div>
+</BottomSheet>
+
+{/* With snap points (heights in px, ascending) */}
+<BottomSheet
+  open={open}
+  onClose={() => setOpen(false)}
+  snapPoints={[200, 400, 600]}
+>
+  <div className="px-4 pb-6">Snappable content</div>
+</BottomSheet>
+```
+
+**`BottomSheet` props:**
+
+| Prop | Type | Default | Required |
+|------|------|---------|----------|
+| `open` | `boolean` | -- | Yes |
+| `onClose` | `() => void` | -- | Yes |
+| `snapPoints` | `number[]` | -- | No |
+| `children` | `ReactNode` | -- | Yes |
+| `className` | `string` | -- | No |
+
+**Behavior:**
+- Drag the handle down past 30% of sheet height to dismiss
+- With `snapPoints`, the sheet snaps to the nearest point on drag end
+- Escape key closes the sheet
+- Clicking the backdrop closes the sheet
+- Body scroll is locked while open
+- Focus is trapped inside the sheet (`role="dialog"`, `aria-modal`)
+
+---
+
 #### `EmptyState`
 
 Illustrated empty state for lists and tables.
@@ -1918,7 +1962,7 @@ Components use a consistent z-index scale. Do not override these without underst
 | Backdrops | `z-40` | Sidebar mobile backdrop, `SidePanel` backdrop |
 | Dropdowns / Tooltips | `z-50` | `DropdownMenu`, `Popover`, `Tooltip`, `Chips` suggestions |
 | Drawers / Panels | `z-[60]` | `Sidebar` mobile drawer, `SidePanel` panel |
-| Modals | `z-[70]` | `Dialog` overlay + panel |
+| Modals | `z-[70]` | `Dialog` overlay + panel, `BottomSheet` overlay + panel |
 | Toasts | `z-[9999]` | `Toast` container |
 
 ---
