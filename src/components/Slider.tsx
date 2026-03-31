@@ -20,6 +20,10 @@ export interface SliderProps extends Omit<HTMLAttributes<HTMLDivElement>, "onCha
   label?: string;
   showValue?: boolean;
   disabled?: boolean;
+  /** Renders as inline element without label/value header — for use in compact flex rows */
+  inline?: boolean;
+  /** Content rendered inside the track (e.g., markers for media timelines) */
+  trackChildren?: React.ReactNode;
 }
 
 export const Slider = forwardRef<HTMLDivElement, SliderProps>(
@@ -33,6 +37,8 @@ export const Slider = forwardRef<HTMLDivElement, SliderProps>(
       label,
       showValue = true,
       disabled = false,
+      inline = false,
+      trackChildren,
       className,
       ...props
     },
@@ -156,6 +162,59 @@ export const Slider = forwardRef<HTMLDivElement, SliderProps>(
     const percentage = ((clamp(value) - min) / (max - min)) * 100;
     const sliderId = props.id ?? (label ? `slider-${label.replace(/\s+/g, "-").toLowerCase()}` : undefined);
 
+    const track = (
+      <div
+        ref={trackRef}
+        id={sliderId}
+        role="slider"
+        aria-valuemin={min}
+        aria-valuemax={max}
+        aria-valuenow={clamp(value)}
+        aria-label={label}
+        aria-disabled={disabled}
+        tabIndex={disabled ? -1 : 0}
+        onClick={handleTrackClick}
+        onKeyDown={handleKeyDown}
+        className={cn(
+          "relative h-2 cursor-pointer rounded-full bg-muted",
+          inline ? "flex-1" : "w-full",
+          "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+          disabled && "cursor-not-allowed opacity-50",
+        )}
+      >
+        {/* Fill */}
+        <div
+          className="absolute inset-y-0 left-0 rounded-full bg-primary"
+          style={{ width: `${percentage}%` }}
+          aria-hidden="true"
+        />
+
+        {/* Track overlay content (markers, annotations) */}
+        {trackChildren}
+
+        {/* Thumb */}
+        <div
+          aria-hidden="true"
+          onMouseDown={handleMouseDown}
+          onTouchStart={handleTouchStart}
+          className={cn(
+            "absolute top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-primary bg-background shadow-sm transition-shadow",
+            !disabled && "hover:shadow-md active:scale-105",
+            disabled && "pointer-events-none",
+          )}
+          style={{ left: `${percentage}%` }}
+        />
+      </div>
+    );
+
+    if (inline) {
+      return (
+        <div ref={ref} className={cn("inline-flex items-center", className)} {...props}>
+          {track}
+        </div>
+      );
+    }
+
     return (
       <div ref={ref} className={cn("flex flex-col gap-2", className)} {...props}>
         {(label || showValue) && (
@@ -183,46 +242,7 @@ export const Slider = forwardRef<HTMLDivElement, SliderProps>(
             )}
           </div>
         )}
-
-        {/* Track */}
-        <div
-          ref={trackRef}
-          id={sliderId}
-          role="slider"
-          aria-valuemin={min}
-          aria-valuemax={max}
-          aria-valuenow={clamp(value)}
-          aria-label={label}
-          aria-disabled={disabled}
-          tabIndex={disabled ? -1 : 0}
-          onClick={handleTrackClick}
-          onKeyDown={handleKeyDown}
-          className={cn(
-            "relative h-2 w-full cursor-pointer rounded-full bg-muted",
-            "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-            disabled && "cursor-not-allowed opacity-50",
-          )}
-        >
-          {/* Fill */}
-          <div
-            className="absolute inset-y-0 left-0 rounded-full bg-primary"
-            style={{ width: `${percentage}%` }}
-            aria-hidden="true"
-          />
-
-          {/* Thumb */}
-          <div
-            aria-hidden="true"
-            onMouseDown={handleMouseDown}
-            onTouchStart={handleTouchStart}
-            className={cn(
-              "absolute top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-primary bg-background shadow-sm transition-shadow",
-              !disabled && "hover:shadow-md active:scale-105",
-              disabled && "pointer-events-none",
-            )}
-            style={{ left: `${percentage}%` }}
-          />
-        </div>
+        {track}
       </div>
     );
   },

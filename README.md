@@ -29,6 +29,7 @@ Speak AI's design system — 45+ React + Tailwind components with dark/light mod
   - [Skeleton: PageSkeleton, GridSkeleton, FormSkeleton, TableSkeleton, Skeleton](#skeleton-components)
   - [Selectors: LanguageSelector, PhoneInput, DatePicker, TimePicker](#selector-components)
   - [Utilities: Tooltip, Popover, DropdownMenu, Avatar, Progress, ThemeToggle, ThemeSelector](#utility-components)
+  - [Media: MediaPlayer, useMediaSync](#media-components)
 - [Z-Index Layering](#z-index-layering)
 - [Accessibility](#accessibility)
 
@@ -252,6 +253,12 @@ import {
   DropdownMenu, DropdownMenuItem, DropdownMenuDivider,
   DropdownMenuHeader, MoreButton,
   Avatar, Progress, ThemeToggle, ThemeSelector
+} from "@speakai/ui";
+
+// Media
+import {
+  MediaPlayer,
+  useMediaSync,
 } from "@speakai/ui";
 ```
 
@@ -542,17 +549,29 @@ Checkbox with optional label and description.
 
 #### `RadioGroup`
 
-Group of radio buttons with keyboard navigation.
+Group of radio buttons with keyboard navigation. Supports default (flat list) and card (bordered selection) variants.
 
 ```tsx
+{/* Default — flat list */}
 <RadioGroup
   value={plan}
   onChange={setPlan}
-  orientation="vertical"
   options={[
     { value: "free", label: "Free", description: "For personal use" },
     { value: "pro", label: "Pro", description: "For teams" },
     { value: "enterprise", label: "Enterprise", disabled: true },
+  ]}
+/>
+
+{/* Card variant — bordered containers with selection highlighting */}
+<RadioGroup
+  variant="card"
+  value={timing}
+  onChange={setTiming}
+  options={[
+    { value: "start", label: "At Start", description: "Collect before conversation begins" },
+    { value: "during", label: "During", description: "Collect naturally during conversation" },
+    { value: "end", label: "At End", description: "Collect before ending" },
   ]}
 />
 ```
@@ -563,6 +582,7 @@ Group of radio buttons with keyboard navigation.
 | `onChange` | `(value: string) => void` | — | Yes |
 | `options` | `RadioOption[]` | — | Yes |
 | `orientation` | `"horizontal" \| "vertical"` | `"vertical"` | No |
+| `variant` | `"default" \| "card"` | `"default"` | No |
 | `name` | `string` | — | No |
 | `disabled` | `boolean` | `false` | No |
 
@@ -575,6 +595,8 @@ interface RadioOption {
   disabled?: boolean;
 }
 ```
+
+> **Card variant:** Each option renders inside a bordered container. Selected option gets `border-primary bg-primary/5`. Unselected options get `border-border` with hover effect. Use for settings/config where each option needs visual separation.
 
 ---
 
@@ -684,11 +706,35 @@ Tag/chip input with autocomplete dropdown.
 
 #### `Slider`
 
-Range input with optional label and live value display.
+Range input with optional label and live value display. Supports inline mode for compact layouts and track overlays for media timelines.
 
 ```tsx
+{/* Full-width with label */}
 <Slider value={volume} onChange={setVolume} min={0} max={100} label="Volume" />
+
+{/* Without value display */}
 <Slider value={temperature} onChange={setTemperature} step={0.1} min={0} max={2} showValue={false} />
+
+{/* Inline — compact, no header, for use in flex rows */}
+<div className="flex items-center gap-2">
+  <span>Weight: {weight}</span>
+  <Slider inline value={weight} onChange={setWeight} min={1} max={10} showValue={false} className="w-20" />
+</div>
+
+{/* With track overlay content (markers, annotations) */}
+<Slider
+  value={position}
+  onChange={setPosition}
+  min={0}
+  max={duration}
+  trackChildren={
+    <>
+      {markers.map(m => (
+        <div key={m.time} className="absolute top-0 h-full w-0.5 bg-primary" style={{ left: `${(m.time / duration) * 100}%` }} />
+      ))}
+    </>
+  }
+/>
 ```
 
 | Prop | Type | Default | Required |
@@ -701,6 +747,12 @@ Range input with optional label and live value display.
 | `label` | `string` | — | No |
 | `showValue` | `boolean` | `true` | No |
 | `disabled` | `boolean` | `false` | No |
+| `inline` | `boolean` | `false` | No |
+| `trackChildren` | `ReactNode` | — | No |
+
+> **Inline mode:** Renders as `inline-flex` without the label/value header row. The track fills the container width. Set a fixed width via `className="w-20"` for compact layouts.
+>
+> **Track children:** Content rendered inside the track `<div>` (positioned relative). Use absolute positioning for markers, annotations, or segment indicators.
 
 ---
 
@@ -1746,6 +1798,113 @@ Segmented 3-option theme control (light / dark / system).
 |------|------|---------|----------|
 | `theme` | `"light" \| "dark" \| "system"` | — | No |
 | `onChange` | `(theme: "light" \| "dark" \| "system") => void` | — | No |
+
+---
+
+## Media Components
+
+### MediaPlayer
+
+HTML5 audio/video player with playback controls, seek bar, volume, captions, keyboard shortcuts. No Video.js dependency — uses native `<audio>` and `<video>` elements.
+
+```tsx
+import { MediaPlayer, useMediaSync } from "@speakai/ui";
+
+function PlayerExample() {
+  const { currentTime, setCurrentTime, seekTarget, seekTo, clearSeekTarget } = useMediaSync();
+
+  return (
+    <MediaPlayer
+      src="https://example.com/audio.mp3"
+      mediaType="audio"
+      title="Interview Recording"
+      seekTarget={seekTarget}
+      onSeekComplete={clearSeekTarget}
+      onTimeUpdate={setCurrentTime}
+      captions={[
+        { src: "/captions/en.vtt", label: "English", language: "en" }
+      ]}
+    />
+  );
+}
+```
+
+**Video mode:**
+```tsx
+<MediaPlayer
+  src="https://example.com/video.mp4"
+  mediaType="video"
+  poster="/thumbnail.jpg"
+  mode="default"
+/>
+```
+
+**Docked mode** (compact bottom bar for mobile):
+```tsx
+<MediaPlayer src={url} mediaType="audio" title="Recording" mode="dock" />
+```
+
+| Prop | Type | Default | Required |
+|------|------|---------|----------|
+| `src` | `string` | — | Yes |
+| `mediaType` | `"audio" \| "video"` | — | Yes |
+| `title` | `string` | — | No |
+| `poster` | `string` | — | No |
+| `seekTarget` | `number \| null` | `null` | No |
+| `onSeekComplete` | `() => void` | — | No |
+| `onTimeUpdate` | `(time: number) => void` | — | No |
+| `onPlayStateChange` | `(playing: boolean) => void` | — | No |
+| `onDurationChange` | `(duration: number) => void` | — | No |
+| `captions` | `Array<{ src, label, language }>` | `[]` | No |
+| `mode` | `"default" \| "dock"` | `"default"` | No |
+| `playbackRates` | `number[]` | `[0.5, 0.75, 1, 1.25, 1.5, 2]` | No |
+| `className` | `string` | — | No |
+
+**Keyboard shortcuts:** Space (play/pause), Left Arrow (seek -10s), Right Arrow (seek +30s)
+
+### useMediaSync
+
+Hook for syncing MediaPlayer with transcript components. Returns shared state that both player and transcript can read/write.
+
+```tsx
+const {
+  currentTime,     // Current playback position (seconds)
+  setCurrentTime,  // Update from player's timeupdate
+  duration,        // Total media duration
+  setDuration,     // Update from player's durationchange
+  isPlaying,       // Whether media is currently playing
+  setIsPlaying,    // Update from player's play/pause
+  seekTarget,      // Time to seek to (set by transcript click)
+  seekTo,          // Trigger a seek (call from transcript)
+  clearSeekTarget, // Clear after seek completes
+} = useMediaSync();
+```
+
+**Usage pattern — connect player and transcript:**
+```tsx
+function MediaView() {
+  const sync = useMediaSync();
+
+  return (
+    <>
+      <MediaPlayer
+        src={mediaUrl}
+        mediaType="audio"
+        seekTarget={sync.seekTarget}
+        onSeekComplete={sync.clearSeekTarget}
+        onTimeUpdate={sync.setCurrentTime}
+        onDurationChange={sync.setDuration}
+        onPlayStateChange={sync.setIsPlaying}
+      />
+      <TranscriptViewer
+        sentences={transcript}
+        currentTime={sync.currentTime}
+        onSeek={sync.seekTo}
+      />
+    </>
+  );
+}
+```
 
 ---
 

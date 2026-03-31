@@ -20,6 +20,7 @@ import {
   AuthCard, SSOButton, SSOButtons, PasswordInput,
   ColorPicker, ImageUploader, FileDropzone, Chips,
   RadioGroup, Accordion, AccordionItem, Breadcrumb, Slider,
+  MediaPlayer, useMediaSync,
   cn,
 } from "@speakai/ui";
 import type { SidebarSection } from "@speakai/ui";
@@ -169,6 +170,13 @@ const sidebarGroups = [
     label: "Skeleton",
     items: [
       { id: "skeleton", icon: icons.layout, label: "Loading Skeletons" },
+    ],
+  },
+  {
+    id: "media",
+    label: "Media",
+    items: [
+      { id: "media-player", icon: icons.screen, label: "Media Player" },
     ],
   },
 ];
@@ -1213,6 +1221,54 @@ toast.error("Error", "Something went wrong.");`}>
               </Sub>
               <Sub title="Page"><PageSkeleton showCards={true} cardCount={3} tableRows={3} /></Sub>
 
+            </div>
+          </Section>
+
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          {/*  MEDIA                                                              */}
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          <CategoryHeader title="Media" />
+
+          <Section id="media-player" title="Media Player" code={`<MediaPlayer
+  src="https://example.com/audio.mp3"
+  mediaType="audio"
+  title="Interview Recording"
+  seekTarget={sync.seekTarget}
+  onSeekComplete={sync.clearSeekTarget}
+  onTimeUpdate={sync.setCurrentTime}
+/>
+
+// Video mode:
+<MediaPlayer
+  src="https://example.com/video.mp4"
+  mediaType="video"
+  poster="/thumbnail.jpg"
+/>`}>
+            <div className="space-y-6">
+              <Sub title="Audio Player">
+                <MediaPlayer
+                  src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+                  mediaType="audio"
+                  title="Sample Audio — SoundHelix"
+                />
+              </Sub>
+              <Sub title="Video Player">
+                <div className="max-w-2xl">
+                  <MediaPlayer
+                    src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+                    mediaType="video"
+                    title="Big Buck Bunny"
+                  />
+                </div>
+              </Sub>
+              <Sub title="Docked Mode (compact)">
+                <MediaPlayer
+                  src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+                  mediaType="audio"
+                  title="Docked Player"
+                  mode="dock"
+                />
+              </Sub>
             </div>
           </Section>
 

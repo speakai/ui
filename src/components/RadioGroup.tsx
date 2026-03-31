@@ -11,12 +11,14 @@ export interface RadioOption {
 }
 
 export type RadioGroupOrientation = "horizontal" | "vertical";
+export type RadioGroupVariant = "default" | "card";
 
 export interface RadioGroupProps extends Omit<HTMLAttributes<HTMLDivElement>, "onChange"> {
   value: string;
   onChange: (value: string) => void;
   options: RadioOption[];
   orientation?: RadioGroupOrientation;
+  variant?: RadioGroupVariant;
   name?: string;
   disabled?: boolean;
 }
@@ -33,6 +35,7 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
       onChange,
       options,
       orientation = "vertical",
+      variant = "default",
       name,
       disabled = false,
       className,
@@ -102,12 +105,17 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
           const isDisabled = disabled || !!option.disabled;
           const optionId = `${radioName}-${option.value}`;
 
+          const isCard = variant === "card";
+
           return (
             <label
               key={option.value}
               htmlFor={optionId}
               className={cn(
                 "group flex cursor-pointer items-start gap-3",
+                isCard && "rounded-lg border p-3 transition-colors",
+                isCard && isSelected && "border-primary bg-primary/5",
+                isCard && !isSelected && "border-border hover:border-border/80",
                 isDisabled && "cursor-not-allowed opacity-50",
               )}
             >

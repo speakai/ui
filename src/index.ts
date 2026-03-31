@@ -178,7 +178,7 @@ export type {
 
 // RadioGroup
 export { RadioGroup } from "./components/RadioGroup";
-export type { RadioGroupProps, RadioOption, RadioGroupOrientation } from "./components/RadioGroup";
+export type { RadioGroupProps, RadioOption, RadioGroupOrientation, RadioGroupVariant } from "./components/RadioGroup";
 
 // Accordion
 export { Accordion, AccordionItem } from "./components/Accordion";
@@ -223,3 +223,11 @@ export type { StepperProps, StepperStep } from "./components/Stepper";
 // Popover
 export { Popover } from "./components/Popover";
 export type { PopoverProps } from "./components/Popover";
+
+// MediaPlayer
+export { MediaPlayer } from "./components/MediaPlayer";
+export type { MediaPlayerProps, MediaPlayerCaption } from "./components/MediaPlayer";
+
+// Hooks
+export { useMediaSync } from "./hooks/useMediaSync";
+export type { UseMediaSyncReturn } from "./hooks/useMediaSync";
