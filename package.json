@@ -39,6 +39,7 @@
     "tailwindcss": ">=4.0.0"
   },
   "dependencies": {
+    "@speakai/shared": "^1.7.0",
     "clsx": "^2.1.1",
     "prosemirror-commands": "^1.7.1",
     "prosemirror-history": "^1.5.0",
