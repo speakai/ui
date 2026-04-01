@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.8.0 (2026-04-01)
+
+- Added BottomSheet component, refactored color tokens, and updated README
+
 ## v0.7.0 (2026-03-31)
 
 - Added transcript ProseMirror schema & plugins

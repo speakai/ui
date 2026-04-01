@@ -1,6 +1,6 @@
 {
   "name": "@speakai/ui",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Speak AI design system — React + Tailwind UI components with dark/light mode, WCAG AA, and full CSS variable customization",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -55,12 +55,24 @@
     "prosemirror-view": "^1.41.7"
   },
   "peerDependenciesMeta": {
-    "prosemirror-commands": { "optional": true },
-    "prosemirror-history": { "optional": true },
-    "prosemirror-keymap": { "optional": true },
-    "prosemirror-model": { "optional": true },
-    "prosemirror-state": { "optional": true },
-    "prosemirror-view": { "optional": true }
+    "prosemirror-commands": {
+      "optional": true
+    },
+    "prosemirror-history": {
+      "optional": true
+    },
+    "prosemirror-keymap": {
+      "optional": true
+    },
+    "prosemirror-model": {
+      "optional": true
+    },
+    "prosemirror-state": {
+      "optional": true
+    },
+    "prosemirror-view": {
+      "optional": true
+    }
   },
   "dependencies": {
     "@speakai/shared": "^1.7.0",
