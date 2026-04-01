@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.0 (2026-04-01)
+
+- Added TranscriptView component and demo
+
 ## v0.8.0 (2026-04-01)
 
 - Added BottomSheet component, refactored color tokens, and updated README
