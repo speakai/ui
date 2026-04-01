@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.10.0 (2026-04-01)
+
+- Added dropdown side, embedded sidebar, updated switch component
+
 ## v0.9.1 (2026-04-01)
 
 - Fixed page header
