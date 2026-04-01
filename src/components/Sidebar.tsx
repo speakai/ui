@@ -157,7 +157,7 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(
         )}
 
         {/* Sections */}
-        <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-3 scrollbar-hide" aria-label="Main navigation">
+        <nav className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-2 py-3 scrollbar-hide" aria-label="Main navigation">
           {sections.map((section, sIdx) => (
             <div key={section.id} className={cn(sIdx > 0 && "mt-4")}>
               {section.label && !collapsed && (

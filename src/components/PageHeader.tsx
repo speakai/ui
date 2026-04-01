@@ -15,7 +15,7 @@ export const PageHeader = forwardRef<HTMLDivElement, PageHeaderProps>(
     <div
       ref={ref}
       className={cn(
-        "flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between",
+        "flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between mb-6",
         className
       )}
       {...props}
@@ -57,7 +57,7 @@ export const SectionHeader = forwardRef<HTMLDivElement, SectionHeaderProps>(
     <div
       ref={ref}
       className={cn(
-        "flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between",
+        "flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between mb-6",
         className
       )}
       {...props}
