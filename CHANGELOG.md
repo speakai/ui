@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.1 (2026-04-01)
+
+- Fixed page header
+
 ## v0.9.0 (2026-04-01)
 
 - Added TranscriptView component and demo
