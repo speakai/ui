@@ -30,7 +30,7 @@
     "*.css"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "tsup", "postbuild": "node scripts/generate-safelist.mjs", "prepublishOnly": "npm run build",
     "dev:lib": "tsup --watch",
     "dev": "cd demo && npm run dev",
     "demo:build": "cd demo && npm run build",
