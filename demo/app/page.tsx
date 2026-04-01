@@ -22,7 +22,8 @@ import {
   RadioGroup, Accordion, AccordionItem, Breadcrumb, Slider,
   cn,
 } from "@speakai/ui";
-import { MediaPlayer, useMediaSync } from "@speakai/ui/media";
+import { MediaPlayer, useMediaSync, TranscriptView } from "@speakai/ui/media";
+import type { TranscriptSegment } from "@speakai/ui/media";
 import type { SidebarSection } from "@speakai/ui";
 
 /* ─── Theme Config ──────────────────────────────────────────────────────────── */
@@ -166,17 +167,19 @@ const sidebarGroups = [
     ],
   },
   {
-    id: "skeleton",
-    label: "Skeleton",
-    items: [
-      { id: "skeleton", icon: icons.layout, label: "Loading Skeletons" },
-    ],
-  },
-  {
     id: "media",
     label: "Media",
     items: [
       { id: "media-player", icon: icons.screen, label: "Media Player" },
+      { id: "transcript-view", icon: icons.doc, label: "Transcript View" },
+      { id: "media-synced", icon: icons.screen, label: "Synced Player + Transcript" },
+    ],
+  },
+  {
+    id: "skeleton",
+    label: "Skeleton",
+    items: [
+      { id: "skeleton", icon: icons.layout, label: "Loading Skeletons" },
     ],
   },
 ];
@@ -568,6 +571,170 @@ function ConfigPanel({ config, onChange, open, onClose }: { config: ThemeConfig;
         </button>
       </div>
     </SidePanel>
+  );
+}
+
+/* ─── Demo Transcript Data ─────────────────────────────────────────────────── */
+
+const DEMO_TRANSCRIPT: TranscriptSegment[] = [
+  {
+    id: "s1", speakerId: "sp1", speakerName: "Sarah Chen", speakerColor: "hsl(271, 80%, 60%)",
+    startTime: 0, endTime: 8.5,
+    words: [
+      { text: "Welcome", startTime: 0, endTime: 0.4 },
+      { text: "to", startTime: 0.4, endTime: 0.55 },
+      { text: "our", startTime: 0.55, endTime: 0.7 },
+      { text: "product", startTime: 0.7, endTime: 1.1 },
+      { text: "review", startTime: 1.1, endTime: 1.5 },
+      { text: "meeting.", startTime: 1.5, endTime: 2.0 },
+      { text: "Today", startTime: 2.2, endTime: 2.5 },
+      { text: "we're", startTime: 2.5, endTime: 2.7 },
+      { text: "going", startTime: 2.7, endTime: 2.9 },
+      { text: "to", startTime: 2.9, endTime: 3.0 },
+      { text: "look", startTime: 3.0, endTime: 3.2 },
+      { text: "at", startTime: 3.2, endTime: 3.3 },
+      { text: "the", startTime: 3.3, endTime: 3.4 },
+      { text: "Q1", startTime: 3.4, endTime: 3.8 },
+      { text: "analytics", startTime: 3.8, endTime: 4.4 },
+      { text: "dashboard", startTime: 4.4, endTime: 5.0 },
+      { text: "and", startTime: 5.2, endTime: 5.4 },
+      { text: "discuss", startTime: 5.4, endTime: 5.8 },
+      { text: "the", startTime: 5.8, endTime: 5.9 },
+      { text: "new", startTime: 5.9, endTime: 6.1 },
+      { text: "transcript", startTime: 6.1, endTime: 6.6 },
+      { text: "viewer", startTime: 6.6, endTime: 6.9 },
+      { text: "component.", startTime: 6.9, endTime: 7.5 },
+    ],
+  },
+  {
+    id: "s2", speakerId: "sp2", speakerName: "Marcus Rivera", speakerColor: "hsl(210, 80%, 55%)",
+    startTime: 8.5, endTime: 16.0,
+    words: [
+      { text: "Sounds", startTime: 8.5, endTime: 8.8 },
+      { text: "good.", startTime: 8.8, endTime: 9.2 },
+      { text: "I've", startTime: 9.4, endTime: 9.6 },
+      { text: "been", startTime: 9.6, endTime: 9.8 },
+      { text: "working", startTime: 9.8, endTime: 10.2 },
+      { text: "on", startTime: 10.2, endTime: 10.3 },
+      { text: "the", startTime: 10.3, endTime: 10.4 },
+      { text: "speaker", startTime: 10.4, endTime: 10.8 },
+      { text: "identification", startTime: 10.8, endTime: 11.6 },
+      { text: "model", startTime: 11.6, endTime: 11.9 },
+      { text: "and", startTime: 12.1, endTime: 12.3 },
+      { text: "we've", startTime: 12.3, endTime: 12.5 },
+      { text: "improved", startTime: 12.5, endTime: 13.0 },
+      { text: "accuracy", startTime: 13.0, endTime: 13.5 },
+      { text: "by", startTime: 13.5, endTime: 13.7 },
+      { text: "twelve", startTime: 13.7, endTime: 14.1 },
+      { text: "percent", startTime: 14.1, endTime: 14.5 },
+      { text: "this", startTime: 14.5, endTime: 14.7 },
+      { text: "quarter.", startTime: 14.7, endTime: 15.2 },
+    ],
+  },
+  {
+    id: "s3", speakerId: "sp1", speakerName: "Sarah Chen", speakerColor: "hsl(271, 80%, 60%)",
+    startTime: 16.0, endTime: 24.0,
+    words: [
+      { text: "That's", startTime: 16.0, endTime: 16.3 },
+      { text: "great", startTime: 16.3, endTime: 16.6 },
+      { text: "progress.", startTime: 16.6, endTime: 17.1 },
+      { text: "Can", startTime: 17.3, endTime: 17.5 },
+      { text: "you", startTime: 17.5, endTime: 17.6 },
+      { text: "walk", startTime: 17.6, endTime: 17.9 },
+      { text: "us", startTime: 17.9, endTime: 18.0 },
+      { text: "through", startTime: 18.0, endTime: 18.3 },
+      { text: "how", startTime: 18.3, endTime: 18.5 },
+      { text: "the", startTime: 18.5, endTime: 18.6 },
+      { text: "real-time", startTime: 18.6, endTime: 19.1 },
+      { text: "highlighting", startTime: 19.1, endTime: 19.7 },
+      { text: "works", startTime: 19.7, endTime: 20.0 },
+      { text: "with", startTime: 20.0, endTime: 20.2 },
+      { text: "the", startTime: 20.2, endTime: 20.3 },
+      { text: "media", startTime: 20.3, endTime: 20.6 },
+      { text: "player?", startTime: 20.6, endTime: 21.1 },
+    ],
+  },
+  {
+    id: "s4", speakerId: "sp3", speakerName: "Priya Patel", speakerColor: "hsl(340, 75%, 55%)",
+    startTime: 24.0, endTime: 34.0,
+    words: [
+      { text: "Sure!", startTime: 24.0, endTime: 24.4 },
+      { text: "The", startTime: 24.6, endTime: 24.8 },
+      { text: "transcript", startTime: 24.8, endTime: 25.3 },
+      { text: "view", startTime: 25.3, endTime: 25.5 },
+      { text: "uses", startTime: 25.5, endTime: 25.8 },
+      { text: "the", startTime: 25.8, endTime: 25.9 },
+      { text: "useMediaSync", startTime: 25.9, endTime: 26.6 },
+      { text: "hook", startTime: 26.6, endTime: 26.9 },
+      { text: "to", startTime: 26.9, endTime: 27.0 },
+      { text: "share", startTime: 27.0, endTime: 27.3 },
+      { text: "playback", startTime: 27.3, endTime: 27.8 },
+      { text: "state", startTime: 27.8, endTime: 28.1 },
+      { text: "between", startTime: 28.1, endTime: 28.5 },
+      { text: "the", startTime: 28.5, endTime: 28.6 },
+      { text: "player", startTime: 28.6, endTime: 28.9 },
+      { text: "and", startTime: 28.9, endTime: 29.1 },
+      { text: "the", startTime: 29.1, endTime: 29.2 },
+      { text: "transcript.", startTime: 29.2, endTime: 29.8 },
+      { text: "Click", startTime: 30.0, endTime: 30.3 },
+      { text: "any", startTime: 30.3, endTime: 30.5 },
+      { text: "word", startTime: 30.5, endTime: 30.8 },
+      { text: "to", startTime: 30.8, endTime: 30.9 },
+      { text: "seek", startTime: 30.9, endTime: 31.2 },
+      { text: "to", startTime: 31.2, endTime: 31.3 },
+      { text: "that", startTime: 31.3, endTime: 31.5 },
+      { text: "timestamp.", startTime: 31.5, endTime: 32.0 },
+    ],
+  },
+];
+
+/* ─── Synced Media + Transcript Demo ───────────────────────────────────────── */
+
+function SyncedMediaTranscriptDemo() {
+  const sync = useMediaSync();
+
+  return (
+    <Section id="media-synced" title="Synced Player + Transcript" code={`import { MediaPlayer, useMediaSync, TranscriptView } from "@speakai/ui/media";
+
+const sync = useMediaSync();
+
+<MediaPlayer
+  src="..."
+  mediaType="audio"
+  seekTarget={sync.seekTarget}
+  onSeekComplete={sync.clearSeekTarget}
+  onTimeUpdate={sync.setCurrentTime}
+  onDurationChange={sync.setDuration}
+  onPlayStateChange={sync.setIsPlaying}
+/>
+
+<TranscriptView
+  segments={segments}
+  currentTime={sync.currentTime}
+  onWordClick={sync.seekTo}
+  highlightCurrent
+/>`}>
+      <div className="max-w-2xl space-y-4">
+        <MediaPlayer
+          src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+          mediaType="audio"
+          title="Team Standup — April 1, 2026"
+          seekTarget={sync.seekTarget}
+          onSeekComplete={sync.clearSeekTarget}
+          onTimeUpdate={sync.setCurrentTime}
+          onDurationChange={sync.setDuration}
+          onPlayStateChange={sync.setIsPlaying}
+        />
+        <Card className="p-4 max-h-64 overflow-y-auto">
+          <TranscriptView
+            segments={DEMO_TRANSCRIPT}
+            currentTime={sync.currentTime}
+            onWordClick={sync.seekTo}
+            highlightCurrent
+          />
+        </Card>
+      </div>
+    </Section>
   );
 }
 
@@ -1200,31 +1367,6 @@ toast.error("Error", "Something went wrong.");`}>
           </Section>
 
           {/* ════════════════════════════════════════════════════════════════════ */}
-          {/*  SKELETON                                                          */}
-          {/* ════════════════════════════════════════════════════════════════════ */}
-          <CategoryHeader title="Skeleton" />
-
-          <Section id="skeleton" title="Loading Skeletons" code={`<Skeleton className="h-6 w-40" />
-<SkeletonText lines={3} />
-<GridSkeleton count={6} columns={3} />
-<FormSkeleton fields={3} />          {/* flat fields */}
-<FormSkeleton sections={2} />        {/* card-wrapped sections */}
-<PageSkeleton showCards={true} cardCount={3} tableRows={3} />`}>
-            <div className="space-y-6">
-              <Sub title="Text"><div className="max-w-sm space-y-2"><Skeleton className="h-6 w-40" /><SkeletonText lines={3} /></div></Sub>
-              <Sub title="Grid"><GridSkeleton count={6} columns={3} /></Sub>
-              <Sub title="Form (flat / sections)">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <div><p className="text-[10px] text-muted-foreground mb-2">variant=&quot;flat&quot;</p><FormSkeleton fields={3} /></div>
-                  <div><p className="text-[10px] text-muted-foreground mb-2">variant=&quot;sections&quot;</p><FormSkeleton sections={2} /></div>
-                </div>
-              </Sub>
-              <Sub title="Page"><PageSkeleton showCards={true} cardCount={3} tableRows={3} /></Sub>
-
-            </div>
-          </Section>
-
-          {/* ════════════════════════════════════════════════════════════════════ */}
           {/*  MEDIA                                                              */}
           {/* ════════════════════════════════════════════════════════════════════ */}
           <CategoryHeader title="Media" />
@@ -1233,9 +1375,6 @@ toast.error("Error", "Something went wrong.");`}>
   src="https://example.com/audio.mp3"
   mediaType="audio"
   title="Interview Recording"
-  seekTarget={sync.seekTarget}
-  onSeekComplete={sync.clearSeekTarget}
-  onTimeUpdate={sync.setCurrentTime}
 />
 
 // Video mode:
@@ -1243,7 +1382,10 @@ toast.error("Error", "Something went wrong.");`}>
   src="https://example.com/video.mp4"
   mediaType="video"
   poster="/thumbnail.jpg"
-/>`}>
+/>
+
+// Docked mode (compact bar):
+<MediaPlayer src="..." mediaType="audio" mode="dock" />`}>
             <div className="space-y-6">
               <Sub title="Audio Player">
                 <MediaPlayer
@@ -1269,6 +1411,50 @@ toast.error("Error", "Something went wrong.");`}>
                   mode="dock"
                 />
               </Sub>
+            </div>
+          </Section>
+
+          <Section id="transcript-view" title="Transcript View" code={`import { TranscriptView } from "@speakai/ui/media";
+
+<TranscriptView
+  segments={segments}
+  currentTime={0}
+  onWordClick={(time) => console.log("seek to", time)}
+  showTimestamps
+  highlightCurrent
+/>`}>
+            <div className="max-w-2xl">
+              <TranscriptView
+                segments={DEMO_TRANSCRIPT}
+                showTimestamps
+                highlightCurrent={false}
+              />
+            </div>
+          </Section>
+
+          <SyncedMediaTranscriptDemo />
+
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          {/*  SKELETON                                                          */}
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          <CategoryHeader title="Skeleton" />
+
+          <Section id="skeleton" title="Loading Skeletons" code={`<Skeleton className="h-6 w-40" />
+<SkeletonText lines={3} />
+<GridSkeleton count={6} columns={3} />
+<FormSkeleton fields={3} />          {/* flat fields */}
+<FormSkeleton sections={2} />        {/* card-wrapped sections */}
+<PageSkeleton showCards={true} cardCount={3} tableRows={3} />`}>
+            <div className="space-y-6">
+              <Sub title="Text"><div className="max-w-sm space-y-2"><Skeleton className="h-6 w-40" /><SkeletonText lines={3} /></div></Sub>
+              <Sub title="Grid"><GridSkeleton count={6} columns={3} /></Sub>
+              <Sub title="Form (flat / sections)">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div><p className="text-[10px] text-muted-foreground mb-2">variant=&quot;flat&quot;</p><FormSkeleton fields={3} /></div>
+                  <div><p className="text-[10px] text-muted-foreground mb-2">variant=&quot;sections&quot;</p><FormSkeleton sections={2} /></div>
+                </div>
+              </Sub>
+              <Sub title="Page"><PageSkeleton showCards={true} cardCount={3} tableRows={3} /></Sub>
             </div>
           </Section>
 

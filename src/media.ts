@@ -11,3 +11,6 @@ export type { MediaPlayerProps, MediaPlayerCaption } from "./components/MediaPla
 
 export { useMediaSync } from "./hooks/useMediaSync";
 export type { UseMediaSyncReturn } from "./hooks/useMediaSync";
+
+export { TranscriptView } from "./components/TranscriptView";
+export type { TranscriptViewProps, TranscriptSegment, TranscriptWord } from "./components/TranscriptView";
