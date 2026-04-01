@@ -27,7 +27,7 @@ const thumbTranslate: Record<SwitchSize, { off: string; on: string }> = {
 };
 
 export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(
-  ({ checked, onChange, disabled = false, size = "default", label, className, ...props }, ref) => {
+  ({ checked, onChange, disabled = false, size = "sm", label, className, ...props }, ref) => {
     const toggle = useCallback(() => {
       if (!disabled) onChange(!checked);
     }, [checked, disabled, onChange]);
@@ -61,7 +61,7 @@ export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(
             "relative inline-flex shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200",
             "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
             trackSizes[size],
-            checked ? "bg-foreground/70" : "bg-border dark:bg-foreground/25",
+            checked ? "bg-primary" : "bg-border dark:bg-foreground/25",
             disabled && "cursor-not-allowed opacity-50"
           )}
           {...props}

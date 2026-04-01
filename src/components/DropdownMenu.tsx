@@ -18,6 +18,8 @@ export interface DropdownMenuProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   align?: "left" | "right";
+  /** Which side to open the menu on — "bottom" (default) opens below the trigger, "top" opens above. */
+  side?: "bottom" | "top";
   width?: string;
   children: ReactNode;
   className?: string;
@@ -30,6 +32,7 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
       open: controlledOpen,
       onOpenChange,
       align = "right",
+      side = "bottom",
       width = "w-48",
       children,
       className,
@@ -200,8 +203,9 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
           role="menu"
           onKeyDown={handleMenuKeyDown}
           className={cn(
-            "absolute z-50 mt-2 max-h-[60vh] overflow-y-auto rounded-lg border border-border bg-popover py-1 shadow-md",
+            "absolute z-50 max-h-[60vh] overflow-y-auto rounded-lg border border-border bg-popover py-1 shadow-md",
             "animate-scale-in",
+            side === "top" ? "bottom-full mb-2" : "mt-2",
             align === "right" ? "right-0" : "left-0",
             width,
             className
@@ -240,8 +244,9 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
             role="menu"
             onKeyDown={handleMenuKeyDown}
             className={cn(
-              "absolute z-50 mt-2 rounded-lg border border-border bg-popover py-1 shadow-md",
+              "absolute z-50 rounded-lg border border-border bg-popover py-1 shadow-md",
               "animate-scale-in",
+              side === "top" ? "bottom-full mb-2" : "mt-2",
               align === "right" ? "right-0" : "left-0",
               width
             )}

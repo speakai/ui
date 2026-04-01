@@ -101,10 +101,12 @@ export interface SidebarProps extends HTMLAttributes<HTMLElement> {
   sections: SidebarSection[];
   /** Custom link renderer — return your framework's Link component */
   renderLink?: (props: { href: string; className: string; children: ReactNode; onClick?: () => void }) => ReactNode;
+  /** When true, sidebar renders as a static element (for flexbox layouts). Default false = fixed positioning. */
+  embedded?: boolean;
 }
 
 export const Sidebar = forwardRef<HTMLElement, SidebarProps>(
-  ({ className, header, footer, sections, renderLink, ...props }, ref) => {
+  ({ className, header, footer, sections, renderLink, embedded = false, ...props }, ref) => {
     const { collapsed, setCollapsed, mobileOpen, setMobileOpen } = useSidebar();
 
     // Close mobile on Escape
@@ -192,8 +194,13 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(
         <aside
           ref={ref}
           className={cn(
-            "hidden md:flex flex-col h-screen border-r border-border bg-card transition-[width] duration-200 ease-in-out fixed left-0 top-0 z-30",
-            collapsed ? "w-[60px]" : "w-[240px]",
+            "flex flex-col border-r border-border bg-card transition-[width] duration-200 ease-in-out",
+            embedded
+              ? "h-full w-full"
+              : cn(
+                  "hidden md:flex h-screen fixed left-0 top-0 z-30",
+                  collapsed ? "w-[60px]" : "w-[240px]"
+                ),
             className
           )}
           {...props}
