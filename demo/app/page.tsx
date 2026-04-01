@@ -20,9 +20,9 @@ import {
   AuthCard, SSOButton, SSOButtons, PasswordInput,
   ColorPicker, ImageUploader, FileDropzone, Chips,
   RadioGroup, Accordion, AccordionItem, Breadcrumb, Slider,
-  MediaPlayer, useMediaSync,
   cn,
 } from "@speakai/ui";
+import { MediaPlayer, useMediaSync } from "@speakai/ui/media";
 import type { SidebarSection } from "@speakai/ui";
 
 /* ─── Theme Config ──────────────────────────────────────────────────────────── */
