@@ -5,7 +5,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? 2 : undefined,
   reporter: process.env.CI ? "github" : "list",
   timeout: 30_000,
 
@@ -27,8 +27,10 @@ export default defineConfig({
   ],
 
   webServer: {
-    // Build lib + demo, then create a /ui/ symlink so basePath routing works with static serve
-    command: "npm run build && cd demo && npm install && npm run build && rm -rf /tmp/speakui-serve && mkdir -p /tmp/speakui-serve && ln -sf \"$(pwd)/out\" /tmp/speakui-serve/ui && npx serve /tmp/speakui-serve -l 5555",
+    // On CI, lib + demo are pre-built by the workflow — just serve. Locally, build everything.
+    command: process.env.CI
+      ? "rm -rf /tmp/speakui-serve && mkdir -p /tmp/speakui-serve && ln -sf \"$(pwd)/demo/out\" /tmp/speakui-serve/ui && npx serve /tmp/speakui-serve -l 5555"
+      : "npm run build && cd demo && npm install && npm run build && rm -rf /tmp/speakui-serve && mkdir -p /tmp/speakui-serve && ln -sf \"$(pwd)/out\" /tmp/speakui-serve/ui && npx serve /tmp/speakui-serve -l 5555",
     url: "http://localhost:5555/ui",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

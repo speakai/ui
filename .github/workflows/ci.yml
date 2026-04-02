@@ -26,6 +26,21 @@ jobs:
         with:
           node-version: 22
       - run: npm ci --ignore-scripts
+
+      - name: Cache demo build
+        id: demo-cache
+        uses: actions/cache@v4
+        with:
+          path: demo/out
+          key: demo-build-${{ hashFiles('src/**', 'demo/**', '!demo/node_modules/**', '!demo/out/**', '!demo/.next/**') }}
+
+      - name: Build library
+        run: npm run build
+
+      - name: Build demo
+        if: steps.demo-cache.outputs.cache-hit != 'true'
+        run: cd demo && npm install && npm run build
+
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
       - uses: actions/upload-artifact@v4

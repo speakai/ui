@@ -139,7 +139,7 @@ describe("Sidebar", () => {
       </SidebarProvider>
     );
     // Collapse button may appear in both desktop/mobile sidebars
-    const btns = screen.getAllByLabelText("Collapse sidebar");
+    const btns = screen.getAllByLabelText("Close sidebar");
     expect(btns.length).toBeGreaterThanOrEqual(1);
   });
 
@@ -189,8 +189,10 @@ describe("Sidebar interactions", () => {
       </SidebarProvider>
     );
     await user.click(screen.getByLabelText("Open menu"));
-    await user.click(screen.getByLabelText("Close sidebar"));
     const mobileAside = document.querySelectorAll("aside")[1];
+    // Target the close button inside the mobile drawer specifically
+    const closeBtn = mobileAside.querySelector("[aria-label='Close sidebar']") as HTMLElement;
+    await user.click(closeBtn);
     expect(mobileAside.className).toContain("-translate-x-full");
   });
 
@@ -226,10 +228,10 @@ describe("Sidebar interactions", () => {
         <Sidebar sections={sections} header={<span>Logo</span>} />
       </SidebarProvider>
     );
-    const collapseBtn = screen.getAllByLabelText("Collapse sidebar")[0];
+    const collapseBtn = screen.getAllByLabelText("Close sidebar")[0];
     await user.click(collapseBtn);
-    // After collapse, button label should change to "Expand sidebar"
-    expect(screen.getAllByLabelText("Expand sidebar").length).toBeGreaterThanOrEqual(1);
+    // After collapse, button label should change to "Open sidebar"
+    expect(screen.getAllByLabelText("Open sidebar").length).toBeGreaterThanOrEqual(1);
   });
 
   it("persists collapsed state to localStorage", async () => {
@@ -240,7 +242,7 @@ describe("Sidebar interactions", () => {
         <Sidebar sections={sections} header={<span>Logo</span>} />
       </SidebarProvider>
     );
-    const collapseBtn = screen.getAllByLabelText("Collapse sidebar")[0];
+    const collapseBtn = screen.getAllByLabelText("Close sidebar")[0];
     await user.click(collapseBtn);
     expect(window.localStorage.getItem("test-sidebar")).toBe("true");
   });
@@ -313,7 +315,7 @@ describe("Sidebar interactions", () => {
         <Sidebar sections={sections} header={<span>Logo</span>} />
       </SidebarProvider>
     );
-    const collapseBtn = screen.getAllByLabelText("Collapse sidebar")[0];
+    const collapseBtn = screen.getAllByLabelText("Close sidebar")[0];
     await user.click(collapseBtn);
     // Desktop sidebar should show separator instead of text label
     const desktopAside = document.querySelector("aside.hidden");
