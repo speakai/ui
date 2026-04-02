@@ -8,7 +8,6 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useRef,
   useState,
 } from "react";
 import { cn } from "../utils/cn";
@@ -136,25 +135,45 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(
         {/* Header */}
         {header && (
           <div className={cn(
-            "flex h-14 items-center border-b border-border shrink-0",
+            "group/header flex h-14 items-center shrink-0",
             collapsed ? "justify-center px-2" : "gap-2 px-3"
           )}>
-            {header}
-            <button
-              onClick={() => setCollapsed(!collapsed)}
-              className={cn(
-                "rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring hidden md:flex",
-                collapsed ? "mx-auto mt-0" : "ml-auto"
-              )}
-              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d={collapsed
-                  ? "m5.25 4.5 7.5 7.5-7.5 7.5m6-15 7.5 7.5-7.5 7.5"
-                  : "m18.75 4.5-7.5 7.5 7.5 7.5m-6-15L5.25 12l7.5 7.5"
-                } />
-              </svg>
-            </button>
+            {/* Collapsed: show logo by default, panel icon on hover */}
+            {collapsed && (
+              <>
+                <div className="group-hover/header:hidden">
+                  {header}
+                </div>
+                <button
+                  onClick={() => setCollapsed(false)}
+                  className="hidden group-hover/header:flex rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
+                  aria-label="Open sidebar"
+                  title="Open sidebar"
+                >
+                  <svg className="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+                    <rect x="3" y="3" width="18" height="18" rx="3" />
+                    <path d="M9 3v18" />
+                  </svg>
+                </button>
+              </>
+            )}
+            {/* Expanded: logo + name on left, panel icon on right */}
+            {!collapsed && (
+              <>
+                <div className="flex-1 min-w-0">{header}</div>
+                <button
+                  onClick={() => setCollapsed(true)}
+                  className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring hidden md:flex shrink-0 ml-auto"
+                  aria-label="Close sidebar"
+                  title="Close sidebar"
+                >
+                  <svg className="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+                    <rect x="3" y="3" width="18" height="18" rx="3" />
+                    <path d="M9 3v18" />
+                  </svg>
+                </button>
+              </>
+            )}
           </div>
         )}
 
@@ -194,7 +213,7 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(
         <aside
           ref={ref}
           className={cn(
-            "flex flex-col border-r border-border bg-card transition-[width] duration-200 ease-in-out",
+            "relative flex flex-col border-r border-border bg-card transition-[width] duration-200 ease-in-out overflow-hidden",
             embedded
               ? "h-full w-full"
               : cn(
@@ -206,6 +225,15 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(
           {...props}
         >
           {sidebarContent}
+
+          {/* Collapsed: click on border area to expand */}
+          {collapsed && (
+            <button
+              onClick={() => setCollapsed(false)}
+              className="absolute right-0 top-0 h-full w-2 cursor-pointer hover:bg-primary/10 transition-colors hidden md:block"
+              aria-label="Open sidebar"
+            />
+          )}
         </aside>
 
         {/* Mobile backdrop */}
