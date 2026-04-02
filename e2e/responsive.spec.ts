@@ -119,7 +119,7 @@ test.describe("Mobile sidebar", () => {
     await dismissConfigPanel(page);
     const hamburger = page.locator("[aria-label='Open menu']");
     await hamburger.click();
-    const closeBtn = page.locator("[aria-label='Close sidebar']");
+    const closeBtn = page.locator("[aria-label='Close sidebar']").and(page.locator(":visible"));
     await expect(closeBtn).toBeVisible({ timeout: 3000 });
   });
 });
