@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.10.1 (2026-04-02)
+
+- Fixed important sidebar
+
 ## v0.10.0 (2026-04-01)
 
 - Added dropdown side, embedded sidebar, updated switch component
