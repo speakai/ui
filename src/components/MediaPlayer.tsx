@@ -281,8 +281,9 @@ export const MediaPlayer = forwardRef<HTMLDivElement, MediaPlayerProps>(
         const el = getEl();
         if (!bar || !el) return;
         const rect = bar.getBoundingClientRect();
+        const pad = 16; // px-4
         el.currentTime =
-          Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)) *
+          Math.max(0, Math.min(1, (e.clientX - rect.left - pad) / (rect.width - 2 * pad))) *
           (el.duration || 0);
       },
       [getEl]
@@ -293,8 +294,9 @@ export const MediaPlayer = forwardRef<HTMLDivElement, MediaPlayerProps>(
         const bar = progressRef.current;
         if (!bar || !duration) return;
         const rect = bar.getBoundingClientRect();
+        const pad = 16; // px-4
         setHoverPct(
-          Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+          Math.max(0, Math.min(1, (e.clientX - rect.left - pad) / (rect.width - 2 * pad)))
         );
       },
       [duration]
