@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.10.2 (2026-04-06)
+
+- Fixed media player.
+
 ## v0.10.1 (2026-04-02)
 
 - Fixed important sidebar
