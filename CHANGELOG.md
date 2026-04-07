@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.11.0 (2026-04-07)
+
+- Added sub-path exports and documentation
+
 ## v0.10.2 (2026-04-06)
 
 - Fixed media player.

@@ -1,6 +1,6 @@
 {
   "name": "@speakai/ui",
-  "version": "0.10.2",
+  "version": "0.11.0",
   "description": "Speak AI design system — React + Tailwind UI components with dark/light mode, WCAG AA, and full CSS variable customization",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -250,53 +250,147 @@
   },
   "typesVersions": {
     "*": {
-      "media": ["dist/media.d.ts"],
-      "transcript": ["dist/transcript.d.ts"],
-      "accordion": ["dist/entries/accordion.d.ts"],
-      "auth-card": ["dist/entries/auth-card.d.ts"],
-      "auth-divider": ["dist/entries/auth-divider.d.ts"],
-      "avatar": ["dist/entries/avatar.d.ts"],
-      "badge": ["dist/entries/badge.d.ts"],
-      "bottom-sheet": ["dist/entries/bottom-sheet.d.ts"],
-      "breadcrumb": ["dist/entries/breadcrumb.d.ts"],
-      "button": ["dist/entries/button.d.ts"],
-      "card": ["dist/entries/card.d.ts"],
-      "checkbox": ["dist/entries/checkbox.d.ts"],
-      "chips": ["dist/entries/chips.d.ts"],
-      "cn": ["dist/entries/cn.d.ts"],
-      "color-picker": ["dist/entries/color-picker.d.ts"],
-      "confirm-dialog": ["dist/entries/confirm-dialog.d.ts"],
-      "date-picker": ["dist/entries/date-picker.d.ts"],
-      "dialog": ["dist/entries/dialog.d.ts"],
-      "dropdown-menu": ["dist/entries/dropdown-menu.d.ts"],
-      "empty-state": ["dist/entries/empty-state.d.ts"],
-      "error-state": ["dist/entries/error-state.d.ts"],
-      "file-dropzone": ["dist/entries/file-dropzone.d.ts"],
-      "image-uploader": ["dist/entries/image-uploader.d.ts"],
-      "info-card": ["dist/entries/info-card.d.ts"],
-      "input": ["dist/entries/input.d.ts"],
-      "language-selector": ["dist/entries/language-selector.d.ts"],
-      "otp-input": ["dist/entries/otp-input.d.ts"],
-      "page-header": ["dist/entries/page-header.d.ts"],
-      "password-input": ["dist/entries/password-input.d.ts"],
-      "phone-input": ["dist/entries/phone-input.d.ts"],
-      "popover": ["dist/entries/popover.d.ts"],
-      "progress": ["dist/entries/progress.d.ts"],
-      "radio-group": ["dist/entries/radio-group.d.ts"],
-      "side-panel": ["dist/entries/side-panel.d.ts"],
-      "sidebar": ["dist/entries/sidebar.d.ts"],
-      "skeleton": ["dist/entries/skeleton.d.ts"],
-      "slider": ["dist/entries/slider.d.ts"],
-      "sso-button": ["dist/entries/sso-button.d.ts"],
-      "stat-card": ["dist/entries/stat-card.d.ts"],
-      "stepper": ["dist/entries/stepper.d.ts"],
-      "switch": ["dist/entries/switch.d.ts"],
-      "table": ["dist/entries/table.d.ts"],
-      "tabs": ["dist/entries/tabs.d.ts"],
-      "theme-toggle": ["dist/entries/theme-toggle.d.ts"],
-      "time-picker": ["dist/entries/time-picker.d.ts"],
-      "toast": ["dist/entries/toast.d.ts"],
-      "tooltip": ["dist/entries/tooltip.d.ts"]
+      "media": [
+        "dist/media.d.ts"
+      ],
+      "transcript": [
+        "dist/transcript.d.ts"
+      ],
+      "accordion": [
+        "dist/entries/accordion.d.ts"
+      ],
+      "auth-card": [
+        "dist/entries/auth-card.d.ts"
+      ],
+      "auth-divider": [
+        "dist/entries/auth-divider.d.ts"
+      ],
+      "avatar": [
+        "dist/entries/avatar.d.ts"
+      ],
+      "badge": [
+        "dist/entries/badge.d.ts"
+      ],
+      "bottom-sheet": [
+        "dist/entries/bottom-sheet.d.ts"
+      ],
+      "breadcrumb": [
+        "dist/entries/breadcrumb.d.ts"
+      ],
+      "button": [
+        "dist/entries/button.d.ts"
+      ],
+      "card": [
+        "dist/entries/card.d.ts"
+      ],
+      "checkbox": [
+        "dist/entries/checkbox.d.ts"
+      ],
+      "chips": [
+        "dist/entries/chips.d.ts"
+      ],
+      "cn": [
+        "dist/entries/cn.d.ts"
+      ],
+      "color-picker": [
+        "dist/entries/color-picker.d.ts"
+      ],
+      "confirm-dialog": [
+        "dist/entries/confirm-dialog.d.ts"
+      ],
+      "date-picker": [
+        "dist/entries/date-picker.d.ts"
+      ],
+      "dialog": [
+        "dist/entries/dialog.d.ts"
+      ],
+      "dropdown-menu": [
+        "dist/entries/dropdown-menu.d.ts"
+      ],
+      "empty-state": [
+        "dist/entries/empty-state.d.ts"
+      ],
+      "error-state": [
+        "dist/entries/error-state.d.ts"
+      ],
+      "file-dropzone": [
+        "dist/entries/file-dropzone.d.ts"
+      ],
+      "image-uploader": [
+        "dist/entries/image-uploader.d.ts"
+      ],
+      "info-card": [
+        "dist/entries/info-card.d.ts"
+      ],
+      "input": [
+        "dist/entries/input.d.ts"
+      ],
+      "language-selector": [
+        "dist/entries/language-selector.d.ts"
+      ],
+      "otp-input": [
+        "dist/entries/otp-input.d.ts"
+      ],
+      "page-header": [
+        "dist/entries/page-header.d.ts"
+      ],
+      "password-input": [
+        "dist/entries/password-input.d.ts"
+      ],
+      "phone-input": [
+        "dist/entries/phone-input.d.ts"
+      ],
+      "popover": [
+        "dist/entries/popover.d.ts"
+      ],
+      "progress": [
+        "dist/entries/progress.d.ts"
+      ],
+      "radio-group": [
+        "dist/entries/radio-group.d.ts"
+      ],
+      "side-panel": [
+        "dist/entries/side-panel.d.ts"
+      ],
+      "sidebar": [
+        "dist/entries/sidebar.d.ts"
+      ],
+      "skeleton": [
+        "dist/entries/skeleton.d.ts"
+      ],
+      "slider": [
+        "dist/entries/slider.d.ts"
+      ],
+      "sso-button": [
+        "dist/entries/sso-button.d.ts"
+      ],
+      "stat-card": [
+        "dist/entries/stat-card.d.ts"
+      ],
+      "stepper": [
+        "dist/entries/stepper.d.ts"
+      ],
+      "switch": [
+        "dist/entries/switch.d.ts"
+      ],
+      "table": [
+        "dist/entries/table.d.ts"
+      ],
+      "tabs": [
+        "dist/entries/tabs.d.ts"
+      ],
+      "theme-toggle": [
+        "dist/entries/theme-toggle.d.ts"
+      ],
+      "time-picker": [
+        "dist/entries/time-picker.d.ts"
+      ],
+      "toast": [
+        "dist/entries/toast.d.ts"
+      ],
+      "tooltip": [
+        "dist/entries/tooltip.d.ts"
+      ]
     }
   },
   "files": [
