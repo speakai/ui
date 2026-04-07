@@ -19,6 +19,7 @@ Speak AI's design system — 45+ React + Tailwind components with dark/light mod
   - [Tailwind Token → Class Mapping](#tailwind-token--class-mapping)
   - [Correct vs Incorrect Color Usage](#correct-vs-incorrect-color-usage)
   - [Override Your Brand](#override-your-brand)
+- [Sub-path Imports](#sub-path-imports)
 - [Quick Reference — All Exports](#quick-reference--all-exports)
 - [Component Reference](#component-reference)
   - [Auth: AuthCard, SSOButton, SSOButtons, PasswordInput, OTPInput, AuthDivider](#auth-components)
@@ -82,6 +83,75 @@ export default function RootLayout({ children }) {
   );
 }
 ```
+
+### 4. Sub-path imports (recommended)
+
+Each component is available as a standalone sub-path export. This avoids pulling the entire barrel and significantly improves cold compilation in bundlers like Turbopack.
+
+```tsx
+// Instead of: import { Button, Card } from "@speakai/ui"
+import { Button } from "@speakai/ui/button";
+import { Card } from "@speakai/ui/card";
+import { Dialog, DialogHeader } from "@speakai/ui/dialog";
+import { cn } from "@speakai/ui/cn";
+```
+
+The barrel import (`from "@speakai/ui"`) still works for backward compatibility.
+
+<details>
+<summary>All available sub-paths</summary>
+
+| Sub-path | Components |
+|---|---|
+| `@speakai/ui/accordion` | Accordion, AccordionItem |
+| `@speakai/ui/auth-card` | AuthCard |
+| `@speakai/ui/auth-divider` | AuthDivider |
+| `@speakai/ui/avatar` | Avatar |
+| `@speakai/ui/badge` | Badge, StatusBadge |
+| `@speakai/ui/bottom-sheet` | BottomSheet |
+| `@speakai/ui/breadcrumb` | Breadcrumb |
+| `@speakai/ui/button` | Button |
+| `@speakai/ui/card` | Card |
+| `@speakai/ui/checkbox` | Checkbox |
+| `@speakai/ui/chips` | Chips |
+| `@speakai/ui/cn` | cn (utility) |
+| `@speakai/ui/color-picker` | ColorPicker |
+| `@speakai/ui/confirm-dialog` | ConfirmDialog |
+| `@speakai/ui/date-picker` | DatePicker |
+| `@speakai/ui/dialog` | Dialog, DialogHeader, DialogBody, DialogFooter, DialogCloseButton |
+| `@speakai/ui/dropdown-menu` | DropdownMenu, DropdownMenuItem, DropdownMenuHeader, DropdownMenuDivider, MoreButton |
+| `@speakai/ui/empty-state` | EmptyState |
+| `@speakai/ui/error-state` | ErrorState |
+| `@speakai/ui/file-dropzone` | FileDropzone |
+| `@speakai/ui/image-uploader` | ImageUploader |
+| `@speakai/ui/info-card` | InfoCard |
+| `@speakai/ui/input` | Input, SearchInput, Select, Textarea |
+| `@speakai/ui/language-selector` | LanguageSelector |
+| `@speakai/ui/media` | MediaPlayer, useMediaSync |
+| `@speakai/ui/otp-input` | OTPInput |
+| `@speakai/ui/page-header` | PageHeader, SectionHeader |
+| `@speakai/ui/password-input` | PasswordInput |
+| `@speakai/ui/phone-input` | PhoneInput |
+| `@speakai/ui/popover` | Popover |
+| `@speakai/ui/progress` | Progress |
+| `@speakai/ui/radio-group` | RadioGroup |
+| `@speakai/ui/side-panel` | SidePanel |
+| `@speakai/ui/sidebar` | Sidebar, SidebarProvider, SidebarLayout, SidebarUser, useSidebar |
+| `@speakai/ui/skeleton` | Skeleton, SkeletonText, PageHeaderSkeleton, StatCardSkeleton, StatCardsSkeletonGrid, PageSkeleton, CardSkeleton, GridSkeleton, FormSkeleton |
+| `@speakai/ui/slider` | Slider |
+| `@speakai/ui/sso-button` | SSOButton, SSOButtons |
+| `@speakai/ui/stat-card` | StatCard, StatCardGrid |
+| `@speakai/ui/stepper` | Stepper |
+| `@speakai/ui/switch` | Switch |
+| `@speakai/ui/table` | Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableSkeleton, TableActions, TableActionButton, TableSortHead, TablePagination, TableEmpty, useSort |
+| `@speakai/ui/tabs` | Tabs, TabsList, TabsTrigger, TabsContent |
+| `@speakai/ui/theme-toggle` | ThemeToggle, ThemeSelector |
+| `@speakai/ui/time-picker` | TimePicker |
+| `@speakai/ui/toast` | ToastContainer, ToastProvider, useToast |
+| `@speakai/ui/tooltip` | Tooltip |
+| `@speakai/ui/transcript` | TranscriptView |
+
+</details>
 
 ---
 
@@ -198,69 +268,84 @@ All color and shape tokens are CSS variables. They flip automatically between li
 
 ## Quick Reference — All Exports
 
+**Sub-path imports (recommended)** — each import pulls only that component's code:
+
 ```ts
 // Auth
-import {
-  AuthCard, SSOButton, SSOButtons, PasswordInput, OTPInput, AuthDivider
-} from "@speakai/ui";
+import { AuthCard } from "@speakai/ui/auth-card";
+import { SSOButton, SSOButtons } from "@speakai/ui/sso-button";
+import { PasswordInput } from "@speakai/ui/password-input";
+import { OTPInput } from "@speakai/ui/otp-input";
+import { AuthDivider } from "@speakai/ui/auth-divider";
 
 // Forms
-import {
-  Button, Input, SearchInput, Select, Textarea,
-  Switch, Checkbox, RadioGroup,
-  ColorPicker, ImageUploader, FileDropzone, Chips, Slider
-} from "@speakai/ui";
+import { Button } from "@speakai/ui/button";
+import { Input, SearchInput, Select, Textarea } from "@speakai/ui/input";
+import { Switch } from "@speakai/ui/switch";
+import { Checkbox } from "@speakai/ui/checkbox";
+import { RadioGroup } from "@speakai/ui/radio-group";
+import { ColorPicker } from "@speakai/ui/color-picker";
+import { ImageUploader } from "@speakai/ui/image-uploader";
+import { FileDropzone } from "@speakai/ui/file-dropzone";
+import { Chips } from "@speakai/ui/chips";
+import { Slider } from "@speakai/ui/slider";
 
 // Layout
-import {
-  Card, Sidebar, SidebarProvider, SidebarLayout, SidebarUser,
-  SidePanel, PageHeader, SectionHeader,
-  Tabs, TabsList, TabsTrigger, TabsContent,
-  Accordion, AccordionItem, Stepper
-} from "@speakai/ui";
+import { Card } from "@speakai/ui/card";
+import { Sidebar, SidebarProvider, SidebarLayout, SidebarUser } from "@speakai/ui/sidebar";
+import { SidePanel } from "@speakai/ui/side-panel";
+import { PageHeader, SectionHeader } from "@speakai/ui/page-header";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@speakai/ui/tabs";
+import { Accordion, AccordionItem } from "@speakai/ui/accordion";
+import { Stepper } from "@speakai/ui/stepper";
 
 // Data Display
-import {
-  Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
-  TableSortHead, TableActions, TableActionButton, TableEmpty,
-  TablePagination, TableSkeleton,
-  StatCard, StatCardGrid, Badge, StatusBadge, InfoCard, Breadcrumb
-} from "@speakai/ui";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableSortHead, TableActions, TableActionButton, TableEmpty, TablePagination, TableSkeleton } from "@speakai/ui/table";
+import { StatCard, StatCardGrid } from "@speakai/ui/stat-card";
+import { Badge, StatusBadge } from "@speakai/ui/badge";
+import { InfoCard } from "@speakai/ui/info-card";
+import { Breadcrumb } from "@speakai/ui/breadcrumb";
 
 // Feedback
-import {
-  ToastProvider, useToast,
-  Dialog, DialogHeader, DialogBody, DialogFooter, DialogCloseButton,
-  ConfirmDialog, BottomSheet,
-  EmptyState, ErrorState
-} from "@speakai/ui";
+import { ToastProvider, useToast } from "@speakai/ui/toast";
+import { Dialog, DialogHeader, DialogBody, DialogFooter, DialogCloseButton } from "@speakai/ui/dialog";
+import { ConfirmDialog } from "@speakai/ui/confirm-dialog";
+import { BottomSheet } from "@speakai/ui/bottom-sheet";
+import { EmptyState } from "@speakai/ui/empty-state";
+import { ErrorState } from "@speakai/ui/error-state";
 
 // Skeleton
-import {
-  Skeleton, SkeletonText, PageHeaderSkeleton,
-  StatCardSkeleton, StatCardsSkeletonGrid,
-  PageSkeleton, CardSkeleton, GridSkeleton, FormSkeleton
-} from "@speakai/ui";
+import { Skeleton, SkeletonText, PageHeaderSkeleton, StatCardSkeleton, StatCardsSkeletonGrid, PageSkeleton, CardSkeleton, GridSkeleton, FormSkeleton } from "@speakai/ui/skeleton";
 
 // Selectors
-import {
-  LanguageSelector, PhoneInput, DatePicker, TimePicker
-} from "@speakai/ui";
+import { LanguageSelector } from "@speakai/ui/language-selector";
+import { PhoneInput } from "@speakai/ui/phone-input";
+import { DatePicker } from "@speakai/ui/date-picker";
+import { TimePicker } from "@speakai/ui/time-picker";
 
 // Utilities
-import {
-  Tooltip, Popover,
-  DropdownMenu, DropdownMenuItem, DropdownMenuDivider,
-  DropdownMenuHeader, MoreButton,
-  Avatar, Progress, ThemeToggle, ThemeSelector
-} from "@speakai/ui";
+import { Tooltip } from "@speakai/ui/tooltip";
+import { Popover } from "@speakai/ui/popover";
+import { DropdownMenu, DropdownMenuItem, DropdownMenuDivider, DropdownMenuHeader, MoreButton } from "@speakai/ui/dropdown-menu";
+import { Avatar } from "@speakai/ui/avatar";
+import { Progress } from "@speakai/ui/progress";
+import { ThemeToggle, ThemeSelector } from "@speakai/ui/theme-toggle";
+import { cn } from "@speakai/ui/cn";
 
-// Media
+// Media (separate entry — avoids prosemirror dependency)
+import { MediaPlayer, useMediaSync } from "@speakai/ui/media";
+```
+
+<details>
+<summary>Barrel import (legacy — pulls entire bundle)</summary>
+
+```ts
 import {
-  MediaPlayer,
-  useMediaSync,
+  Button, Card, Badge, Input, Table, Dialog, // ... all 75+ exports
 } from "@speakai/ui";
 ```
+
+</details>
 
 ---
 

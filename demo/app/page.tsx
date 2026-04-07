@@ -2,29 +2,45 @@
 
 import { useTheme } from "next-themes";
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  Button, Card, Badge, StatusBadge, Input, SearchInput, Select, Textarea, Checkbox,
-  Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableActions, TableActionButton, TableSkeleton, TableSortHead, TablePagination, TableEmpty,
-  ToastProvider, useToast,
-  Skeleton, SkeletonText, PageHeaderSkeleton, GridSkeleton, FormSkeleton, PageSkeleton,
-  EmptyState, ErrorState,
-  Avatar, Switch, Progress,
-  DropdownMenu, DropdownMenuItem, DropdownMenuHeader, DropdownMenuDivider, MoreButton,
-  StatCard, StatCardGrid, PageHeader, SectionHeader, InfoCard,
-  Dialog, DialogHeader, DialogBody, DialogFooter, DialogCloseButton, ConfirmDialog,
-  ThemeSelector, ThemeToggle,
-  Tooltip,
-  Tabs, TabsList, TabsTrigger, TabsContent,
-  SidePanel,
-  Sidebar, SidebarProvider, SidebarLayout, SidebarUser, useSidebar,
-  AuthCard, SSOButton, SSOButtons, PasswordInput,
-  ColorPicker, ImageUploader, FileDropzone, Chips,
-  RadioGroup, Accordion, AccordionItem, Breadcrumb, Slider,
-  cn,
-} from "@speakai/ui";
+import { Button } from "@speakai/ui/button";
+import { Card } from "@speakai/ui/card";
+import { Badge, StatusBadge } from "@speakai/ui/badge";
+import { Input, SearchInput, Select, Textarea } from "@speakai/ui/input";
+import { Checkbox } from "@speakai/ui/checkbox";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableActions, TableActionButton, TableSkeleton, TableSortHead, TablePagination, TableEmpty } from "@speakai/ui/table";
+import { ToastProvider, useToast } from "@speakai/ui/toast";
+import { Skeleton, SkeletonText, PageHeaderSkeleton, GridSkeleton, FormSkeleton, PageSkeleton } from "@speakai/ui/skeleton";
+import { EmptyState } from "@speakai/ui/empty-state";
+import { ErrorState } from "@speakai/ui/error-state";
+import { Avatar } from "@speakai/ui/avatar";
+import { Switch } from "@speakai/ui/switch";
+import { Progress } from "@speakai/ui/progress";
+import { DropdownMenu, DropdownMenuItem, DropdownMenuHeader, DropdownMenuDivider, MoreButton } from "@speakai/ui/dropdown-menu";
+import { StatCard, StatCardGrid } from "@speakai/ui/stat-card";
+import { PageHeader, SectionHeader } from "@speakai/ui/page-header";
+import { InfoCard } from "@speakai/ui/info-card";
+import { Dialog, DialogHeader, DialogBody, DialogFooter, DialogCloseButton } from "@speakai/ui/dialog";
+import { ConfirmDialog } from "@speakai/ui/confirm-dialog";
+import { ThemeSelector, ThemeToggle } from "@speakai/ui/theme-toggle";
+import { Tooltip } from "@speakai/ui/tooltip";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@speakai/ui/tabs";
+import { SidePanel } from "@speakai/ui/side-panel";
+import { Sidebar, SidebarProvider, SidebarLayout, SidebarUser, useSidebar } from "@speakai/ui/sidebar";
+import type { SidebarSection } from "@speakai/ui/sidebar";
+import { AuthCard } from "@speakai/ui/auth-card";
+import { SSOButton, SSOButtons } from "@speakai/ui/sso-button";
+import { PasswordInput } from "@speakai/ui/password-input";
+import { ColorPicker } from "@speakai/ui/color-picker";
+import { ImageUploader } from "@speakai/ui/image-uploader";
+import { FileDropzone } from "@speakai/ui/file-dropzone";
+import { Chips } from "@speakai/ui/chips";
+import { RadioGroup } from "@speakai/ui/radio-group";
+import { Accordion, AccordionItem } from "@speakai/ui/accordion";
+import { Breadcrumb } from "@speakai/ui/breadcrumb";
+import { Slider } from "@speakai/ui/slider";
+import { cn } from "@speakai/ui/cn";
 import { MediaPlayer, useMediaSync, TranscriptView } from "@speakai/ui/media";
 import type { TranscriptSegment } from "@speakai/ui/media";
-import type { SidebarSection } from "@speakai/ui";
 
 /* ─── Theme Config ──────────────────────────────────────────────────────────── */
 
