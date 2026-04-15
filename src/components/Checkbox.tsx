@@ -26,7 +26,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
     const checkboxId = id ?? (label ? `checkbox-${label.replace(/\s+/g, "-").toLowerCase()}` : undefined);
 
     return (
-      <div className={cn("inline-flex gap-2", className)}>
+      <div className={cn("inline-flex items-start gap-2", className)}>
         <input
           ref={ref}
           type="checkbox"
@@ -34,7 +34,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
           disabled={disabled}
           aria-invalid={error ? true : undefined}
           className={cn(
-            "shrink-0 cursor-pointer rounded-sm border border-border transition-colors",
+            "mt-1.5 shrink-0 cursor-pointer rounded-sm border border-border transition-colors",
             "accent-primary text-primary",
             "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
             styles.box,
