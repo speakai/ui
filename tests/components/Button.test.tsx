@@ -89,4 +89,29 @@ describe("Button", () => {
     render(<Button data-testid="custom" type="submit">Submit</Button>);
     expect(screen.getByTestId("custom")).toHaveAttribute("type", "submit");
   });
+
+  // ── Variant class name tests ──────────────────────────────────────────
+  // Guards against the safelist regression where critical variant classes
+  // (bg-danger, text-danger-foreground, etc.) disappeared from compiled CSS.
+
+  it("variant=danger applies bg-danger and text-danger-foreground classes", () => {
+    render(<Button variant="danger">Delete</Button>);
+    const btn = screen.getByRole("button");
+    expect(btn).toHaveClass("bg-danger");
+    expect(btn).toHaveClass("text-danger-foreground");
+  });
+
+  it("variant=primary applies bg-primary and text-primary-foreground classes", () => {
+    render(<Button variant="primary">Submit</Button>);
+    const btn = screen.getByRole("button");
+    expect(btn).toHaveClass("bg-primary");
+    expect(btn).toHaveClass("text-primary-foreground");
+  });
+
+  it("variant=gradient applies from-gradient-from and to-gradient-to classes", () => {
+    render(<Button variant="gradient">Gradient</Button>);
+    const btn = screen.getByRole("button");
+    expect(btn).toHaveClass("from-gradient-from");
+    expect(btn).toHaveClass("to-gradient-to");
+  });
 });

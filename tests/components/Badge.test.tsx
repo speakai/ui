@@ -31,6 +31,46 @@ describe("Badge", () => {
     render(<Badge size="sm">Small</Badge>);
     expect(screen.getByRole("status")).toBeInTheDocument();
   });
+
+  // ── Variant class name tests ─────────────────────────────────────────────
+  // Verifies the actual Tailwind class strings are present on the element.
+  // jsdom doesn't compute CSS, but these guard against the safelist regression
+  // where class strings disappeared from the compiled output.
+
+  it("variant=error applies bg-danger/10 and text-danger classes", () => {
+    render(<Badge variant="error">Error</Badge>);
+    const el = screen.getByRole("status");
+    expect(el).toHaveClass("bg-danger/10");
+    expect(el).toHaveClass("text-danger");
+  });
+
+  it("variant=success applies bg-success/10 and text-success classes", () => {
+    render(<Badge variant="success">Success</Badge>);
+    const el = screen.getByRole("status");
+    expect(el).toHaveClass("bg-success/10");
+    expect(el).toHaveClass("text-success");
+  });
+
+  it("variant=warning applies bg-warning/10 and text-warning classes", () => {
+    render(<Badge variant="warning">Warning</Badge>);
+    const el = screen.getByRole("status");
+    expect(el).toHaveClass("bg-warning/10");
+    expect(el).toHaveClass("text-warning");
+  });
+
+  it("variant=info applies bg-info/10 and text-info classes", () => {
+    render(<Badge variant="info">Info</Badge>);
+    const el = screen.getByRole("status");
+    expect(el).toHaveClass("bg-info/10");
+    expect(el).toHaveClass("text-info");
+  });
+
+  it("variant=default applies bg-primary/10 and text-primary classes", () => {
+    render(<Badge variant="default">Default</Badge>);
+    const el = screen.getByRole("status");
+    expect(el).toHaveClass("bg-primary/10");
+    expect(el).toHaveClass("text-primary");
+  });
 });
 
 describe("StatusBadge", () => {

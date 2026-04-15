@@ -246,6 +246,55 @@ describe("TableSortHead", () => {
     );
     expect(screen.getByText("Name").closest("th")).toHaveAttribute("aria-sort", "ascending");
   });
+
+  // ── Sort icon rendering tests ─────────────────────────────────────────
+  // Guards against the safelist regression that broke sort icon visibility
+  // (text-muted-foreground/40 class was missing from compiled output).
+
+  it("renders ▲ icon when active and direction=asc", () => {
+    render(
+      <table>
+        <thead>
+          <tr>
+            <TableSortHead sortKey="name" activeSort="name" direction="asc" onSort={() => {}}>
+              Name
+            </TableSortHead>
+          </tr>
+        </thead>
+      </table>
+    );
+    expect(screen.getByText("▲")).toBeInTheDocument();
+  });
+
+  it("renders ▼ icon when active and direction=desc", () => {
+    render(
+      <table>
+        <thead>
+          <tr>
+            <TableSortHead sortKey="name" activeSort="name" direction="desc" onSort={() => {}}>
+              Name
+            </TableSortHead>
+          </tr>
+        </thead>
+      </table>
+    );
+    expect(screen.getByText("▼")).toBeInTheDocument();
+  });
+
+  it("does not render ↕ icon when column is inactive", () => {
+    render(
+      <table>
+        <thead>
+          <tr>
+            <TableSortHead sortKey="name" activeSort={null} direction={null} onSort={() => {}}>
+              Name
+            </TableSortHead>
+          </tr>
+        </thead>
+      </table>
+    );
+    expect(screen.queryByText("↕")).not.toBeInTheDocument();
+  });
 });
 
 describe("TablePagination", () => {

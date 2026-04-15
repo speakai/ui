@@ -320,9 +320,6 @@ export const TableSortHead = forwardRef<HTMLTableCellElement, TableSortHeadProps
               {direction === "asc" ? "▲" : "▼"}
             </span>
           )}
-          {onSort && (!isActive || !direction) && (
-            <span className="text-muted-foreground/40 text-xs" aria-hidden="true">↕</span>
-          )}
         </span>
       </th>
     );
