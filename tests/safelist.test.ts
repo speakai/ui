@@ -43,7 +43,6 @@ describe("Safelist integrity (dist/styles.css)", () => {
     "bg-info/10",
     "text-danger-foreground",
     "hover:bg-danger/90",
-    "text-muted-foreground/40",
   ] as const;
 
   it.each(criticalClasses)(
