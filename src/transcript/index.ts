@@ -32,5 +32,27 @@ export {
   setSpeakerFilter,
 } from "./plugins/speaker-filter";
 
+export {
+  createContextMenuPlugin,
+  contextMenuPluginKey,
+  getContextMenuState,
+  hideContextMenu,
+} from "./plugins/context-menu";
+export type { ContextMenuState } from "./plugins/context-menu";
+
+export { createMediaKeymapPlugin } from "./plugins/media-keymap";
+export type { MediaKeymapCallbacks } from "./plugins/media-keymap";
+
+export { createEditCommandsPlugin } from "./plugins/edit-commands";
+
+export {
+  createClipSelectionPlugin,
+  clipSelectionPluginKey,
+  setClipMode,
+  updateClipDecorations,
+  getClipTimesFromSelection,
+} from "./plugins/clip-selection";
+export type { ClipSegmentInput } from "./plugins/clip-selection";
+
 // Utils
 export { extractSegmentsFromDoc } from "./utils/entities";

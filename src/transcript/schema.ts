@@ -28,6 +28,12 @@ const paragraphContainerSpec: NodeSpec = {
   toDOM(node): DOMOutputSpec {
     const speakerName =
       node.attrs.speaker?.name || node.attrs.speakerId || "";
+    const speakerIndex = String((Number(node.attrs.paragraphId ?? 1) - 1) % 6);
+    const words = speakerName.trim().split(/\s+/);
+    const initials =
+      words.length >= 2
+        ? (words[0][0] ?? "") + (words[1][0] ?? "")
+        : speakerName.slice(0, 2);
     return [
       "div",
       {
@@ -37,6 +43,8 @@ const paragraphContainerSpec: NodeSpec = {
         "data-para-id": String(node.attrs.paragraphId || ""),
         "data-para-start": String(node.attrs.start || 0),
         "data-para-end": String(node.attrs.end || 0),
+        "data-speaker-index": speakerIndex,
+        "data-speaker-initials": initials.toUpperCase(),
       },
       0,
     ];

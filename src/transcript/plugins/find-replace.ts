@@ -16,6 +16,7 @@ export const findReplacePluginKey = new PluginKey("findReplace");
 interface FindReplacePluginState {
   searchQuery: string;
   caseSensitive: boolean;
+  useRegex: boolean;
   matches: Array<{ from: number; to: number }>;
   currentMatchIndex: number;
   decorations: DecorationSet;
@@ -24,30 +25,53 @@ interface FindReplacePluginState {
 interface FindReplaceMeta {
   searchQuery?: string;
   caseSensitive?: boolean;
+  useRegex?: boolean;
   currentMatchIndex?: number;
 }
 
 function findMatches(
   doc: PMNode,
   query: string,
-  caseSensitive: boolean
+  caseSensitive: boolean,
+  useRegex = false
 ): Array<{ from: number; to: number }> {
   if (!query || query.length < 2) return [];
 
   const matches: Array<{ from: number; to: number }> = [];
-  const searchStr = caseSensitive ? query : query.toLowerCase();
 
-  doc.descendants((node, pos) => {
-    if (node.isText && node.text) {
-      const text = caseSensitive ? node.text : node.text.toLowerCase();
-      let index = text.indexOf(searchStr);
-
-      while (index !== -1) {
-        matches.push({ from: pos + index, to: pos + index + searchStr.length });
-        index = text.indexOf(searchStr, index + 1);
-      }
+  if (useRegex) {
+    let regex: RegExp;
+    try {
+      regex = new RegExp(query, caseSensitive ? "g" : "gi");
+    } catch {
+      return [];
     }
-  });
+
+    doc.descendants((node, pos) => {
+      if (node.isText && node.text) {
+        regex.lastIndex = 0;
+        let match: RegExpExecArray | null;
+        while ((match = regex.exec(node.text)) !== null) {
+          if (match.index === regex.lastIndex) regex.lastIndex++;
+          matches.push({ from: pos + match.index, to: pos + match.index + match[0].length });
+        }
+      }
+    });
+  } else {
+    const searchStr = caseSensitive ? query : query.toLowerCase();
+
+    doc.descendants((node, pos) => {
+      if (node.isText && node.text) {
+        const text = caseSensitive ? node.text : node.text.toLowerCase();
+        let index = text.indexOf(searchStr);
+
+        while (index !== -1) {
+          matches.push({ from: pos + index, to: pos + index + searchStr.length });
+          index = text.indexOf(searchStr, index + 1);
+        }
+      }
+    });
+  }
 
   return matches;
 }
@@ -79,6 +103,7 @@ export function createFindReplacePlugin() {
         return {
           searchQuery: "",
           caseSensitive: false,
+          useRegex: false,
           matches: [],
           currentMatchIndex: -1,
           decorations: DecorationSet.empty,
@@ -98,7 +123,8 @@ export function createFindReplacePlugin() {
             const matches = findMatches(
               newState.doc,
               value.searchQuery,
-              value.caseSensitive
+              value.caseSensitive,
+              value.useRegex
             );
             const currentIndex = Math.min(
               value.currentMatchIndex,
@@ -116,14 +142,16 @@ export function createFindReplacePlugin() {
 
         const searchQuery = meta.searchQuery ?? value.searchQuery;
         const caseSensitive = meta.caseSensitive ?? value.caseSensitive;
+        const useRegex = meta.useRegex ?? value.useRegex;
 
         // Recalculate matches if query changed
         const queryChanged =
           searchQuery !== value.searchQuery ||
-          caseSensitive !== value.caseSensitive;
+          caseSensitive !== value.caseSensitive ||
+          useRegex !== value.useRegex;
 
         const matches = queryChanged
-          ? findMatches(newState.doc, searchQuery, caseSensitive)
+          ? findMatches(newState.doc, searchQuery, caseSensitive, useRegex)
           : value.matches;
 
         let currentIndex =
@@ -135,6 +163,7 @@ export function createFindReplacePlugin() {
         return {
           searchQuery,
           caseSensitive,
+          useRegex,
           matches,
           currentMatchIndex: currentIndex,
           decorations: buildDecorations(newState.doc, matches, currentIndex),
@@ -154,12 +183,14 @@ export function createFindReplacePlugin() {
 export function setSearchQuery(
   view: EditorView,
   query: string,
-  caseSensitive = false
+  caseSensitive = false,
+  useRegex = false
 ) {
   view.dispatch(
     view.state.tr.setMeta(findReplacePluginKey, {
       searchQuery: query,
       caseSensitive,
+      useRegex,
     })
   );
 }
