@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.11.2 (2026-04-15)
+
+- Fixed tests and important issues in the table component
+
 ## v0.11.0 (2026-04-07)
 
 - Added sub-path exports and documentation
