@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.12.0 (2026-04-15)
+
+- Added transcript editor plugins and regex search, updated Checkbox component
+
 ## v0.11.0 (2026-04-07)
 
 - Added sub-path exports and documentation
