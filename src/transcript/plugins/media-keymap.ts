@@ -21,6 +21,28 @@ export function createMediaKeymapPlugin(callbacks: MediaKeymapCallbacks) {
   return new Plugin({
     props: {
       handleKeyDown(_view, event: KeyboardEvent) {
+        const mod = event.metaKey || event.ctrlKey;
+
+        // Cmd/Ctrl shortcuts (primary shortcuts matching Angular)
+        if (mod) {
+          switch (event.key.toLowerCase()) {
+            case "k":
+              event.preventDefault();
+              callbacks.onPlayPause();
+              return true;
+            case "j":
+              // Only handle when not in edit mode (edit-commands plugin has priority in editable views)
+              event.preventDefault();
+              callbacks.onBack();
+              return true;
+            case "l":
+              event.preventDefault();
+              callbacks.onForward();
+              return true;
+          }
+        }
+
+        // F-key shortcuts (kept for backward compatibility)
         switch (event.key) {
           case "F4":
             event.preventDefault();
