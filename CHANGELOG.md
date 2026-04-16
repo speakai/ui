@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.11.3 (2026-04-16)
+
+- Fixed table important fix and added tests
+
 ## v0.11.2 (2026-04-15)
 
 - Fixed tests and important issues in the table component
