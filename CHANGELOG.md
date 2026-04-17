@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.11.4 (2026-04-17)
+
+- Fixed table important fix and added tests
+
 ## v0.11.3 (2026-04-16)
 
 - Fixed table important fix and added tests
