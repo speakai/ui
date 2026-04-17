@@ -160,6 +160,7 @@ const sentenceSpec: NodeSpec = {
         "data-end": String(node.attrs.endInSec || 0),
         "data-speaker-id": node.attrs.speakerId || "",
       },
+      0,
     ];
   },
   parseDOM: [
@@ -202,6 +203,7 @@ const wordMarkSpec: MarkSpec = {
         "data-confidence": String(mark.attrs.confidence || 1),
         "data-speaker-id": mark.attrs.speakerId || "",
       },
+      0,
     ];
   },
   parseDOM: [
