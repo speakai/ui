@@ -28,6 +28,7 @@ export interface DropdownMenuProps {
 }
 
 const GAP = 8;
+const VIEWPORT_PADDING = 8;
 
 // useLayoutEffect warns in SSR — noop on the server.
 const useIsoLayoutEffect =
@@ -159,20 +160,47 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
       return () => window.removeEventListener("scroll", handleScroll, true);
     }, [isOpen, setOpen]);
 
-    // Position the portaled menu relative to the trigger.
+    // Position the portaled menu relative to the trigger. Flip side when the
+    // preferred side doesn't fit; clamp horizontally so the menu stays on-screen.
     useIsoLayoutEffect(() => {
       if (!isOpen || !trigger || !triggerRef.current || !menuRef.current) {
         return;
       }
       const trig = triggerRef.current.getBoundingClientRect();
       const menu = menuRef.current.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+
+      const spaceBelow = vh - trig.bottom;
+      const spaceAbove = trig.top;
+
+      let placement = side;
+      if (
+        side === "bottom" &&
+        spaceBelow < menu.height + GAP &&
+        spaceAbove > spaceBelow
+      ) {
+        placement = "top";
+      } else if (
+        side === "top" &&
+        spaceAbove < menu.height + GAP &&
+        spaceBelow > spaceAbove
+      ) {
+        placement = "bottom";
+      }
 
       const top =
-        side === "bottom"
+        placement === "bottom"
           ? trig.bottom + GAP
           : trig.top - menu.height - GAP;
-      const left =
-        align === "right" ? trig.right - menu.width : trig.left;
+
+      let left = align === "right" ? trig.right - menu.width : trig.left;
+      if (left + menu.width > vw - VIEWPORT_PADDING) {
+        left = vw - menu.width - VIEWPORT_PADDING;
+      }
+      if (left < VIEWPORT_PADDING) {
+        left = VIEWPORT_PADDING;
+      }
 
       setCoords({ top, left });
     }, [isOpen, side, align, trigger]);
