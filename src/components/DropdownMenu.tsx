@@ -5,9 +5,11 @@ import {
   ReactNode,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "../utils/cn";
 
 // ── DropdownMenu ─────────────────────────────────────────────────────────────
@@ -24,6 +26,12 @@ export interface DropdownMenuProps {
   children: ReactNode;
   className?: string;
 }
+
+const GAP = 8;
+
+// useLayoutEffect warns in SSR — noop on the server.
+const useIsoLayoutEffect =
+  typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
   (
@@ -43,10 +51,14 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
     const isControlled = controlledOpen !== undefined;
     const isOpen = isControlled ? controlledOpen : internalOpen;
 
-    const containerRef = useRef<HTMLDivElement>(null);
+    const wrapperRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLDivElement>(null);
     const menuRef = useRef<HTMLDivElement>(null);
     const focusIndexRef = useRef(-1);
+
+    const [coords, setCoords] = useState<{ top: number; left: number } | null>(
+      null
+    );
 
     const setOpen = useCallback(
       (value: boolean) => {
@@ -82,7 +94,6 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
         const items = getMenuItems();
         if (items.length === 0) return;
 
-        // Wrap around
         const wrapped = ((index % items.length) + items.length) % items.length;
         focusIndexRef.current = wrapped;
         items[wrapped]?.focus();
@@ -101,15 +112,15 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
       return () => cancelAnimationFrame(frame);
     }, [isOpen, focusItem]);
 
-    // Click outside to close
+    // Click outside to close — portal menu is outside wrapperRef, so check both.
     useEffect(() => {
       if (!isOpen) return;
 
       const handleClickOutside = (e: MouseEvent) => {
-        if (
-          containerRef.current &&
-          !containerRef.current.contains(e.target as Node)
-        ) {
+        const target = e.target as Node;
+        const inWrapper = wrapperRef.current?.contains(target);
+        const inMenu = menuRef.current?.contains(target);
+        if (!inWrapper && !inMenu) {
           setOpen(false);
         }
       };
@@ -120,7 +131,7 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
       };
     }, [isOpen, setOpen]);
 
-    // Close on Escape via document listener (catches Escape even when focus is outside menu)
+    // Close on Escape
     useEffect(() => {
       if (!isOpen) return;
 
@@ -137,6 +148,34 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
         document.removeEventListener("keydown", handleEscape);
       };
     }, [isOpen, setOpen]);
+
+    // Close on scroll — avoids the menu drifting away from the trigger.
+    useEffect(() => {
+      if (!isOpen) return;
+
+      const handleScroll = () => setOpen(false);
+      // capture=true catches scrolls on any ancestor (tables, panels, etc.)
+      window.addEventListener("scroll", handleScroll, true);
+      return () => window.removeEventListener("scroll", handleScroll, true);
+    }, [isOpen, setOpen]);
+
+    // Position the portaled menu relative to the trigger.
+    useIsoLayoutEffect(() => {
+      if (!isOpen || !trigger || !triggerRef.current || !menuRef.current) {
+        return;
+      }
+      const trig = triggerRef.current.getBoundingClientRect();
+      const menu = menuRef.current.getBoundingClientRect();
+
+      const top =
+        side === "bottom"
+          ? trig.bottom + GAP
+          : trig.top - menu.height - GAP;
+      const left =
+        align === "right" ? trig.right - menu.width : trig.left;
+
+      setCoords({ top, left });
+    }, [isOpen, side, align, trigger]);
 
     // Keyboard navigation within the menu
     const handleMenuKeyDown = useCallback(
@@ -170,11 +209,9 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
             break;
           }
           case "Tab": {
-            // Tab closes the menu and moves focus naturally
             setOpen(false);
             break;
           }
-          // Escape is handled by the document-level listener
         }
       },
       [setOpen, getMenuItems, focusItem]
@@ -190,13 +227,13 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
       [setOpen]
     );
 
-    // Triggerless mode — just render the positioned menu when open
+    // Triggerless mode — legacy path where the caller positions the menu.
     if (!trigger) {
       if (!isOpen) return null;
       return (
         <div
           ref={(node) => {
-            (containerRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+            (wrapperRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
             if (typeof ref === "function") ref(node);
             else if (ref) ref.current = node;
           }}
@@ -216,45 +253,56 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
       );
     }
 
-    return (
+    const menuNode = isOpen ? (
       <div
-        ref={(node) => {
-          (containerRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
-          if (typeof ref === "function") ref(node);
-          else if (ref) ref.current = node;
+        ref={menuRef}
+        role="menu"
+        onKeyDown={handleMenuKeyDown}
+        data-align={align}
+        data-side={side}
+        style={{
+          position: "fixed",
+          top: coords?.top ?? 0,
+          left: coords?.left ?? 0,
+          visibility: coords ? "visible" : "hidden",
         }}
-        className={cn("relative inline-block", className)}
-      >
-        <div
-          ref={triggerRef}
-          role="button"
-          tabIndex={0}
-          aria-haspopup="true"
-          aria-expanded={isOpen}
-          onClick={toggle}
-          onKeyDown={handleTriggerKeyDown}
-          className="inline-flex cursor-pointer"
-        >
-          {trigger}
-        </div>
-
-        {isOpen && (
-          <div
-            ref={menuRef}
-            role="menu"
-            onKeyDown={handleMenuKeyDown}
-            className={cn(
-              "absolute z-50 rounded-lg border border-border bg-popover py-1 shadow-md",
-              "animate-scale-in",
-              side === "top" ? "bottom-full mb-2" : "mt-2",
-              align === "right" ? "right-0" : "left-0",
-              width
-            )}
-          >
-            {children}
-          </div>
+        className={cn(
+          "z-50 max-h-[60vh] overflow-y-auto rounded-lg border border-border bg-popover py-1 shadow-md",
+          "animate-scale-in",
+          width
         )}
+      >
+        {children}
       </div>
+    ) : null;
+
+    return (
+      <>
+        <div
+          ref={(node) => {
+            (wrapperRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+            if (typeof ref === "function") ref(node);
+            else if (ref) ref.current = node;
+          }}
+          className={cn("relative inline-block", className)}
+        >
+          <div
+            ref={triggerRef}
+            role="button"
+            tabIndex={0}
+            aria-haspopup="true"
+            aria-expanded={isOpen}
+            onClick={toggle}
+            onKeyDown={handleTriggerKeyDown}
+            className="inline-flex cursor-pointer"
+          >
+            {trigger}
+          </div>
+        </div>
+        {menuNode && typeof document !== "undefined"
+          ? createPortal(menuNode, document.body)
+          : null}
+      </>
     );
   }
 );

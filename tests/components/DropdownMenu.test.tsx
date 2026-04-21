@@ -71,14 +71,15 @@ describe("DropdownMenu", () => {
 
   it("aligns left when align=left", async () => {
     const user = userEvent.setup();
-    const { container } = render(
+    render(
       <DropdownMenu trigger={<button>Menu</button>} align="left">
         <DropdownMenuItem>Item</DropdownMenuItem>
       </DropdownMenu>
     );
     await user.click(screen.getByText("Menu"));
-    const menu = container.querySelector('[role="menu"]');
-    expect(menu?.className).toContain("left-0");
+    // Portal mode: alignment is reflected via data-align, position via inline style.
+    const menu = screen.getByRole("menu");
+    expect(menu).toHaveAttribute("data-align", "left");
   });
 });
 
