@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SidePanel } from "../../src/components/SidePanel";
 
@@ -103,5 +103,40 @@ describe("SidePanel", () => {
   it.each(sizes)("renders %s size", (size) => {
     render(<SidePanel open onClose={() => {}} title="Test" size={size}>Content</SidePanel>);
     expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
+
+  it("does not render children when closed", () => {
+    render(
+      <SidePanel open={false} onClose={() => {}} title="Test">
+        <div data-testid="child-content">Hidden content</div>
+      </SidePanel>
+    );
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("child-content")).not.toBeInTheDocument();
+  });
+
+  it("unmounts after slide-out transition when toggled to closed", async () => {
+    vi.useFakeTimers();
+    const { rerender } = render(
+      <SidePanel open onClose={() => {}} title="Test">
+        <div data-testid="child-content">Content</div>
+      </SidePanel>
+    );
+    expect(screen.getByTestId("child-content")).toBeInTheDocument();
+
+    rerender(
+      <SidePanel open={false} onClose={() => {}} title="Test">
+        <div data-testid="child-content">Content</div>
+      </SidePanel>
+    );
+    // Still mounted mid-transition so the slide-out animation can play.
+    expect(screen.getByTestId("child-content")).toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(250);
+    });
+    expect(screen.queryByTestId("child-content")).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    vi.useRealTimers();
   });
 });

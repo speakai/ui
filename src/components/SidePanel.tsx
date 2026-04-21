@@ -7,6 +7,7 @@ import {
   useCallback,
   useEffect,
   useRef,
+  useState,
 } from "react";
 import { cn } from "../utils/cn";
 
@@ -41,6 +42,11 @@ const sizeMap: Record<SidePanelSize, string> = {
   full: "w-full",
 };
 
+// Matches the `duration-200` Tailwind class on the panel transition — used as a
+// fallback so we still unmount if transitionend never fires (reduced-motion,
+// tab hidden during close, etc.).
+const TRANSITION_MS = 200;
+
 // ── Component ────────────────────────────────────────────────────────────────
 
 export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
@@ -63,6 +69,43 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
     ref
   ) => {
     const panelRef = useRef<HTMLDivElement>(null);
+
+    // Mount lifecycle: we want the panel out of the DOM (no children rendered,
+    // no aria-modal dialog in the tree) when closed, but we also want the
+    // slide-out animation to play on close. `isMounted` is true while open OR
+    // while the closing transition is running. `isVisible` drives the transform:
+    // it lags one frame behind mount on open so the initial off-screen state
+    // commits before we transition to on-screen.
+    const [isMounted, setIsMounted] = useState(open);
+    const [isVisible, setIsVisible] = useState(open);
+    const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+      if (open) {
+        if (closeTimerRef.current) {
+          clearTimeout(closeTimerRef.current);
+          closeTimerRef.current = null;
+        }
+        setIsMounted(true);
+        // Flip to visible on the next frame so the off-screen transform
+        // commits first, then transitions in.
+        const frame = requestAnimationFrame(() => setIsVisible(true));
+        return () => cancelAnimationFrame(frame);
+      }
+
+      // Closing: start the slide-out, unmount once the transition finishes.
+      setIsVisible(false);
+      closeTimerRef.current = setTimeout(() => {
+        setIsMounted(false);
+        closeTimerRef.current = null;
+      }, TRANSITION_MS + 20);
+      return () => {
+        if (closeTimerRef.current) {
+          clearTimeout(closeTimerRef.current);
+          closeTimerRef.current = null;
+        }
+      };
+    }, [open]);
 
     // Close on Escape
     useEffect(() => {
@@ -118,6 +161,8 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
       [ref]
     );
 
+    if (!isMounted) return null;
+
     return (
       <>
         {/* Backdrop */}
@@ -125,7 +170,7 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
           <div
             className={cn(
               "fixed inset-0 z-40 bg-foreground/20 backdrop-blur-xs transition-opacity duration-200",
-              open ? "opacity-100" : "pointer-events-none opacity-0"
+              isVisible ? "opacity-100" : "pointer-events-none opacity-0"
             )}
             onClick={handleBackdropClick}
             aria-hidden="true"
@@ -141,7 +186,7 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
           className={cn(
             "fixed inset-y-0 z-[60] flex flex-col border-border bg-card shadow-2xl transition-transform duration-200 ease-in-out",
             isRight ? "right-0 border-l" : "left-0 border-r",
-            open
+            isVisible
               ? "translate-x-0"
               : isRight
                 ? "translate-x-full"
