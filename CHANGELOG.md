@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.11.7 (2026-04-21)
+
+- Fixed dropdown functionality, improved table handling, and added tests
+
 ## v0.11.6 (2026-04-21)
 
 - Fixed dropdown functionality and table important issues, added tests
