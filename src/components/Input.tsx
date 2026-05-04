@@ -1,4 +1,5 @@
 import {
+  ChangeEvent,
   forwardRef,
   InputHTMLAttributes,
   SelectHTMLAttributes,
@@ -6,6 +7,41 @@ import {
 } from "react";
 import { cn } from "../utils/cn";
 import { inputBase } from "../utils/inputBase";
+
+// Inline SVG paths sourced from Lucide v0.x (MIT) — avoids a runtime dependency.
+const SearchIconSvg = () => (
+  <svg
+    className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <circle cx="11" cy="11" r="8" />
+    <path d="m21 21-4.34-4.34" />
+  </svg>
+);
+
+const ClearIconSvg = () => (
+  <svg
+    className="h-4 w-4"
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M18 6 6 18" />
+    <path d="m6 6 12 12" />
+  </svg>
+);
 
 const errorRing = "border-danger focus-visible:ring-danger";
 const defaultRing = "border-input";
@@ -47,24 +83,87 @@ export interface SearchInputProps
   extends InputHTMLAttributes<HTMLInputElement> {
   /** Optional class name for the wrapper div */
   containerClassName?: string;
+  /**
+   * Render a magnifying-glass icon at the left edge of the input.
+   * Defaults to `false` to preserve the visual contract for existing consumers.
+   * Set to `true` to opt in.
+   */
+  icon?: boolean;
+  /**
+   * Callback invoked when the user clicks the clear (×) button.
+   * When provided and the input has a non-empty value, a clear button is shown
+   * at the right edge of the input.
+   */
+  onClear?: () => void;
+  /**
+   * When `true` and `onChange` is wired, clicking the clear button fires
+   * `onChange` with an empty string value — no explicit `onClear` callback
+   * needed for the simple "user clicks ×, input empties" pattern.
+   * Defaults to `false`.
+   */
+  clearable?: boolean;
 }
 
 export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
-  ({ className, containerClassName, ...props }, ref) => (
-    <div className={cn("relative w-full", containerClassName)}>
-      <input
-        ref={ref}
-        type="search"
-        className={cn(
-          inputBase,
-          "h-10",
-          defaultRing,
-          className,
+  (
+    {
+      className,
+      containerClassName,
+      icon = false,
+      onClear,
+      clearable = false,
+      onChange,
+      ...props
+    },
+    ref,
+  ) => {
+    const hasValue = Boolean(props.value);
+    const showClear = (onClear !== undefined || clearable) && hasValue;
+
+    const handleClear = () => {
+      if (onClear) {
+        onClear();
+      } else if (clearable && onChange) {
+        // Synthesise a change event with an empty value so callers using only
+        // `onChange` get the "clear" signal without an extra callback.
+        const syntheticEvent = {
+          target: { value: "" },
+          currentTarget: { value: "" },
+        } as ChangeEvent<HTMLInputElement>;
+        onChange(syntheticEvent);
+      }
+    };
+
+    return (
+      <div className={cn("relative w-full", containerClassName)}>
+        {icon && <SearchIconSvg />}
+        <input
+          ref={ref}
+          type="search"
+          className={cn(
+            inputBase,
+            "h-10",
+            defaultRing,
+            icon && "pl-9",
+            showClear && "pr-9",
+            className,
+          )}
+          onChange={onChange}
+          {...props}
+        />
+        {showClear && (
+          <button
+            type="button"
+            aria-label="Clear search"
+            onClick={handleClear}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <ClearIconSvg />
+          </button>
         )}
-        {...props}
-      />
-    </div>
-  ),
+      </div>
+    );
+  },
 );
 
 SearchInput.displayName = "SearchInput";
