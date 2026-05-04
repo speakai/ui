@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.11.8 (2026-05-04)
+
+- Fixed tabs and dialogs, fixed dropdown, fixed table important fix and added tests
+
 ## v0.11.7 (2026-04-21)
 
 - Fixed dropdown functionality, improved table handling, and added tests
