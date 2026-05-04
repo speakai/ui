@@ -32,6 +32,16 @@ const sizeMap = {
   full: "max-w-[calc(100vw-2rem)]",
 };
 
+// Minimum dialog dimensions, gated to sm+ so mobile (where the panel can be
+// near-full-screen) is not forced past the viewport.
+const minSizeMap = {
+  sm: "sm:min-w-[20rem] sm:min-h-[12rem]",
+  default: "sm:min-w-[28rem] sm:min-h-[18rem]",
+  lg: "sm:min-w-[36rem] sm:min-h-[28rem]",
+  xl: "sm:min-w-[48rem] sm:min-h-[32rem]",
+  full: "",
+};
+
 // ── Focusable selector ──────────────────────────────────────────────────────
 
 const FOCUSABLE_SELECTOR = [
@@ -162,6 +172,7 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
           className={cn(
             "w-full max-h-[calc(100vh-2rem)] flex flex-col rounded-lg border border-border bg-card shadow-xl animate-scale-in",
             sizeMap[size],
+            minSizeMap[size],
             className
           )}
           {...props}

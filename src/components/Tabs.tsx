@@ -8,6 +8,7 @@ import {
   ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useRef,
   useState,
 } from "react";
@@ -31,20 +32,45 @@ function useTabsContext() {
 // ── Tabs Root ────────────────────────────────────────────────────────────────
 
 export interface TabsProps extends HTMLAttributes<HTMLDivElement> {
-  defaultTab: string;
+  /** Uncontrolled mode: seeds initial active tab. Ignored when `value` is provided. */
+  defaultTab?: string;
+  /** @deprecated Prefer `onValueChange`. Fires in uncontrolled mode when the active tab changes. */
   onTabChange?: (tab: string) => void;
+  /** Controlled mode: active tab value. When provided, `defaultTab` is ignored. */
+  value?: string;
+  /** Fires in controlled mode when the user clicks a tab trigger. */
+  onValueChange?: (tab: string) => void;
 }
 
 export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
-  ({ defaultTab, onTabChange, className, children, ...props }, ref) => {
-    const [activeTab, setActiveTabState] = useState(defaultTab);
+  ({ defaultTab, onTabChange, value, onValueChange, className, children, ...props }, ref) => {
+    const isControlled = value !== undefined;
+
+    // Warn in dev when both controlled and uncontrolled props are provided
+    useEffect(() => {
+      if (process.env.NODE_ENV !== "production" && isControlled && defaultTab !== undefined) {
+        console.warn(
+          "@speakai/ui/tabs: Both `value` (controlled) and `defaultTab` (uncontrolled) were provided. " +
+          "`value` takes precedence; `defaultTab` is ignored."
+        );
+      }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const [uncontrolledTab, setUncontrolledTabState] = useState(defaultTab ?? "");
+
+    const activeTab = isControlled ? value : uncontrolledTab;
 
     const setActiveTab = useCallback(
       (id: string) => {
-        setActiveTabState(id);
-        onTabChange?.(id);
+        if (isControlled) {
+          onValueChange?.(id);
+        } else {
+          setUncontrolledTabState(id);
+          onTabChange?.(id);
+        }
       },
-      [onTabChange]
+      [isControlled, onValueChange, onTabChange]
     );
 
     return (
@@ -62,6 +88,12 @@ Tabs.displayName = "Tabs";
 
 export interface TabsListProps extends HTMLAttributes<HTMLDivElement> {
   variant?: "default" | "underline" | "pills";
+  /**
+   * When true, the tab list scrolls horizontally on overflow.
+   * A right-edge fade mask is applied and the scrollbar is hidden.
+   * Default: false — no change to current layout behaviour.
+   */
+  scrollable?: boolean;
 }
 
 const listVariantStyles = {
@@ -71,7 +103,7 @@ const listVariantStyles = {
 };
 
 export const TabsList = forwardRef<HTMLDivElement, TabsListProps>(
-  ({ variant = "default", className, children, ...props }, ref) => {
+  ({ variant = "default", scrollable = false, className, children, ...props }, ref) => {
     const listRef = useRef<HTMLDivElement>(null);
     const { setActiveTab } = useTabsContext();
 
@@ -131,7 +163,16 @@ export const TabsList = forwardRef<HTMLDivElement, TabsListProps>(
           }
         }}
         role="tablist"
-        className={cn(listVariantStyles[variant], className)}
+        className={cn(
+          listVariantStyles[variant],
+          scrollable && [
+            "overflow-x-auto",
+            "[mask-image:linear-gradient(to_right,black_calc(100%-32px),transparent_100%)]",
+            "[&::-webkit-scrollbar]:hidden",
+            "[scrollbar-width:none]",
+          ],
+          className
+        )}
         onKeyDown={handleKeyDown}
         {...props}
       >
@@ -146,6 +187,10 @@ TabsList.displayName = "TabsList";
 
 export interface TabsTriggerProps extends HTMLAttributes<HTMLButtonElement> {
   value: string;
+  /**
+   * @deprecated Pass `variant` on `TabsList` instead. This prop still works but
+   * will emit a dev warning and will be removed in a future major version.
+   */
   variant?: "default" | "underline" | "pills";
   icon?: ReactNode;
   badge?: ReactNode;
@@ -153,10 +198,20 @@ export interface TabsTriggerProps extends HTMLAttributes<HTMLButtonElement> {
 }
 
 export const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(
-  (
-    { value, variant = "default", icon, badge, disabled = false, className, children, ...props },
-    ref
-  ) => {
+  (rawProps, ref) => {
+    const { value, variant = "default", icon, badge, disabled = false, className, children, ...props } = rawProps;
+
+    // Warn in dev when variant is explicitly passed on TabsTrigger.
+    // Pass variant on TabsList instead (context propagation is the forward path).
+    useEffect(() => {
+      if (process.env.NODE_ENV !== "production" && "variant" in rawProps) {
+        console.warn(
+          "@speakai/ui/tabs: variant on TabsTrigger is deprecated. Pass variant on TabsList instead."
+        );
+      }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const { activeTab, setActiveTab } = useTabsContext();
     const isActive = activeTab === value;
 
