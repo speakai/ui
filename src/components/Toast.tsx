@@ -171,7 +171,7 @@ const ToastItem = ({ toast, onDismiss }: ToastItemProps) => {
       <button
         onClick={dismiss}
         aria-label="Dismiss notification"
-        className="shrink-0 rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-card-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        className="shrink-0 -mt-1 -mr-1 rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-card-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       >
         <svg
           aria-hidden="true"
