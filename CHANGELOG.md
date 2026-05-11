@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.11.12 (2026-05-11)
+
+- Fixed Toast alignment when title only, fixed dropdown, fixed search, fixed tabs and dialogs, fixed table important fix and added tests
+
 ## v0.11.11 (2026-05-11)
 
 - Fixed search properly, fixed tabs and dialogs, fixed dropdown, fixed table important fix and added tests
