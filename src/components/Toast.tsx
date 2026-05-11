@@ -148,10 +148,16 @@ const ToastItem = ({ toast, onDismiss }: ToastItemProps) => {
     return () => clearTimeout(timerRef.current);
   }, [startTimer]);
 
+  const hasMessage = Boolean(toast.message);
+
   return (
     <div
       className={cn(
-        "pointer-events-auto flex w-full sm:max-w-sm items-start gap-3 rounded-lg border border-border border-l-4 bg-card p-4 shadow-lg",
+        "pointer-events-auto flex w-full sm:max-w-sm gap-3 rounded-lg border border-border border-l-4 bg-card p-4 shadow-lg",
+        // Title-only toasts vertically center the icon and close button with the
+        // title text. With a message present, items-start keeps icon and close
+        // pinned to the top of the now-taller card alongside the title.
+        hasMessage ? "items-start" : "items-center",
         accentBorderMap[toast.type],
         "animate-slide-in-from-top transition-opacity duration-150",
         isExiting && "opacity-0"
@@ -159,7 +165,9 @@ const ToastItem = ({ toast, onDismiss }: ToastItemProps) => {
       onMouseEnter={pauseTimer}
       onMouseLeave={startTimer}
     >
-      <div className="shrink-0 pt-0.5">{icons[toast.type]}</div>
+      <div className={cn("shrink-0", hasMessage && "pt-0.5")}>
+        {icons[toast.type]}
+      </div>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold text-card-foreground">
           {toast.title}
@@ -171,7 +179,10 @@ const ToastItem = ({ toast, onDismiss }: ToastItemProps) => {
       <button
         onClick={dismiss}
         aria-label="Dismiss notification"
-        className="shrink-0 -mt-1 -mr-1 rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-card-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        className={cn(
+          "shrink-0 -mr-1 rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-card-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+          hasMessage && "-mt-1"
+        )}
       >
         <svg
           aria-hidden="true"
