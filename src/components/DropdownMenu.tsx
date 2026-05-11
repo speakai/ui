@@ -292,10 +292,17 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
           position: "fixed",
           top: coords?.top ?? 0,
           left: coords?.left ?? 0,
+          // Cap to the actual space between menu top and viewport bottom so
+          // overflow-y-auto can show a scrollbar. A static max-h-[60vh] is
+          // often larger than the available space, so content fits the cap
+          // but the menu still extends past the viewport edge unscrolled.
+          maxHeight: coords
+            ? `${window.innerHeight - coords.top - VIEWPORT_PADDING}px`
+            : undefined,
           visibility: coords ? "visible" : "hidden",
         }}
         className={cn(
-          "z-50 max-h-[60vh] overflow-y-auto rounded-lg border border-border bg-popover py-1 shadow-md",
+          "z-50 overflow-y-auto rounded-lg border border-border bg-popover py-1 shadow-md",
           "animate-scale-in",
           width
         )}

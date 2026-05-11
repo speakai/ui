@@ -146,6 +146,9 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
             defaultRing,
             icon && "pl-9",
             showClear && "pr-9",
+            // Hide the browser-native ::-webkit-search-cancel-button so the
+            // custom × button is the only clear affordance (avoids double X).
+            "[&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-cancel-button]:hidden",
             className,
           )}
           onChange={onChange}
