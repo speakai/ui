@@ -151,10 +151,16 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
     }, [isOpen, setOpen]);
 
     // Close on scroll — avoids the menu drifting away from the trigger.
+    // Ignores scrolls that originate inside the menu itself (e.g. a long
+    // option list with overflow-y-auto), which would otherwise close the
+    // menu the moment the user tried to scroll the list.
     useEffect(() => {
       if (!isOpen) return;
 
-      const handleScroll = () => setOpen(false);
+      const handleScroll = (e: Event) => {
+        if (menuRef.current?.contains(e.target as Node)) return;
+        setOpen(false);
+      };
       // capture=true catches scrolls on any ancestor (tables, panels, etc.)
       window.addEventListener("scroll", handleScroll, true);
       return () => window.removeEventListener("scroll", handleScroll, true);
