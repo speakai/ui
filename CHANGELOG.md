@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.11.13 (2026-05-13)
+
+- Fixed dropdown alignment, improved Toast component, and fixed various bugs in the UI components.
+
 ## v0.11.12 (2026-05-11)
 
 - Fixed Toast alignment when title only, fixed dropdown, fixed search, fixed tabs and dialogs, fixed table important fix and added tests
