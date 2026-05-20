@@ -55,4 +55,4 @@ export {
 export type { ClipSegmentInput } from "./plugins/clip-selection";
 
 // Utils
-export { extractSegmentsFromDoc } from "./utils/entities";
+export { extractSegmentsFromDoc, validateTimestampPair } from "./utils/entities";

@@ -5,7 +5,7 @@
  * back into the API's segment format.
  */
 
-import type { Node as PMNode } from "prosemirror-model";
+import type { Node as PMNode, Schema } from "prosemirror-model";
 import type { ITranscriptSegment, IWordEntity } from "@speakai/shared";
 
 /**
@@ -104,4 +104,150 @@ function formatTime(seconds: number): string {
   const m = Math.floor((seconds % 3600) / 60);
   const s = Math.floor(seconds % 60);
   return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
+/** Returns true when [start, end] is a valid, ordered, finite, non-negative time pair. */
+export function validateTimestampPair(start: number, end: number): boolean {
+  // Number.isFinite rejects NaN AND Infinity — parseFloat("") → NaN would
+  // otherwise slip past the negativity check and corrupt segment timing on save.
+  if (!Number.isFinite(start) || !Number.isFinite(end)) return false;
+  if (start < 0 || end < 0) return false;
+  if (start >= end) return false;
+  return true;
+}
+
+/**
+ * Slice a sentence node's text-node children to [fromOffset, toOffset), preserving marks.
+ * When `remap` is supplied, proportionally re-times `word` mark startInSec/endInSec into
+ * the new range. Returns [schema.text(" ")] when the slice is empty.
+ *
+ * Port of Angular extractTextNodesWithMarks (transcript-editor.service.ts:461-601).
+ */
+export function splitTextNodesWithMarks(
+  sentence: PMNode,
+  fromOffset: number,
+  toOffset: number,
+  schema: Schema,
+  remap?: { origStart: number; origEnd: number; newStart: number; newEnd: number }
+): PMNode[] {
+  const nodes: PMNode[] = [];
+  let currentPos = 0;
+  let minMarkStart = Number.POSITIVE_INFINITY;
+  let maxMarkEnd = Number.NEGATIVE_INFINITY;
+
+  // Pass 1: slice text nodes to [fromOffset, toOffset), copy marks as-is, track word-mark range.
+  sentence.forEach((textNode) => {
+    if (!textNode.isText) return;
+
+    const textLength = textNode.text!.length;
+    const textEnd = currentPos + textLength;
+
+    if (textEnd <= fromOffset || currentPos >= toOffset) {
+      currentPos = textEnd;
+      return;
+    }
+
+    // Guaranteed non-negative intersection via Math.max/min.
+    const sliceStart = Math.max(0, fromOffset - currentPos);
+    const sliceEnd = Math.min(textLength, toOffset - currentPos);
+    const slicedText = textNode.text!.substring(sliceStart, sliceEnd);
+
+    if (slicedText.length > 0) {
+      const newTextNode = schema.text(slicedText);
+      if (textNode.marks && textNode.marks.length > 0) {
+        // Track word-mark timing range for Pass 2.
+        for (const mark of textNode.marks) {
+          if (mark.type.name === "word") {
+            const mStart = typeof mark.attrs.startInSec === "number" ? mark.attrs.startInSec : parseFloat(mark.attrs.startInSec ?? "0") || 0;
+            const mEnd = typeof mark.attrs.endInSec === "number" ? mark.attrs.endInSec : parseFloat(mark.attrs.endInSec ?? "0") || mStart;
+            if (mStart < minMarkStart) minMarkStart = mStart;
+            if (mEnd > maxMarkEnd) maxMarkEnd = mEnd;
+          }
+        }
+        nodes.push(newTextNode.mark(textNode.marks));
+      } else {
+        nodes.push(newTextNode);
+      }
+    }
+
+    currentPos = textEnd;
+  });
+
+  // Pass 2: re-time word marks proportionally when remap is supplied.
+  if (nodes.length > 0 && remap !== undefined) {
+    // Compute effective ranges with Angular's fallback chain (:526-558).
+    const effectiveOriginalStart =
+      remap.origStart !== undefined
+        ? remap.origStart
+        : minMarkStart !== Number.POSITIVE_INFINITY
+          ? minMarkStart
+          : undefined;
+    const effectiveOriginalEnd =
+      remap.origEnd !== undefined
+        ? remap.origEnd
+        : maxMarkEnd !== Number.NEGATIVE_INFINITY
+          ? maxMarkEnd
+          : effectiveOriginalStart;
+    const effectiveNewStart =
+      remap.newStart !== undefined
+        ? remap.newStart
+        : effectiveOriginalStart !== undefined
+          ? effectiveOriginalStart
+          : undefined;
+    const effectiveNewEnd =
+      remap.newEnd !== undefined
+        ? remap.newEnd
+        : effectiveOriginalEnd !== undefined
+          ? effectiveOriginalEnd
+          : effectiveNewStart;
+
+    if (
+      effectiveOriginalStart !== undefined &&
+      effectiveOriginalEnd !== undefined &&
+      effectiveNewStart !== undefined &&
+      effectiveNewEnd !== undefined &&
+      // Identity-range guard (:557) — remap fires only when range is non-zero OR new range is zero.
+      (effectiveOriginalEnd - effectiveOriginalStart !== 0 || effectiveNewEnd === effectiveNewStart)
+    ) {
+      const oldRange = Math.max(effectiveOriginalEnd - effectiveOriginalStart, 1e-6);
+      const newRange = effectiveNewEnd - effectiveNewStart;
+
+      for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i];
+        if (!node.marks || node.marks.length === 0) continue;
+
+        const remappedMarks = node.marks.map((mark) => {
+          if (mark.type.name !== "word") return mark;
+
+          const a = mark.attrs;
+          const origStart = typeof a.startInSec === "number" ? a.startInSec : parseFloat(a.startInSec ?? "0") || (effectiveOriginalStart ?? 0);
+          const origEnd = typeof a.endInSec === "number" ? a.endInSec : parseFloat(a.endInSec ?? "0") || origStart;
+
+          const startRatio = (origStart - (effectiveOriginalStart ?? 0)) / oldRange;
+          const endRatio = (origEnd - (effectiveOriginalStart ?? 0)) / oldRange;
+
+          const newStart = (effectiveNewStart ?? 0) + startRatio * newRange;
+          const newEnd = (effectiveNewStart ?? 0) + endRatio * newRange;
+
+          // Explicit attr pick — never spread untrusted mark.attrs (prototype safety).
+          return mark.type.create({
+            entityId: a.entityId,
+            startInSec: newStart,
+            endInSec: newEnd,
+            confidence: a.confidence,
+            speakerId: a.speakerId,
+          });
+        });
+
+        nodes[i] = node.mark(remappedMarks);
+      }
+    }
+  }
+
+  // Empty result → return a single space (ProseMirror rejects empty sentence content, :596).
+  if (nodes.length === 0) {
+    return [schema.text(" ")];
+  }
+
+  return nodes;
 }

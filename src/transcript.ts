@@ -53,4 +53,4 @@ export {
 } from "./transcript/plugins/clip-selection";
 export type { ClipSegmentInput } from "./transcript/plugins/clip-selection";
 
-export { extractSegmentsFromDoc } from "./transcript/utils/entities";
+export { extractSegmentsFromDoc, validateTimestampPair } from "./transcript/utils/entities";
