@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.13.0 (2026-05-20)
+
+- Added 5 analytics/sentiment chart sub-path exports, fixed various transcript issues and improved Toast alignment
+
 ## v0.11.14 (2026-05-20)
 
 - Fixed transcript boundary guard and alignment issues in Toast and DropdownMenu components.
