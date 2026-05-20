@@ -9,7 +9,7 @@ import { describe, it, expect, vi } from "vitest";
 import { TextSelection } from "prosemirror-state";
 import type { Transaction } from "prosemirror-state";
 import { handleBackspaceKey, handleEnterKey } from "../../src/transcript/plugins/edit-commands";
-import { makeEditorState, setCursor, getDocShape } from "./helpers";
+import { makeEditorState, makeTwoSentenceBlockState, setCursor, getDocShape } from "./helpers";
 
 // ── W1 — handleBackspaceKey ───────────────────────────────────────
 
@@ -114,25 +114,127 @@ describe("handleBackspaceKey", () => {
     const dispatch = vi.fn();
     const result = handleBackspaceKey(stateWithCursor, dispatch);
 
-    // Should abort — invalid timestamps.
-    expect(result).toBe(false);
+    // Returns true (key claimed, no-op) — prevents baseKeymap from performing an unsafe merge.
+    expect(result).toBe(true);
     expect(dispatch).not.toHaveBeenCalled();
   });
 
-  it("W1 parentOffset 1 — backspace at parentOffset===1 inside sentence also triggers merge", () => {
+  it("W1 parentOffset 1 — backspace at parentOffset===1 inside sentence triggers merge", () => {
+    // parentOffset 1 means the cursor is one step past the sentence's opening token.
+    // This position still counts as "sentence boundary" and must trigger merge.
     const state = makeTwoSentenceState();
-
-    // Manually place cursor at parentOffset 1 inside sentence 1 (index 1 in doc, offset 0).
-    // setCursor places at offset 0, which is parentOffset 0.
-    // For parentOffset 1 we place at charOffset 1 only if the first char causes parentOffset === 1.
-    // The simplest approach: place cursor at start (offset 0) then verify merge triggers.
-    // This tests the GHOST#1 regression path indirectly via offset 0 (both conditions are true).
-    const stateWithCursor = setCursor(state, 1, 0);
+    const stateWithCursor = setCursor(state, 1, 1);
 
     let dispatched = false;
     const result = handleBackspaceKey(stateWithCursor, () => { dispatched = true; });
     expect(result).toBe(true);
     expect(dispatched).toBe(true);
+  });
+
+  it("W1 mid-sentence control — parentOffset 2 returns false", () => {
+    const state = makeTwoSentenceState();
+    const stateWithCursor = setCursor(state, 1, 2);
+
+    const result = handleBackspaceKey(stateWithCursor);
+    expect(result).toBe(false);
+  });
+
+  // ── Case 1 tests: two sentences in ONE transcript_block ──────────
+
+  it("W1 Case 1 — Backspace at start of sentence-2-in-same-block merges into sentence 1", () => {
+    const state = makeTwoSentenceBlockState();
+    // Sentence 0 = "Hello world", sentence 1 = "How are you". Cursor at start of sentence 1.
+    const stateWithCursor = setCursor(state, 1, 0);
+
+    let dispatchedTr: Transaction | null = null;
+    const result = handleBackspaceKey(stateWithCursor, (tr) => { dispatchedTr = tr; });
+
+    expect(result).toBe(true);
+    expect(dispatchedTr).not.toBeNull();
+
+    const newState = stateWithCursor.apply(dispatchedTr!);
+    const shape = getDocShape(newState);
+
+    // Still one paragraph, one block, one merged sentence.
+    expect(shape.paragraphs).toHaveLength(1);
+    expect(shape.paragraphs[0].blocks).toHaveLength(1);
+    expect(shape.paragraphs[0].blocks[0].sentences).toHaveLength(1);
+
+    const mergedText = shape.paragraphs[0].blocks[0].sentences[0].text;
+    expect(mergedText).toContain("Hello world");
+    expect(mergedText).toContain("How are you");
+  });
+
+  it("W1 Case 1 — cursor is at junction after merge (prev text length + 1)", () => {
+    const state = makeTwoSentenceBlockState();
+    const stateWithCursor = setCursor(state, 1, 0);
+
+    let dispatchedTr: Transaction | null = null;
+    handleBackspaceKey(stateWithCursor, (tr) => { dispatchedTr = tr; });
+
+    const newState = stateWithCursor.apply(dispatchedTr!);
+    // "Hello world" is 11 chars; cursor should be inside the merged sentence at offset 11.
+    const { $from } = newState.selection;
+    expect($from.parent.type.name).toBe("sentence");
+    expect($from.parentOffset).toBe(11); // end of "Hello world"
+  });
+
+  it("W1 Case 1 — word marks preserved through same-block merge", () => {
+    const state = makeTwoSentenceBlockState({
+      s1Text: "Hello",
+      s1Start: 0, s1End: 5,
+      s1Entities: [{ text: "Hello", startInSec: 0.1, endInSec: 1.0, entityId: "e1" }],
+      s2Text: "World",
+      s2Start: 5, s2End: 10,
+      s2Entities: [{ text: "World", startInSec: 5.1, endInSec: 6.0, entityId: "e2" }],
+    });
+    const stateWithCursor = setCursor(state, 1, 0);
+
+    let dispatchedTr: Transaction | null = null;
+    handleBackspaceKey(stateWithCursor, (tr) => { dispatchedTr = tr; });
+
+    const newState = stateWithCursor.apply(dispatchedTr!);
+    let wordMarkCount = 0;
+    newState.doc.descendants((node) => {
+      if (node.isText) {
+        for (const mark of node.marks) {
+          if (mark.type.name === "word") wordMarkCount++;
+        }
+      }
+      return true;
+    });
+    expect(wordMarkCount).toBeGreaterThanOrEqual(2);
+  });
+
+  it("W1 Case 1 — endInSec is correct (taken from deleted sentence)", () => {
+    const state = makeTwoSentenceBlockState({
+      s1Start: 0, s1End: 5,
+      s2Start: 5, s2End: 10,
+    });
+    const stateWithCursor = setCursor(state, 1, 0);
+
+    let dispatchedTr: Transaction | null = null;
+    handleBackspaceKey(stateWithCursor, (tr) => { dispatchedTr = tr; });
+
+    const newState = stateWithCursor.apply(dispatchedTr!);
+    const shape = getDocShape(newState);
+    expect(shape.paragraphs[0].blocks[0].sentences[0].endInSec).toBe(10);
+  });
+
+  it("W1 Case 1 invalid timestamp — abort returns true (no-op, baseKeymap blocked)", () => {
+    // Both sentences have endInSec === 0, so mergedStartTime(0) >= mergedEndTime(0) → invalid.
+    const state = makeTwoSentenceBlockState({
+      s1Start: 0, s1End: 0,
+      s2Start: 0, s2End: 0,
+    });
+    const stateWithCursor = setCursor(state, 1, 0);
+
+    const dispatch = vi.fn();
+    const result = handleBackspaceKey(stateWithCursor, dispatch);
+
+    // Returns true (key claimed) but dispatch never called (no-op).
+    expect(result).toBe(true);
+    expect(dispatch).not.toHaveBeenCalled();
   });
 
   it("W1 preserves word marks through the merge", () => {

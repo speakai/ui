@@ -85,9 +85,8 @@ function mergeParagraphsCommand(
     offset += child.nodeSize;
   }
 
-  // Recompute the previous paragraph_container's start/end attrs from its (now larger)
-  // child block range. The transplant ran tr.delete + tr.insert shifting positions —
-  // re-map prevPos through the transaction mapping before setNodeMarkup (SPARTAN FC-1).
+  // Recompute the previous paragraph_container's start/end attrs. The transplant ran
+  // tr.delete + tr.insert which shifts positions — re-map before setNodeMarkup.
   const mappedPrevPos = tr.mapping.map(prevPos);
   const updatedPrevNode = tr.doc.nodeAt(mappedPrevPos);
   if (updatedPrevNode && updatedPrevNode.type.name === "paragraph_container") {
@@ -157,16 +156,9 @@ export function handleBackspaceKey(
 
   const { $from } = selection;
 
-  // Pre-dispatch guard 2: boundary test (Angular :627-629).
-  // Return false UNLESS parentOffset === 0 OR (parentOffset === 1 AND parent is sentence).
-  // The parentOffset === 1 case must NOT be dropped (GHOST#1).
-  const isAtSentenceStart =
-    $from.parentOffset === 0 && $from.parent.type.name === "sentence";
-  const isAfterSentenceOpen =
-    $from.parentOffset === 0 ||
-    ($from.parentOffset === 1 && $from.parent.type.name === "sentence");
-
-  if (!isAtSentenceStart && !isAfterSentenceOpen) return false;
+  // Pre-dispatch guard 2: boundary test — only fire at the start of a sentence node.
+  // parentOffset 1 is included because ProseMirror counts the opening token as position 0.
+  if (!($from.parent.type.name === "sentence" && ($from.parentOffset === 0 || $from.parentOffset === 1))) return false;
 
   // Resolve sentence, block, paragraph nodes and positions.
   let sentenceNode: import("prosemirror-model").Node | null = null;
@@ -188,7 +180,7 @@ export function handleBackspaceKey(
     }
   }
 
-  // Pre-dispatch guard 3: sentencePos === 0 → at doc position 0 (GHOST#2).
+  // Pre-dispatch guard 3: sentencePos === 0 means the sentence opens at doc position 0 — nothing to merge into.
   if (!sentenceNode || sentencePos === null || sentencePos === 0) return false;
   if (!blockNode || !paragraphNode || paragraphPos === null) return false;
 
@@ -216,8 +208,8 @@ export function handleBackspaceKey(
       const mergedEndTime = sentenceNode.attrs.endInSec ?? 0;
 
       if (!validateTimestampPair(mergedStartTime, mergedEndTime)) {
-        console.error("[Backspace] Merge would create invalid timestamps");
-        return false;
+        // invalid timestamps — claim the key, no-op (do not let baseKeymap merge unchecked)
+        return true;
       }
 
       const prevTextNodes = splitTextNodesWithMarks(
@@ -235,14 +227,13 @@ export function handleBackspaceKey(
 
       const mergedSentenceNode = schema.node(
         "sentence",
-        { ...prevSentenceNode.attrs, endInSec: mergedEndTime },
+        { ...prevSentenceNode.attrs, endInSec: mergedEndTime > 0 ? mergedEndTime : prevSentenceNode.attrs.endInSec },
         [...prevTextNodes, ...currentTextNodes],
       );
 
       const replaceStart = prevSentencePos;
       const replaceEnd = sentencePos + sentenceNode.nodeSize;
 
-      // Position bounds check before replaceWith (AEGIS#5, F2).
       if (replaceStart < 0 || replaceEnd > tr.doc.content.size) {
         console.error("[Backspace] Case 1: position out of bounds", { replaceStart, replaceEnd });
         return false;
@@ -279,8 +270,8 @@ export function handleBackspaceKey(
     const mergedEndTime = sentenceNode.attrs.endInSec ?? 0;
 
     if (!validateTimestampPair(mergedStartTime, mergedEndTime)) {
-      console.error("[Backspace] Paragraph merge would create invalid timestamps");
-      return false;
+      // invalid timestamps — claim the key, no-op (do not let baseKeymap merge unchecked)
+      return true;
     }
 
     const prevTextNodes = splitTextNodesWithMarks(
@@ -434,8 +425,7 @@ export function handleEnterKey(
   const startInSec: number = sentenceNode.attrs.startInSec ?? sentenceNode.attrs.startTime ?? 0;
   const endInSec: number = sentenceNode.attrs.endInSec ?? sentenceNode.attrs.endTime ?? 0;
 
-  // Compute splitTime — four branches IN THIS EXECUTION ORDER (GHOST#6, Angular :859-913).
-  // Branch a must fire BEFORE the word-mark walk.
+  // Compute splitTime — branch a (cursor at/past end) must fire BEFORE the word-mark walk.
   let splitTime: number = startInSec;
   let foundWordMark = false;
 
@@ -501,8 +491,7 @@ export function handleEnterKey(
     { origStart: startInSec, origEnd: endInSec, newStart: splitTime, newEnd: endInSec },
   );
 
-  // Collect remainingSentences from the block BEFORE any transaction mutation (SPARTAN FC-7).
-  // Find the sentence index within the block.
+  // Collect remainingSentences before any transaction mutation — positions shift after tr ops.
   const $sentPos = state.doc.resolve(sentencePos);
   const sentenceIndexInBlock = $sentPos.index();
   const remainingSentences: import("prosemirror-model").Node[] = [];
@@ -513,7 +502,7 @@ export function handleEnterKey(
   const tr = state.tr;
 
   // Re-anchor sentence timing from actual word-mark boundaries when marks exist,
-  // falling back to the literal splitTime boundary (SPARTAN FC-2, three-level re-anchor).
+  // falling back to the literal splitTime boundary.
   const computeSentenceTiming = (
     nodes: import("prosemirror-model").Node[],
     fallbackStart: number,

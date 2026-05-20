@@ -133,6 +133,86 @@ function buildWordMarkNodes(
 }
 
 /**
+ * Build an EditorState with a single paragraph_container containing one transcript_block
+ * with TWO sentence children — the structure that exercises Case 1 of handleBackspaceKey.
+ *
+ * makeEditorState() always produces one sentence per block, so this fixture builds
+ * the node tree directly via transcriptSchema.node().
+ */
+export function makeTwoSentenceBlockState(opts?: {
+  s1Text?: string; s1Start?: number; s1End?: number;
+  s2Text?: string; s2Start?: number; s2End?: number;
+  s1Entities?: NonNullable<SegmentFixture["entities"]>;
+  s2Entities?: NonNullable<SegmentFixture["entities"]>;
+}): EditorState {
+  const schema = transcriptSchema;
+  const s1Text = opts?.s1Text ?? "Hello world";
+  const s1Start = opts?.s1Start ?? 0;
+  const s1End = opts?.s1End ?? 5;
+  const s2Text = opts?.s2Text ?? "How are you";
+  const s2Start = opts?.s2Start ?? 5;
+  const s2End = opts?.s2End ?? 10;
+
+  const s1Content = opts?.s1Entities
+    ? buildWordMarkNodesPublic(schema, s1Text, opts.s1Entities)
+    : [schema.text(s1Text)];
+  const s2Content = opts?.s2Entities
+    ? buildWordMarkNodesPublic(schema, s2Text, opts.s2Entities)
+    : [schema.text(s2Text)];
+
+  const sentence1 = schema.node("sentence", {
+    sentenceId: "s1", speakerId: "spk1", startInSec: s1Start, endInSec: s1End,
+  }, s1Content);
+
+  const sentence2 = schema.node("sentence", {
+    sentenceId: "s2", speakerId: "spk1", startInSec: s2Start, endInSec: s2End,
+  }, s2Content);
+
+  const block = schema.node("transcript_block", {
+    paragraphId: 1, sentenceId: "s1", speakerId: "spk1",
+    speaker: { name: "Speaker spk1", userId: "spk1", speakerImg: "" },
+    startInSec: s1Start, endInSec: s2End, isParagraphStart: true,
+  }, [sentence1, sentence2]);
+
+  const para = schema.node("paragraph_container", {
+    speakerId: "spk1",
+    speaker: { name: "Speaker spk1", userId: "spk1", speakerImg: "" },
+    paragraphId: 1, start: s1Start, end: s2End,
+  }, [block]);
+
+  const doc = schema.node("doc", null, [para]);
+
+  return EditorState.create({ doc, plugins: [createEditCommandsPlugin()] });
+}
+
+// Re-export the internal helper so makeTwoSentenceBlockState can use it.
+function buildWordMarkNodesPublic(
+  schema: typeof transcriptSchema,
+  fullText: string,
+  entities: NonNullable<SegmentFixture["entities"]>
+): import("prosemirror-model").Node[] {
+  const nodes: import("prosemirror-model").Node[] = [];
+  const wordMark = schema.marks["word"];
+  let pos = 0;
+  for (const entity of entities) {
+    const idx = fullText.indexOf(entity.text, pos);
+    if (idx === -1) continue;
+    if (idx > pos) nodes.push(schema.text(fullText.substring(pos, idx)));
+    const mark = wordMark.create({
+      entityId: entity.entityId ?? "",
+      startInSec: entity.startInSec,
+      endInSec: entity.endInSec,
+      confidence: entity.confidence ?? 1,
+      speakerId: entity.speakerId ?? "",
+    });
+    nodes.push(schema.text(entity.text).mark([mark]));
+    pos = idx + entity.text.length;
+  }
+  if (pos < fullText.length) nodes.push(schema.text(fullText.substring(pos)));
+  return nodes.length > 0 ? nodes : [schema.text(fullText)];
+}
+
+/**
  * Return a new EditorState with cursor placed inside the nth sentence (0-indexed) at charOffset.
  * sentenceIndex counts all sentence nodes in document order.
  */

@@ -147,7 +147,7 @@ export function splitTextNodesWithMarks(
       return;
     }
 
-    // Guaranteed non-negative intersection via Math.max/min (AEGIS#2).
+    // Guaranteed non-negative intersection via Math.max/min.
     const sliceStart = Math.max(0, fromOffset - currentPos);
     const sliceEnd = Math.min(textLength, toOffset - currentPos);
     const slicedText = textNode.text!.substring(sliceStart, sliceEnd);
@@ -229,7 +229,7 @@ export function splitTextNodesWithMarks(
           const newStart = (effectiveNewStart ?? 0) + startRatio * newRange;
           const newEnd = (effectiveNewStart ?? 0) + endRatio * newRange;
 
-          // Prototype-safe explicit attr pick (AEGIS#1) — never spread untrusted mark.attrs.
+          // Explicit attr pick — never spread untrusted mark.attrs (prototype safety).
           return mark.type.create({
             entityId: a.entityId,
             startInSec: newStart,
