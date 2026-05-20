@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.11.14 (2026-05-20)
+
+- Fixed transcript boundary guard and alignment issues in Toast and DropdownMenu components.
+
 ## v0.11.13 (2026-05-13)
 
 - Fixed dropdown alignment, improved Toast component, and fixed various bugs in the UI components.
