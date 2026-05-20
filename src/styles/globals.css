@@ -51,6 +51,20 @@
   --color-gradient-accent: hsl(240 4% 25%);
   --skeleton-bg: hsl(240 5% 91%);
   --skeleton-highlight: hsl(240 5% 96%);
+  /* Chart palette tokens — consumed by analytics/sentiment chart components */
+  --color-chart-1: hsl(221 83% 53%);
+  --color-chart-2: hsl(212 95% 68%);
+  --color-chart-3: hsl(216 92% 60%);
+  --color-chart-4: hsl(210 98% 78%);
+  --color-chart-5: hsl(212 97% 87%);
+  /* Sentiment chart tokens — 7-bucket palette */
+  --color-chart-sentiment-very-positive: hsl(142 71% 45%);
+  --color-chart-sentiment-positive: hsl(160 84% 39%);
+  --color-chart-sentiment-slightly-positive: hsl(173 80% 40%);
+  --color-chart-sentiment-neutral: hsl(215 20% 65%);
+  --color-chart-sentiment-slightly-negative: hsl(38 92% 50%);
+  --color-chart-sentiment-negative: hsl(25 95% 53%);
+  --color-chart-sentiment-very-negative: hsl(0 84% 60%);
 }
 
 .dark {
@@ -90,6 +104,20 @@
   --color-gradient-accent: hsl(0 0% 50%);
   --skeleton-bg: hsl(240 3.7% 15%);
   --skeleton-highlight: hsl(240 3.7% 18%);
+  /* Chart palette tokens — slightly brightened for dark mode */
+  --color-chart-1: hsl(221 83% 65%);
+  --color-chart-2: hsl(212 95% 75%);
+  --color-chart-3: hsl(216 92% 68%);
+  --color-chart-4: hsl(210 98% 82%);
+  --color-chart-5: hsl(212 97% 88%);
+  /* Sentiment chart tokens — dark mode (same hues, lightened slightly) */
+  --color-chart-sentiment-very-positive: hsl(142 71% 55%);
+  --color-chart-sentiment-positive: hsl(160 84% 50%);
+  --color-chart-sentiment-slightly-positive: hsl(173 80% 50%);
+  --color-chart-sentiment-neutral: hsl(215 20% 72%);
+  --color-chart-sentiment-slightly-negative: hsl(38 92% 60%);
+  --color-chart-sentiment-negative: hsl(25 95% 63%);
+  --color-chart-sentiment-very-negative: hsl(0 84% 68%);
 }
 
 /* ──────────────────────────────────────────────
@@ -128,6 +156,18 @@
   --color-gradient-from: var(--color-gradient-from);
   --color-gradient-to: var(--color-gradient-to);
   --color-gradient-accent: var(--color-gradient-accent);
+  --color-chart-1: var(--color-chart-1);
+  --color-chart-2: var(--color-chart-2);
+  --color-chart-3: var(--color-chart-3);
+  --color-chart-4: var(--color-chart-4);
+  --color-chart-5: var(--color-chart-5);
+  --color-chart-sentiment-very-positive: var(--color-chart-sentiment-very-positive);
+  --color-chart-sentiment-positive: var(--color-chart-sentiment-positive);
+  --color-chart-sentiment-slightly-positive: var(--color-chart-sentiment-slightly-positive);
+  --color-chart-sentiment-neutral: var(--color-chart-sentiment-neutral);
+  --color-chart-sentiment-slightly-negative: var(--color-chart-sentiment-slightly-negative);
+  --color-chart-sentiment-negative: var(--color-chart-sentiment-negative);
+  --color-chart-sentiment-very-negative: var(--color-chart-sentiment-very-negative);
 }
 
 /* ──────────────────────────────────────────────
