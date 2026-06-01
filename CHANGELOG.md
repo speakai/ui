@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.13.1 (2026-06-01)
+
+- Fixed Speaker update mapping for speakers
+
 ## v0.13.0 (2026-05-20)
 
 - Added 5 analytics/sentiment chart sub-path exports, fixed various transcript issues and improved Toast alignment
