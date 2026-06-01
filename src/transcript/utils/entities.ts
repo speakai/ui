@@ -39,7 +39,7 @@ export function extractSegmentsFromDoc(doc: PMNode): ITranscriptSegment[] {
             endInSec,
           },
         ],
-        speaker: node.attrs.speaker || undefined,
+        speaker: node.attrs.speaker?.userId ? node.attrs.speaker : undefined,
         entities: entities.length > 0 ? entities : undefined,
       });
 

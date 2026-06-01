@@ -4,7 +4,11 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { validateTimestampPair, splitTextNodesWithMarks } from "../../src/transcript/utils/entities";
+import {
+  validateTimestampPair,
+  splitTextNodesWithMarks,
+  extractSegmentsFromDoc,
+} from "../../src/transcript/utils/entities";
 import { transcriptSchema } from "../../src/transcript/schema";
 
 const schema = transcriptSchema;
@@ -219,5 +223,36 @@ describe("splitTextNodesWithMarks", () => {
 
     expect(firstMarks.length).toBeGreaterThan(0);
     expect(secondMarks.length).toBeGreaterThan(0);
+  });
+});
+
+// ── extractSegmentsFromDoc — speaker payload parity with Angular ───
+
+describe("extractSegmentsFromDoc speaker", () => {
+  function docWith(blocks: Array<{ text: string; speaker?: Record<string, unknown> }>) {
+    return schema.node("doc", {}, [
+      schema.node(
+        "paragraph_container",
+        { speakerId: "0" },
+        blocks.map((b) =>
+          schema.node(
+            "transcript_block",
+            { speakerId: "0", speaker: b.speaker ?? {}, startInSec: 0, endInSec: 1 },
+            [schema.node("sentence", {}, [schema.text(b.text)])]
+          )
+        )
+      ),
+    ]);
+  }
+
+  it("omits speaker when the node attr is an empty object (matches Angular payload)", () => {
+    const [seg] = extractSegmentsFromDoc(docWith([{ text: "Hello world" }]));
+    expect(seg.speaker).toBeUndefined();
+  });
+
+  it("keeps speaker when it has a userId", () => {
+    const speaker = { userId: "u1", name: "Alice" };
+    const [seg] = extractSegmentsFromDoc(docWith([{ text: "Hello world", speaker }]));
+    expect(seg.speaker).toEqual(speaker);
   });
 });

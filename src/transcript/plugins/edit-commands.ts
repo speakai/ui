@@ -306,8 +306,6 @@ export function handleBackspaceKey(
 
     const newBlock = schema.node("transcript_block", prevBlock.attrs, newBlockSentences);
 
-    // Angular :797-799 — the rebuilt previous paragraph_container collapses to a single block
-    // (discards all prev-paragraph blocks except the last, which becomes the merged block).
     const newParagraph = schema.node("paragraph_container", prevParagraphNode.attrs, [newBlock]);
 
     const replaceStart = prevParagraphPos;
@@ -342,8 +340,6 @@ export function handleBackspaceKey(
     try {
       tr.replaceWith(replaceStart, replaceEnd, finalParagraph);
 
-      // Cursor at merge junction: prevParagraphPos + 1(para) + 1(block) + prev sentences
-      // + 1(merged sentence open) + prev text length.
       const prevSentencesSize = newBlockSentences
         .slice(0, newBlockSentences.length - 1)
         .reduce((sum, s) => sum + s.nodeSize, 0);
@@ -419,21 +415,17 @@ export function handleEnterKey(
   const textBefore = sentenceNode.textContent.substring(0, relativePos);
   const textAfter = sentenceNode.textContent.substring(relativePos);
 
-  // Guard 2: both halves blank → no-op (Angular :1425-1427).
   if (textBefore.trim().length === 0 && textAfter.trim().length === 0) return false;
 
   const startInSec: number = sentenceNode.attrs.startInSec ?? sentenceNode.attrs.startTime ?? 0;
   const endInSec: number = sentenceNode.attrs.endInSec ?? sentenceNode.attrs.endTime ?? 0;
 
-  // Compute splitTime — branch a (cursor at/past end) must fire BEFORE the word-mark walk.
   let splitTime: number = startInSec;
   let foundWordMark = false;
 
   if (relativePos >= totalTextLength) {
-    // Branch a: cursor at/past last character → 95% cap (early return, skip b–c).
     splitTime = startInSec + 0.95 * (endInSec - startInSec);
   } else {
-    // Branch b: walk word marks to find the mark at/before the cursor.
     let charPos = 0;
     sentenceNode.forEach((child) => {
       if (!child.isText) return;
@@ -453,18 +445,15 @@ export function handleEnterKey(
     });
 
     if (!foundWordMark) {
-      // Branch c: proportional fallback (Angular :900-903).
       const safeLen = Math.max(totalTextLength, 1);
       splitTime = startInSec + (relativePos / safeLen) * (endInSec - startInSec);
     }
   }
 
-  // Branch d: final clamp — applies to all paths (Angular :907-910).
   if (splitTime >= endInSec) {
     splitTime = startInSec + 0.90 * (endInSec - startInSec);
   }
 
-  // Guard 3: validate both halves.
   if (
     !validateTimestampPair(startInSec, splitTime) ||
     !validateTimestampPair(splitTime, endInSec) ||
@@ -475,7 +464,6 @@ export function handleEnterKey(
 
   if (!dispatch) return true;
 
-  // Partition content with marks preserved and re-timed (W4).
   const textBeforeNodes = splitTextNodesWithMarks(
     sentenceNode,
     0,
@@ -491,7 +479,6 @@ export function handleEnterKey(
     { origStart: startInSec, origEnd: endInSec, newStart: splitTime, newEnd: endInSec },
   );
 
-  // Collect remainingSentences before any transaction mutation — positions shift after tr ops.
   const $sentPos = state.doc.resolve(sentencePos);
   const sentenceIndexInBlock = $sentPos.index();
   const remainingSentences: import("prosemirror-model").Node[] = [];
@@ -501,8 +488,6 @@ export function handleEnterKey(
 
   const tr = state.tr;
 
-  // Re-anchor sentence timing from actual word-mark boundaries when marks exist,
-  // falling back to the literal splitTime boundary.
   const computeSentenceTiming = (
     nodes: import("prosemirror-model").Node[],
     fallbackStart: number,
@@ -529,7 +514,6 @@ export function handleEnterKey(
   const beforeTiming = computeSentenceTiming(textBeforeNodes, startInSec, splitTime);
   const afterTiming = computeSentenceTiming(textAfterNodes, splitTime, endInSec);
 
-  // Build the updated current sentence (textBefore, endInSec = splitTime).
   const updatedCurrentSentence = schema.node(
     "sentence",
     {
@@ -540,17 +524,14 @@ export function handleEnterKey(
     textBeforeNodes,
   );
 
-  // Replace current sentence in the transaction.
   const sentenceEnd = sentencePos + sentenceNode.nodeSize;
   if (sentencePos < 0 || sentenceEnd > tr.doc.content.size) {
     console.error("[Enter] sentence position out of bounds");
     return false;
   }
   tr.replaceWith(sentencePos, sentenceEnd, updatedCurrentSentence);
-
-  // Remove remainingSentences from the current block (after updating current sentence).
+  
   if (remainingSentences.length > 0) {
-    // Re-resolve block position after the sentence replacement.
     const mappedBlockPos = tr.mapping.map(blockPos);
     const updatedBlock = tr.doc.nodeAt(mappedBlockPos);
     if (!updatedBlock) {
