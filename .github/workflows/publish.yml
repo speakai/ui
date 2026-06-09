@@ -8,6 +8,7 @@ concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 permissions:
   contents: write
+  packages: write
   models: read
 
 jobs:
@@ -188,3 +189,23 @@ jobs:
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # Mirror the same version to GitHub Packages so the voice-agent-client
+      # (which scopes @speakai -> npm.pkg.github.com for the private
+      # voice-agent-shared) can resolve @speakai/ui from the same registry.
+      # Runs AFTER the npm publish; only edits the working copy (never committed).
+      - name: Publish to GitHub Packages
+        if: steps.bump.outputs.should_release == 'true'
+        run: |
+          echo "@speakai:registry=https://npm.pkg.github.com" > .npmrc
+          echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" >> .npmrc
+          npm pkg delete publishConfig.registry   # publishConfig forces npmjs; drop for this publish
+          PKG=$(node -p "require('./package.json').name")
+          VER=$(node -p "require('./package.json').version")
+          if npm view "$PKG@$VER" --registry=https://npm.pkg.github.com >/dev/null 2>&1; then
+            echo "$PKG@$VER already on GitHub Packages — skipping"
+          else
+            npm publish --registry=https://npm.pkg.github.com
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
