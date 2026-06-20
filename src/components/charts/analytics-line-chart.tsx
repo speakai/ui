@@ -19,6 +19,14 @@ interface AnalyticsLineChartProps {
   domain?: [number, number] | "auto";
   /** Tooltip value formatter. Defaults to 3 decimal places. */
   formatter?: (value: number) => string;
+  /**
+   * Optional previous-period series, plotted as a faded dashed "ghost" line
+   * against the same x-axis for period-over-period comparison. Aligned by index
+   * to `timeline`; omit to draw only the current series.
+   */
+  ghostValues?: number[];
+  /** Tooltip/legend label for the ghost series. */
+  ghostLabel?: string;
 }
 
 function formatDate(value: string): string {
@@ -37,11 +45,15 @@ export function AnalyticsLineChart({
   className,
   domain = [-1, 1],
   formatter = (value: number) => `${value.toFixed(3)}`,
+  ghostValues,
+  ghostLabel,
 }: AnalyticsLineChartProps) {
   const reducedMotion = useReducedMotion();
+  const hasGhost = Array.isArray(ghostValues) && ghostValues.length > 0;
   const chartData = timeline.map((date, i) => ({
     date,
     compound: values[i] ?? 0,
+    ...(hasGhost ? { previous: ghostValues[i] ?? null } : {}),
   }));
 
   return (
@@ -78,11 +90,31 @@ export function AnalyticsLineChart({
                 borderRadius: "6px",
                 color: "var(--color-foreground)",
               }}
-              formatter={(value) => formatter(Number(value))}
+              formatter={
+                hasGhost
+                  ? (value, name) => [formatter(Number(value)), name]
+                  : (value) => formatter(Number(value))
+              }
             />
+            {hasGhost ? (
+              <Line
+                type="monotone"
+                dataKey="previous"
+                name={ghostLabel ?? "Previous period"}
+                stroke="var(--color-muted-foreground)"
+                strokeWidth={1.5}
+                strokeDasharray="4 4"
+                strokeOpacity={0.6}
+                dot={false}
+                activeDot={{ r: 4 }}
+                connectNulls
+                isAnimationActive={!reducedMotion}
+              />
+            ) : null}
             <Line
               type="monotone"
               dataKey="compound"
+              {...(hasGhost ? { name: title } : {})}
               stroke="var(--color-chart-1)"
               strokeWidth={2}
               dot={{ fill: "var(--color-chart-1)", r: 3 }}

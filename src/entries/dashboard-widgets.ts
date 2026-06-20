@@ -1,0 +1,132 @@
+/**
+ * Grouped sub-path export for the presentational dashboard widgets.
+ *
+ * `@speakai/ui/dashboard-widgets` exposes the `DashboardWidgetView` dispatcher,
+ * every widget body, their labels/config prop contracts, the pure metric
+ * registries + format/brand helpers, and the widget icon set. Both speak-client
+ * (TanStack) and speak-media-library (fetch client) import from here so the same
+ * widgets render identically in the builder and the public view.
+ */
+
+// ── Dispatcher ─────────────────────────────────────────────────────────────
+export {
+  DashboardWidgetView,
+  type DashboardWidgetViewProps,
+} from "../components/dashboards/dashboard-widget-view";
+
+// ── Widget bodies ──────────────────────────────────────────────────────────
+export {
+  StatCardsWidget,
+  type StatCardsWidgetProps,
+  type StatCardsConfig,
+  type StatCardsLabels,
+} from "../components/dashboards/stat-cards-widget";
+export {
+  SentimentWidget,
+  type SentimentWidgetProps,
+  type SentimentLabels,
+} from "../components/dashboards/sentiment-widget";
+export {
+  SentimentTrendWidget,
+  type SentimentTrendWidgetProps,
+  type SentimentTrendConfig,
+  type SentimentTrendLabels,
+} from "../components/dashboards/sentiment-trend-widget";
+export {
+  FieldDistributionWidget,
+  type FieldDistributionWidgetProps,
+  type FieldDistributionLabels,
+} from "../components/dashboards/field-distribution-widget";
+export {
+  UploadTimelineWidget,
+  buildUploadTimeline,
+  type UploadTimelineWidgetProps,
+  type UploadTimelineConfig,
+  type UploadTimelineLabels,
+} from "../components/dashboards/upload-timeline-widget";
+export {
+  ThemesWidget,
+  type ThemesWidgetProps,
+  type ThemesConfig,
+  type ThemesLabels,
+} from "../components/dashboards/themes-widget";
+export {
+  KpiTrendWidget,
+  type KpiTrendWidgetProps,
+  type KpiTrendConfig,
+  type KpiTrendLabels,
+} from "../components/dashboards/kpi-trend-widget";
+export {
+  ComparisonWidget,
+  type ComparisonWidgetProps,
+  type ComparisonConfig,
+  type ComparisonLabels,
+} from "../components/dashboards/comparison-widget";
+export {
+  InsightBarWidget,
+  type InsightBarWidgetProps,
+  type InsightBarLabels,
+} from "../components/dashboards/insight-bar-widget";
+export {
+  MediaListWidget,
+  type MediaListWidgetProps,
+  type MediaListRow,
+  type MediaListLabels,
+} from "../components/dashboards/media-list-widget";
+export {
+  NotesWidget,
+  type NotesWidgetProps,
+  type NotesConfig,
+  type NotesLabels,
+} from "../components/dashboards/notes-widget";
+export {
+  PublicUnavailableWidget,
+  PUBLIC_UNAVAILABLE_TYPES,
+  type PublicUnavailableLabels,
+} from "../components/dashboards/public-unavailable-widget";
+
+// ── Shared widget prop contracts ───────────────────────────────────────────
+export type {
+  WidgetDataState,
+  WidgetCommonLabels,
+  DashboardWidgetType,
+} from "../components/dashboards/types";
+
+// ── Pure metric registries ─────────────────────────────────────────────────
+export {
+  STAT_METRICS,
+  STAT_METRIC_ORDER,
+  DEFAULT_STAT_METRICS,
+  resolveStatMetrics,
+  meanCompound,
+  type StatMetricKey,
+  type StatMetricValues,
+  type StatMetricDeltas,
+} from "../components/dashboards/stat-metrics";
+export {
+  SNAPSHOT_METRICS,
+  SNAPSHOT_METRIC_ORDER,
+  DEFAULT_KPI_METRIC,
+  DEFAULT_COMPARISON_METRICS,
+  resolveSnapshotMetrics,
+  resolveKpiMetrics,
+  resolveComparisonMetrics,
+  type SnapshotMetricKey,
+  type SnapshotCurrent,
+  type SnapshotDelta,
+  type ComparisonMetricKey,
+} from "../components/dashboards/snapshot-metrics";
+
+// ── Pure presentational helpers ────────────────────────────────────────────
+export {
+  isHexColor,
+  expandHex,
+  adjustBrandColorForTheme,
+  brandStyle,
+  brandFontStyle,
+} from "../components/dashboards/brand-style";
+export {
+  formatFileSize,
+  formatNumberSuffix,
+  formatDurationHuman,
+} from "../components/dashboards/format";

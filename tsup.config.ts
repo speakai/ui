@@ -59,6 +59,8 @@ export default defineConfig({
     "src/entries/analytics-line-chart.ts",
     "src/entries/sentiment-pie-chart.ts",
     "src/entries/sentiment-comparison-bar-chart.ts",
+    // Dashboard widgets (grouped presentational bundle)
+    "src/entries/dashboard-widgets.ts",
   ],
   format: ["cjs", "esm"],
   dts: true,

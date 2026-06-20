@@ -271,6 +271,11 @@
       "import": "./dist/entries/sentiment-comparison-bar-chart.mjs",
       "require": "./dist/entries/sentiment-comparison-bar-chart.js"
     },
+    "./dashboard-widgets": {
+      "types": "./dist/entries/dashboard-widgets.d.ts",
+      "import": "./dist/entries/dashboard-widgets.mjs",
+      "require": "./dist/entries/dashboard-widgets.js"
+    },
     "./styles.css": "./dist/styles.css"
   },
   "typesVersions": {
@@ -430,6 +435,9 @@
       ],
       "sentiment-comparison-bar-chart": [
         "dist/entries/sentiment-comparison-bar-chart.d.ts"
+      ],
+      "dashboard-widgets": [
+        "dist/entries/dashboard-widgets.d.ts"
       ]
     }
   },
