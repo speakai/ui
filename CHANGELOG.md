@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.14.0 (2026-06-20)
+
+- Added presentational widget set and ghost-upgraded charts to dashboards
+
 ## v0.13.1 (2026-06-01)
 
 - Fixed Speaker update mapping for speakers
