@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.15.0 (2026-06-21)
+
+- Released extracted dashboard widget set
+
 ## v0.14.0 (2026-06-20)
 
 - Added presentational widget set and ghost-upgraded charts to dashboards
