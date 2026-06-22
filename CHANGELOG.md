@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.15.1 (2026-06-22)
+
+- Fixed UI
+
 ## v0.15.0 (2026-06-21)
 
 - Released extracted dashboard widget set
