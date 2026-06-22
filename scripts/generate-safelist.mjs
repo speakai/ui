@@ -76,6 +76,7 @@ function isLikelyTailwindClass(token) {
     "p-", "px-", "py-", "pt-", "pb-", "pl-", "pr-",
     "m-", "mx-", "my-", "mt-", "mb-", "ml-", "mr-",
     "gap-", "space-", "grid-", "col-", "row-", "flex-",
+    "items-", "content-", "justify-", "place-", "self-",
     "grow-", "shrink-", "basis-", "order-", "z-", "inset-",
     "top-", "right-", "bottom-", "left-",
     "rounded-", "overflow-", "opacity-", "cursor-", "pointer-events-",

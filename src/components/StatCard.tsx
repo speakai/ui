@@ -13,6 +13,12 @@ export interface StatCardProps extends HTMLAttributes<HTMLDivElement> {
   /** Optional class name applied to the value text (e.g. for custom colors) */
   valueClassName?: string;
   variant?: "default" | "gradient";
+  /**
+   * Optional content pinned to the bottom of the card (e.g. a delta caption).
+   * The card is a flex column, so the footer sits on a shared baseline across a
+   * row of equal-height cards; pass an empty node to reserve the slot.
+   */
+  footer?: ReactNode;
 }
 
 // ── Color Maps ─────────────────────────────────────────────────────────────────
@@ -43,6 +49,7 @@ export const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
       value,
       valueClassName,
       variant = "default",
+      footer,
       className,
       ...props
     },
@@ -54,7 +61,7 @@ export const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
       <div
         ref={ref}
         className={cn(
-          "rounded-lg border p-4 sm:p-5 transition-colors",
+          "flex h-full flex-col rounded-lg border p-4 sm:p-5 transition-colors",
           isGradient
             ? "border-transparent bg-gradient-to-br from-gradient-from to-gradient-to text-primary-foreground"
             : "border-border bg-card",
@@ -92,6 +99,9 @@ export const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
         >
           {value}
         </p>
+        {footer !== undefined && (
+          <div className="mt-auto pt-2">{footer}</div>
+        )}
       </div>
     );
   }
@@ -115,7 +125,7 @@ export const StatCardGrid = forwardRef<HTMLDivElement, StatCardGridProps>(
   ({ columns = 4, children, className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("grid gap-4", gridColsMap[columns], className)}
+      className={cn("grid items-stretch gap-4", gridColsMap[columns], className)}
       {...props}
     >
       {children}

@@ -106,9 +106,13 @@ export function StatCardsWidget({
       {selected.map((key) => {
         const meta = STAT_METRICS[key];
         const Icon = meta.icon;
-        const showDelta = !!config?.showDelta && !!meta.getDelta;
+        // When the widget shows deltas, every card reserves a footer slot so the
+        // value rows and footers line up; cards whose metric has no delta render
+        // an invisible placeholder of the same height.
+        const showDeltaFooter = !!config?.showDelta;
+        const hasDelta = showDeltaFooter && !!meta.getDelta;
         const isUnavailable = unavailable.has(key);
-        const card = (
+        return (
           <StatCard
             key={key}
             icon={<Icon className="h-5 w-5" />}
@@ -121,22 +125,24 @@ export function StatCardsWidget({
             }
             valueClassName={isUnavailable ? "text-muted-foreground" : undefined}
             title={isUnavailable ? labels.unavailableTitle : undefined}
+            footer={
+              showDeltaFooter
+                ? hasDelta
+                  ? (
+                      <DeltaCaption
+                        delta={meta.getDelta!(resolvedDeltas)}
+                        format={meta.formatDelta ?? ((n) => `${n}`)}
+                        noChangeLabel={labels.noChangeLabel ?? ""}
+                        deltaLabel={
+                          labels.deltaLabel ??
+                          ((sign, value) => `${sign}${value}`)
+                        }
+                      />
+                    )
+                  : <p aria-hidden="true" className="text-xs">&nbsp;</p>
+                : undefined
+            }
           />
-        );
-        if (!showDelta) return card;
-        return (
-          <div key={key} className="flex flex-col">
-            {card}
-            <DeltaCaption
-              className="mt-1"
-              delta={meta.getDelta!(resolvedDeltas)}
-              format={meta.formatDelta ?? ((n) => `${n}`)}
-              noChangeLabel={labels.noChangeLabel ?? ""}
-              deltaLabel={
-                labels.deltaLabel ?? ((sign, value) => `${sign}${value}`)
-              }
-            />
-          </div>
         );
       })}
     </StatCardGrid>
