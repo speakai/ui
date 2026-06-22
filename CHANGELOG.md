@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.15.3 (2026-06-22)
+
+- Fixed UI issues
+
 ## v0.15.2 (2026-06-22)
 
 - Fixed UI
