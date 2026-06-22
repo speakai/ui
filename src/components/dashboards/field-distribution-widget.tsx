@@ -28,8 +28,9 @@ export interface FieldDistributionWidgetProps {
   onRetry?: () => void;
   /**
    * Render-only config. `measure` selects what `nTimes` represents:
-   * "count" (default) | "words" | "duration". It drives value formatting only —
-   * the server has already projected the chosen measure into `nTimes`.
+   * "count" (default) | "words" | "duration" | "avg:<fieldId>" | "sum:<fieldId>".
+   * It drives value formatting only — the server has already projected the chosen
+   * measure into `nTimes`.
    */
   config?: { measure?: string };
 }
@@ -63,8 +64,18 @@ export function FieldDistributionWidget({
   }
 
   const measure = config?.measure ?? "count";
-  const valueFormatter =
-    measure === "duration" ? formatDurationHuman : formatCount;
+  const isAverage = measure.startsWith("avg:");
+  const isSum = measure.startsWith("sum:");
+  // Averages of a numeric field can be fractional (e.g. 54.3) — show up to one
+  // decimal. Sums reuse the grouped count formatter; duration stays human-readable.
+  const valueFormatter = isAverage
+    ? (v: number) =>
+        Number.isFinite(v)
+          ? v.toLocaleString("en-US", { maximumFractionDigits: 1 })
+          : String(v)
+    : measure === "duration"
+      ? formatDurationHuman
+      : formatCount;
 
   return (
     <AnalyticsBarChart
@@ -73,7 +84,7 @@ export function FieldDistributionWidget({
       tickMaxLength={16}
       chartLabel={labels.measureLabel}
       valueFormatter={valueFormatter}
-      allowDecimals={measure !== "count"}
+      allowDecimals={measure !== "count" && !isSum}
     />
   );
 }
