@@ -30,6 +30,10 @@ interface AnalyticsBarChartProps {
   onBarClick?: (text: string) => void;
   containerRef?: RefObject<HTMLDivElement | null>;
   className?: string;
+  /** Format a value for the Y-axis ticks and tooltip (e.g. "1,004h 4m"). */
+  valueFormatter?: (value: number) => string;
+  /** Allow fractional Y-axis ticks (default false — counts are integers). */
+  allowDecimals?: boolean;
 }
 
 export function AnalyticsBarChart({
@@ -43,6 +47,8 @@ export function AnalyticsBarChart({
   onBarClick,
   containerRef: externalRef,
   className,
+  valueFormatter,
+  allowDecimals,
 }: AnalyticsBarChartProps) {
   const internalRef = useRef<HTMLDivElement>(null);
   const chartRef = externalRef ?? internalRef;
@@ -147,7 +153,12 @@ export function AnalyticsBarChart({
                 fontSize: isMobile ? 10 : 12,
               }}
               width={isMobile ? 28 : 40}
-              allowDecimals={false}
+              allowDecimals={allowDecimals ?? false}
+              tickFormatter={
+                valueFormatter
+                  ? (v: number) => valueFormatter(Number(v))
+                  : undefined
+              }
             />
             <Tooltip
               contentStyle={{
@@ -156,6 +167,7 @@ export function AnalyticsBarChart({
                 borderRadius: "6px",
                 color: "var(--color-foreground)",
               }}
+              formatter={(v) => (valueFormatter ? valueFormatter(Number(v)) : v)}
             />
             {compareData && <Legend />}
             <Bar

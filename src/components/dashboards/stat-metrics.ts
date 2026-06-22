@@ -12,20 +12,16 @@ import type { IconColor } from "../StatCard";
 import {
   FileAudioIcon,
   HardDriveIcon,
-  MessageSquareIcon,
-  ClockIcon,
   TypeIcon,
   UsersIcon,
   TimerIcon,
   SmileIcon,
 } from "./icons";
-import { formatFileSize, formatNumberSuffix, formatDurationHuman } from "./format";
+import { formatFileSize, formatCount, formatDurationHuman } from "./format";
 
 export type StatMetricKey =
   | "media"
   | "storage"
-  | "prompts"
-  | "minutes"
   | "words"
   | "speakers"
   | "duration"
@@ -35,8 +31,6 @@ export type StatMetricKey =
 export interface StatMetricValues {
   totalMedia: number;
   storageBytes: number;
-  totalPrompts: number;
-  usedMinutes: number;
   totalWords: number;
   uniqueSpeakers: number;
   totalDurationSeconds: number;
@@ -63,36 +57,26 @@ export const STAT_METRICS: Record<StatMetricKey, StatMetricMeta> = {
   media: {
     icon: FileAudioIcon,
     iconColor: "blue",
-    getValue: (v) => formatNumberSuffix(v.totalMedia),
+    getValue: (v) => formatCount(v.totalMedia),
   },
   storage: {
     icon: HardDriveIcon,
     iconColor: "purple",
-    getValue: (v) => formatFileSize(v.storageBytes),
-  },
-  prompts: {
-    icon: MessageSquareIcon,
-    iconColor: "green",
-    getValue: (v) => formatNumberSuffix(v.totalPrompts),
-  },
-  minutes: {
-    icon: ClockIcon,
-    iconColor: "orange",
-    getValue: (v) => formatNumberSuffix(v.usedMinutes),
+    getValue: (v) => (v.storageBytes <= 0 ? "—" : formatFileSize(v.storageBytes)),
   },
   words: {
     icon: TypeIcon,
     iconColor: "pink",
-    getValue: (v) => formatNumberSuffix(v.totalWords),
+    getValue: (v) => formatCount(v.totalWords),
     getDelta: (d) => d.totalWordsDelta,
-    formatDelta: formatNumberSuffix,
+    formatDelta: formatCount,
   },
   speakers: {
     icon: UsersIcon,
     iconColor: "blue",
-    getValue: (v) => formatNumberSuffix(v.uniqueSpeakers),
+    getValue: (v) => formatCount(v.uniqueSpeakers),
     getDelta: (d) => d.uniqueSpeakersDelta,
-    formatDelta: formatNumberSuffix,
+    formatDelta: formatCount,
   },
   duration: {
     icon: TimerIcon,
@@ -112,20 +96,18 @@ export const STAT_METRICS: Record<StatMetricKey, StatMetricMeta> = {
 export const STAT_METRIC_ORDER: StatMetricKey[] = [
   "media",
   "storage",
-  "prompts",
-  "minutes",
   "words",
   "speakers",
   "duration",
   "sentiment",
 ];
 
-/** Default selection when a widget has no `config.metrics` — the original four. */
+/** Default selection when a widget has no `config.metrics` — the content-lens four. */
 export const DEFAULT_STAT_METRICS: StatMetricKey[] = [
   "media",
-  "storage",
-  "prompts",
-  "minutes",
+  "duration",
+  "words",
+  "speakers",
 ];
 
 function isStatMetricKey(value: unknown): value is StatMetricKey {

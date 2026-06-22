@@ -57,6 +57,18 @@ export function formatNumberSuffix(input: number, decimals?: number): string {
   return (isNegativeValue ? "-" : "") + formatted + suffixes[exp - 1];
 }
 
+/**
+ * Format a count for display: full locale-grouped digits ("1,327"), falling back
+ * to compact K/M/B notation only for very large values so a stat card stays
+ * readable. Use this for dashboard metric values where "1K" would hide precision.
+ */
+export function formatCount(input: number): string {
+  if (Number.isNaN(input) || !isNumeric(input)) return String(input);
+  return Math.abs(input) < 100_000
+    ? Math.round(input).toLocaleString("en-US")
+    : formatNumberSuffix(input, 1);
+}
+
 /** Format aggregate seconds as a human-readable duration (e.g. "1,004h 4m"). */
 export function formatDurationHuman(seconds: number | null | undefined): string {
   if (seconds == null || isNaN(seconds) || seconds < 0) return "";

@@ -8,7 +8,7 @@
 
 import type { ComponentType } from "react";
 import { FileAudioIcon, ClockIcon, TypeIcon, UsersIcon } from "./icons";
-import { formatNumberSuffix, formatDurationHuman } from "./format";
+import { formatCount, formatDurationHuman } from "./format";
 
 export type SnapshotMetricKey =
   | "totalFiles"
@@ -39,7 +39,7 @@ interface SnapshotMetricMeta {
   format: (value: number) => string;
 }
 
-const formatNumber = (n: number) => formatNumberSuffix(n);
+const formatNumber = (n: number) => formatCount(n);
 const formatDuration = (n: number) => formatDurationHuman(n);
 
 export const SNAPSHOT_METRICS: Record<SnapshotMetricKey, SnapshotMetricMeta> = {

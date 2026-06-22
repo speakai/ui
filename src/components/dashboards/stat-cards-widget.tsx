@@ -89,8 +89,6 @@ export function StatCardsWidget({
   const values: StatMetricValues = data ?? {
     totalMedia: 0,
     storageBytes: 0,
-    totalPrompts: 0,
-    usedMinutes: 0,
     totalWords: 0,
     uniqueSpeakers: 0,
     totalDurationSeconds: 0,
