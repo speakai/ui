@@ -68,6 +68,10 @@ function formatTime(seconds: number): string {
   return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
 }
 
+function setCurrentTimeSafe(el: HTMLMediaElement, time: number): void {
+  if (Number.isFinite(time)) el.currentTime = time;
+}
+
 const DEFAULT_PLAYBACK_RATES = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
 // ── Types ───────────────────────────────────────────────────────
@@ -187,7 +191,7 @@ export const MediaPlayer = forwardRef<HTMLDivElement, MediaPlayerProps>(
     useEffect(() => {
       const el = getEl();
       if (seekTarget != null && el) {
-        el.currentTime = seekTarget;
+        setCurrentTimeSafe(el, seekTarget);
         el.play().catch(() => {});
         onSeekComplete?.();
       }
@@ -196,9 +200,16 @@ export const MediaPlayer = forwardRef<HTMLDivElement, MediaPlayerProps>(
     // ── Fullscreen tracking ─────────────────────────────────────
 
     useEffect(() => {
-      const handler = () => setIsFullscreen(!!document.fullscreenElement);
+      const handler = () => {
+        const doc = document as Document & { webkitFullscreenElement?: Element };
+        setIsFullscreen(!!(document.fullscreenElement || doc.webkitFullscreenElement));
+      };
       document.addEventListener("fullscreenchange", handler);
-      return () => document.removeEventListener("fullscreenchange", handler);
+      document.addEventListener("webkitfullscreenchange", handler);
+      return () => {
+        document.removeEventListener("fullscreenchange", handler);
+        document.removeEventListener("webkitfullscreenchange", handler);
+      };
     }, []);
 
     // ── Auto-hide controls for video ────────────────────────────
@@ -223,9 +234,9 @@ export const MediaPlayer = forwardRef<HTMLDivElement, MediaPlayerProps>(
       (s: number) => {
         const el = getEl();
         if (!el) return;
-        el.currentTime = Math.max(
-          0,
-          Math.min(el.currentTime + s, el.duration || 0)
+        setCurrentTimeSafe(
+          el,
+          Math.max(0, Math.min(el.currentTime + s, el.duration || 0))
         );
       },
       [getEl]
@@ -268,10 +279,27 @@ export const MediaPlayer = forwardRef<HTMLDivElement, MediaPlayerProps>(
     const toggleFullscreen = useCallback(() => {
       const c = containerRef.current;
       if (!c) return;
-      document.fullscreenElement
-        ? document.exitFullscreen()
-        : c.requestFullscreen().catch(() => {});
-    }, []);
+      const doc = document as Document & {
+        webkitFullscreenElement?: Element;
+        webkitExitFullscreen?: () => void;
+      };
+      if (doc.fullscreenElement || doc.webkitFullscreenElement) {
+        (doc.exitFullscreen ?? doc.webkitExitFullscreen)?.call(doc);
+        return;
+      }
+      const elc = c as HTMLElement & {
+        webkitRequestFullscreen?: () => Promise<void> | void;
+      };
+      const request = elc.requestFullscreen ?? elc.webkitRequestFullscreen;
+      if (request) {
+        Promise.resolve(request.call(elc)).catch(() => {});
+        return;
+      }
+      const video = getEl() as
+        | (HTMLMediaElement & { webkitEnterFullscreen?: () => void })
+        | null;
+      video?.webkitEnterFullscreen?.();
+    }, [getEl]);
 
     // ── Progress bar interaction ────────────────────────────────
 
@@ -282,9 +310,11 @@ export const MediaPlayer = forwardRef<HTMLDivElement, MediaPlayerProps>(
         if (!bar || !el) return;
         const rect = bar.getBoundingClientRect();
         const pad = 16; // px-4
-        el.currentTime =
-          Math.max(0, Math.min(1, (e.clientX - rect.left - pad) / (rect.width - 2 * pad))) *
-          (el.duration || 0);
+        const ratio = Math.max(
+          0,
+          Math.min(1, (e.clientX - rect.left - pad) / (rect.width - 2 * pad))
+        );
+        setCurrentTimeSafe(el, ratio * (el.duration || 0));
       },
       [getEl]
     );
