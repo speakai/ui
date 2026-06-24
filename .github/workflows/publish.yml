@@ -46,6 +46,8 @@ jobs:
         if: steps.demo-cache.outputs.cache-hit != 'true'
         run: cd demo && npm install && npm run build
 
+      - name: Drop unrelated third-party apt repos (Microsoft 403s break apt-get update)
+        run: sudo grep -rlZ packages.microsoft.com /etc/apt/sources.list.d/ 2>/dev/null | sudo xargs -0r rm -f
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
       - uses: actions/upload-artifact@v4
