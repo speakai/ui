@@ -30,6 +30,20 @@ export interface SidePanelProps extends HTMLAttributes<HTMLDivElement> {
   header?: ReactNode;
   /** Footer content — sticky at bottom */
   footer?: ReactNode;
+  /**
+   * Opt-in expand/narrow width toggle. When true, the default header renders a
+   * button (next to close) that swaps the panel width between `size` and
+   * `expandedSize`. The choice is remembered in localStorage. No-op when a
+   * custom `header` is supplied.
+   */
+  expandable?: boolean;
+  /** Width to use while expanded. Defaults to one step wider than `size`. */
+  expandedSize?: SidePanelSize;
+  /**
+   * Stable identifier for persisting the expanded choice in localStorage
+   * (`sidepanel-expanded:<id>`). Falls back to `title` when omitted.
+   */
+  panelId?: string;
 }
 
 // ── Size Map ─────────────────────────────────────────────────────────────────
@@ -41,6 +55,35 @@ const sizeMap: Record<SidePanelSize, string> = {
   xl: "w-full sm:w-[640px]",
   full: "w-full",
 };
+
+// Order from narrowest to widest — used to pick a sensible default expanded size.
+const SIZE_ORDER: SidePanelSize[] = ["sm", "default", "lg", "xl", "full"];
+
+/** One step wider than `size`, capped at the widest ("full"). */
+function widerSize(size: SidePanelSize): SidePanelSize {
+  const next = SIZE_ORDER.indexOf(size) + 1;
+  return SIZE_ORDER[Math.min(next, SIZE_ORDER.length - 1)];
+}
+
+const EXPANDED_STORAGE_PREFIX = "sidepanel-expanded:";
+
+function readExpandedPref(key: string | null): boolean {
+  if (!key || typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(EXPANDED_STORAGE_PREFIX + key) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function writeExpandedPref(key: string | null, value: boolean): void {
+  if (!key || typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(EXPANDED_STORAGE_PREFIX + key, value ? "1" : "0");
+  } catch {
+    // Ignore — private mode / storage disabled. Toggle still works in-session.
+  }
+}
 
 // Matches the `duration-200` Tailwind class on the panel transition — used as a
 // fallback so we still unmount if transitionend never fires (reduced-motion,
@@ -62,6 +105,9 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
       backdrop = true,
       header,
       footer,
+      expandable = false,
+      expandedSize,
+      panelId,
       className,
       children,
       ...props
@@ -69,6 +115,22 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
     ref
   ) => {
     const panelRef = useRef<HTMLDivElement>(null);
+
+    // Expand/narrow width toggle (opt-in). Persisted per panel in localStorage.
+    const storageKey = panelId ?? title ?? null;
+    const [expanded, setExpanded] = useState(() =>
+      expandable ? readExpandedPref(storageKey) : false
+    );
+    const resolvedExpandedSize = expandedSize ?? widerSize(size);
+    const activeSize = expandable && expanded ? resolvedExpandedSize : size;
+
+    const toggleExpanded = useCallback(() => {
+      setExpanded((prev) => {
+        const next = !prev;
+        writeExpandedPref(storageKey, next);
+        return next;
+      });
+    }, [storageKey]);
 
     // Mount lifecycle: we want the panel out of the DOM (no children rendered,
     // no aria-modal dialog in the tree) when closed, but we also want the
@@ -191,7 +253,10 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
               : isRight
                 ? "translate-x-full"
                 : "-translate-x-full",
-            sizeMap[size],
+            // Animate width alongside the slide transform only when expandable,
+            // so the default (non-expandable) class output is unchanged.
+            expandable && "transition-all",
+            sizeMap[activeSize],
             className
           )}
           {...props}
@@ -213,15 +278,36 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
                 )}
                 <h2 className="truncate text-sm font-semibold text-foreground">{title}</h2>
               </div>
-              <button
-                onClick={onClose}
-                aria-label="Close panel"
-                className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                </svg>
-              </button>
+              <div className="flex items-center gap-1">
+                {expandable && (
+                  <button
+                    type="button"
+                    onClick={toggleExpanded}
+                    aria-label={expanded ? "Narrow panel" : "Expand panel"}
+                    aria-pressed={expanded}
+                    className="hidden rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring sm:inline-flex"
+                  >
+                    {expanded ? (
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 9 4.5 4.5M9 9V5.25M9 9H5.25m9.75 0 4.5-4.5M15 9V5.25M15 9h3.75M9 15l-4.5 4.5M9 15v3.75M9 15H5.25M15 15l4.5 4.5M15 15v3.75M15 15h3.75" />
+                      </svg>
+                    ) : (
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+                      </svg>
+                    )}
+                  </button>
+                )}
+                <button
+                  onClick={onClose}
+                  aria-label="Close panel"
+                  className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
             </div>
           ))}
 
