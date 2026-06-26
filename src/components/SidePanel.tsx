@@ -44,6 +44,19 @@ export interface SidePanelProps extends HTMLAttributes<HTMLDivElement> {
    * (`sidepanel-expanded:<id>`). Falls back to `title` when omitted.
    */
   panelId?: string;
+  /**
+   * Opt-in drag-to-resize. When true, a handle on the panel's inner edge lets the
+   * user drag the panel to any width — remembered per `panelId`
+   * (`sidepanel-width:<id>`); double-click the handle to reset to the default.
+   * Desktop only — the panel stays full-width on mobile. Adds no header icon.
+   */
+  resizable?: boolean;
+  /** Minimum width in px while resizing (default 320). */
+  minWidth?: number;
+  /** Maximum width in px while resizing (default 880; also capped to the viewport). */
+  maxWidth?: number;
+  /** Starting width in px before the user drags (defaults to the `size` width). */
+  defaultWidth?: number;
 }
 
 // ── Size Map ─────────────────────────────────────────────────────────────────
@@ -55,6 +68,41 @@ const sizeMap: Record<SidePanelSize, string> = {
   xl: "w-full sm:w-[640px]",
   full: "w-full",
 };
+
+/** Pixel widths matching `sizeMap`, used as the resize starting point. */
+const sizePx: Record<SidePanelSize, number> = {
+  sm: 320,
+  default: 420,
+  lg: 500,
+  xl: 640,
+  full: 880,
+};
+
+const WIDTH_STORAGE_PREFIX = "sidepanel-width:";
+
+function readWidthPref(key: string | null): number | null {
+  if (!key || typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(WIDTH_STORAGE_PREFIX + key);
+    const n = raw ? Number(raw) : NaN;
+    return Number.isFinite(n) ? n : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeWidthPref(key: string | null, value: number): void {
+  if (!key || typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(WIDTH_STORAGE_PREFIX + key, String(Math.round(value)));
+  } catch {
+    // Ignore — private mode / storage disabled.
+  }
+}
+
+function clampWidth(n: number, min: number, max: number): number {
+  return Math.min(Math.max(n, min), max);
+}
 
 // Order from narrowest to widest — used to pick a sensible default expanded size.
 const SIZE_ORDER: SidePanelSize[] = ["sm", "default", "lg", "xl", "full"];
@@ -108,6 +156,10 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
       expandable = false,
       expandedSize,
       panelId,
+      resizable = false,
+      minWidth = 320,
+      maxWidth = 880,
+      defaultWidth,
       className,
       children,
       ...props
@@ -115,6 +167,7 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
     ref
   ) => {
     const panelRef = useRef<HTMLDivElement>(null);
+    const isRight = side === "right";
 
     // Expand/narrow width toggle (opt-in). Persisted per panel in localStorage.
     const storageKey = panelId ?? title ?? null;
@@ -131,6 +184,52 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
         return next;
       });
     }, [storageKey]);
+
+    // Drag-to-resize (opt-in). Free width in px, persisted per panel. Desktop only.
+    const defaultPx = defaultWidth ?? sizePx[size];
+    const [width, setWidth] = useState(() =>
+      resizable ? readWidthPref(storageKey) ?? defaultPx : defaultPx
+    );
+    const widthRef = useRef(width);
+    const [dragging, setDragging] = useState(false);
+
+    const startResize = useCallback(
+      (e: React.PointerEvent) => {
+        e.preventDefault();
+        const startX = e.clientX;
+        const startW = widthRef.current;
+        setDragging(true);
+        document.body.style.userSelect = "none";
+        document.body.style.cursor = "col-resize";
+
+        const onMove = (ev: PointerEvent) => {
+          const dx = ev.clientX - startX;
+          // Right-side panels grow when dragged left; left-side panels the reverse.
+          const delta = isRight ? -dx : dx;
+          const cap = Math.min(maxWidth, window.innerWidth - 80);
+          const next = clampWidth(startW + delta, minWidth, cap);
+          widthRef.current = next;
+          setWidth(next);
+        };
+        const onUp = () => {
+          setDragging(false);
+          document.body.style.userSelect = "";
+          document.body.style.cursor = "";
+          writeWidthPref(storageKey, widthRef.current);
+          window.removeEventListener("pointermove", onMove);
+          window.removeEventListener("pointerup", onUp);
+        };
+        window.addEventListener("pointermove", onMove);
+        window.addEventListener("pointerup", onUp);
+      },
+      [isRight, minWidth, maxWidth, storageKey]
+    );
+
+    const resetWidth = useCallback(() => {
+      widthRef.current = defaultPx;
+      setWidth(defaultPx);
+      writeWidthPref(storageKey, defaultPx);
+    }, [defaultPx, storageKey]);
 
     // Mount lifecycle: we want the panel out of the DOM (no children rendered,
     // no aria-modal dialog in the tree) when closed, but we also want the
@@ -211,8 +310,6 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
       onClose();
     }, [onClose]);
 
-    const isRight = side === "right";
-
     // Merge refs: forwarded ref + internal panelRef
     const setRefs = useCallback(
       (node: HTMLDivElement | null) => {
@@ -256,11 +353,44 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
             // Animate width alongside the slide transform only when expandable,
             // so the default (non-expandable) class output is unchanged.
             expandable && "transition-all",
-            sizeMap[activeSize],
+            // Resizable panels follow a per-instance CSS-var width on desktop and
+            // stay full-width on mobile; otherwise use the fixed size class.
+            resizable ? "w-full sm:w-[var(--sp-w)]" : sizeMap[activeSize],
             className
           )}
           {...props}
+          style={
+            resizable
+              ? {
+                  ...(props.style as React.CSSProperties),
+                  ["--sp-w" as string]: `${width}px`,
+                }
+              : props.style
+          }
         >
+          {/* Drag-to-resize handle on the panel's inner edge (desktop only) */}
+          {resizable && (
+            <div
+              role="separator"
+              aria-orientation="vertical"
+              aria-label="Resize panel"
+              onPointerDown={startResize}
+              onDoubleClick={resetWidth}
+              className={cn(
+                "group/resize absolute inset-y-0 z-20 hidden w-2 cursor-col-resize touch-none select-none sm:block",
+                isRight ? "left-0" : "right-0"
+              )}
+            >
+              <span
+                className={cn(
+                  "absolute inset-y-0 w-px bg-border transition-colors group-hover/resize:bg-primary",
+                  dragging && "bg-primary",
+                  isRight ? "left-0" : "right-0"
+                )}
+              />
+            </div>
+          )}
+
           {/* Header */}
           {header || (title && (
             <div className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4">
