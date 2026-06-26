@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.16.0 (2026-06-26)
+
+- Added optional expand/narrow width toggle for side panel
+
 ## v0.15.3 (2026-06-22)
 
 - Fixed UI issues
