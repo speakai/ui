@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.17.1 (2026-06-26)
+
+- Updated SidePanel component for improved functionality
+
 ## v0.16.0 (2026-06-26)
 
 - Added optional expand/narrow width toggle for side panel
