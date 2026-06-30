@@ -339,6 +339,13 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
                 isRight ? "left-0" : "right-0"
               )}
             >
+              {/* Hover tint across the strip — discoverability cue */}
+              <span
+                className={cn(
+                  "absolute inset-y-0 w-full bg-primary/20 opacity-0 transition-opacity group-hover/resize:opacity-100",
+                  dragging && "opacity-100"
+                )}
+              />
               <span
                 className={cn(
                   "absolute inset-y-0 w-px bg-border transition-colors group-hover/resize:bg-primary",
@@ -346,6 +353,32 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
                   isRight ? "left-0" : "right-0"
                 )}
               />
+              {/* Grip pill — appears on hover/drag so the resize affordance is discoverable */}
+              <span
+                className={cn(
+                  "pointer-events-none absolute top-1/2 flex h-6 w-5 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-card shadow-sm opacity-0 transition-opacity group-hover/resize:opacity-100",
+                  dragging && "opacity-100",
+                  isRight ? "left-0 -translate-x-1/2" : "right-0 translate-x-1/2"
+                )}
+              >
+                <svg
+                  className="pointer-events-none h-3.5 w-3.5 text-muted-foreground"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="9" cy="5" r="1" />
+                  <circle cx="9" cy="12" r="1" />
+                  <circle cx="9" cy="19" r="1" />
+                  <circle cx="15" cy="5" r="1" />
+                  <circle cx="15" cy="12" r="1" />
+                  <circle cx="15" cy="19" r="1" />
+                </svg>
+              </span>
             </div>
           )}
 
