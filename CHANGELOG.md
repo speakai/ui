@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.18.0 (2026-06-30)
+
+- Added discoverable resize grip on resizable SidePanel
+
 ## v0.17.1 (2026-06-26)
 
 - Updated SidePanel component for improved functionality
