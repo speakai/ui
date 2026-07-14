@@ -8,7 +8,7 @@
 import { cn } from "../../utils/cn";
 import { WidgetError, WidgetEmpty } from "./widget-states";
 import { TrendingUpIcon, TrendingDownIcon, BarChart3Icon } from "./icons";
-import { formatCount } from "./format";
+import { formatCount, formatDurationHuman } from "./format";
 
 // ── Data contract ────────────────────────────────────────────────────────────
 
@@ -16,6 +16,8 @@ export interface ComparisonMetricRow {
   label: string;
   a: number | null;
   b: number | null;
+  /** How to render the values + delta; defaults to a plain count. */
+  valueFormat?: "number" | "duration";
 }
 
 export interface ComparisonWidgetData {
@@ -43,11 +45,29 @@ export interface ComparisonWidgetProps {
 
 // ── Component ────────────────────────────────────────────────────────────────
 
-function formatValue(value: number | null): string {
-  return value == null ? "—" : formatCount(value);
+function formatMetric(
+  value: number,
+  format: ComparisonMetricRow["valueFormat"],
+): string {
+  return format === "duration" ? formatDurationHuman(value) : formatCount(value);
 }
 
-function DeltaIndicator({ a, b }: { a: number | null; b: number | null }) {
+function formatValue(
+  value: number | null,
+  format: ComparisonMetricRow["valueFormat"],
+): string {
+  return value == null ? "—" : formatMetric(value, format);
+}
+
+function DeltaIndicator({
+  a,
+  b,
+  valueFormat,
+}: {
+  a: number | null;
+  b: number | null;
+  valueFormat: ComparisonMetricRow["valueFormat"];
+}) {
   if (a == null || b == null || a === b) {
     return <span className="shrink-0 text-xs text-muted-foreground">—</span>;
   }
@@ -62,7 +82,7 @@ function DeltaIndicator({ a, b }: { a: number | null; b: number | null }) {
       )}
     >
       <Icon className="h-3.5 w-3.5" />
-      {`${positive ? "+" : "−"}${formatCount(Math.abs(delta))}`}
+      {`${positive ? "+" : "−"}${formatMetric(Math.abs(delta), valueFormat)}`}
     </span>
   );
 }
@@ -131,16 +151,16 @@ export function ComparisonWidget({
             role="cell"
             className="min-w-[64px] text-right text-sm font-semibold text-foreground tabular-nums"
           >
-            {formatValue(metric.a)}
+            {formatValue(metric.a, metric.valueFormat)}
           </span>
           <span
             role="cell"
             className="min-w-[64px] text-right text-sm font-semibold text-foreground tabular-nums"
           >
-            {formatValue(metric.b)}
+            {formatValue(metric.b, metric.valueFormat)}
           </span>
           <span role="cell" className="text-right">
-            <DeltaIndicator a={metric.a} b={metric.b} />
+            <DeltaIndicator a={metric.a} b={metric.b} valueFormat={metric.valueFormat} />
           </span>
         </div>
       ))}
