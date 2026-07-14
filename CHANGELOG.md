@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.19.1 (2026-07-14)
+
+- Fixed Dialog accessibility issues and improved test queries for portaled Dialog content
+
 ## v0.19.0 (2026-07-14)
 
 - Added opt-in elevated prop to side panel to stack above modal dialogs
