@@ -1,111 +1,69 @@
 /**
- * Comparison widget body (presentational) — a compact period-over-period readout:
- * each selected metric shows its current value and the change vs the previous
- * equal-length period (▲/▼, coloured). Data is the shared `PublicInsightSnapshotData`.
- *
- * `config.metrics` selects which to show (shared delta metrics plus the
- * comparison-only `sentiment` extra, which has a value but no delta). Metric and
- * sentiment labels are injected.
+ * Comparison widget body (presentational) — a side-by-side A/B readout. The
+ * host resolves the two segments and their metrics into `ComparisonWidgetData`;
+ * this renders one row per metric with value A, value B, and a coloured ▲/▼
+ * delta indicator (B relative to A). All user-facing strings are injected.
  */
 
-import type { PublicInsightSnapshotData } from "@speakai/shared";
 import { cn } from "../../utils/cn";
 import { WidgetError, WidgetEmpty } from "./widget-states";
 import { TrendingUpIcon, TrendingDownIcon, BarChart3Icon } from "./icons";
-import {
-  SNAPSHOT_METRICS,
-  resolveComparisonMetrics,
-  type SnapshotMetricKey,
-} from "./snapshot-metrics";
-import type { WidgetCommonLabels } from "./types";
+import { formatCount } from "./format";
 
-export interface ComparisonConfig {
-  metrics?: unknown;
-  /** Show the change column. */
-  showDelta?: boolean;
+// ── Data contract ────────────────────────────────────────────────────────────
+
+export interface ComparisonMetricRow {
+  label: string;
+  a: number | null;
+  b: number | null;
 }
 
-export interface ComparisonLabels extends WidgetCommonLabels {
-  /** Display label per delta-metric key. */
-  metricLabels: Record<SnapshotMetricKey, string>;
-  /** Label for the sentiment row. */
-  sentimentLabel: string;
-  /** Display label per dominant-sentiment key (positive/neutral/negative). */
-  sentimentValueLabels: Record<string, string>;
-  /** Shown when sentiment is unscored. */
-  sentimentNoneLabel: string;
-  /** Shown in the change column when a delta is zero/absent. Defaults to "—". */
-  noChangeLabel?: string;
-  /** Build the change text, e.g. `(sign, value) => "+1.2K"`. */
-  deltaLabel?: (sign: string, value: string) => string;
-  emptyTitle: string;
-  emptyDescription?: string;
+export interface ComparisonWidgetData {
+  aLabel: string;
+  bLabel: string;
+  metrics: ComparisonMetricRow[];
+}
+
+// ── Props ────────────────────────────────────────────────────────────────────
+
+export interface ComparisonWidgetLabels {
+  title: string;
+  empty: string;
+  error: string;
+  retry?: string;
 }
 
 export interface ComparisonWidgetProps {
-  data: PublicInsightSnapshotData | undefined;
+  data?: ComparisonWidgetData;
   isLoading: boolean;
   isError: boolean;
-  config?: ComparisonConfig;
-  labels: ComparisonLabels;
+  labels: ComparisonWidgetLabels;
   onRetry?: () => void;
 }
 
-/** The dominant sentiment label for the current period, or null if unscored. */
-function dominantSentiment(
-  data: PublicInsightSnapshotData,
-): { key: string; value: number } | null {
-  const s = data.current.sentiment;
-  if (!s) return null;
-  const entries: { key: string; value: number }[] = [
-    { key: "positive", value: s.positive },
-    { key: "neutral", value: s.neutral },
-    { key: "negative", value: s.negative },
-  ];
-  const top = entries.reduce((a, b) => (b.value > a.value ? b : a));
-  return top.value > 0 ? top : null;
+// ── Component ────────────────────────────────────────────────────────────────
+
+function formatValue(value: number | null): string {
+  return value == null ? "—" : formatCount(value);
 }
 
-function MetricRow({
-  label,
-  value,
-  delta,
-  formatDelta,
-  showDelta,
-  noChangeLabel,
-  deltaLabel,
-}: {
-  label: string;
-  value: string;
-  delta: number | null;
-  formatDelta: (n: number) => string;
-  showDelta: boolean;
-  noChangeLabel: string;
-  deltaLabel: (sign: string, value: string) => string;
-}) {
-  const positive = (delta ?? 0) > 0;
+function DeltaIndicator({ a, b }: { a: number | null; b: number | null }) {
+  if (a == null || b == null || a === b) {
+    return <span className="shrink-0 text-xs text-muted-foreground">—</span>;
+  }
+  const delta = b - a;
+  const positive = delta > 0;
   const Icon = positive ? TrendingUpIcon : TrendingDownIcon;
-
   return (
-    <div className="flex items-baseline justify-between gap-2 border-b border-border py-2 last:border-b-0">
-      <div className="min-w-0">
-        <p className="truncate text-xs text-muted-foreground">{label}</p>
-        <p className="text-lg font-semibold text-foreground">{value}</p>
-      </div>
-      {!showDelta ? null : delta == null || delta === 0 ? (
-        <span className="shrink-0 text-xs text-muted-foreground">{noChangeLabel}</span>
-      ) : (
-        <span
-          className={cn(
-            "inline-flex shrink-0 items-center gap-1 text-xs font-medium",
-            positive ? "text-success" : "text-destructive",
-          )}
-        >
-          <Icon className="h-3.5 w-3.5" />
-          {deltaLabel(positive ? "+" : "−", formatDelta(Math.abs(delta)))}
-        </span>
+    <span
+      className={cn(
+        "inline-flex shrink-0 items-center gap-1 text-xs font-medium",
+        positive ? "text-success" : "text-destructive",
       )}
-    </div>
+    >
+      <Icon className="h-3.5 w-3.5" />
+      {`${positive ? "+" : "−"}${formatCount(Math.abs(delta))}`}
+    </span>
   );
 }
 
@@ -113,74 +71,79 @@ export function ComparisonWidget({
   data,
   isLoading,
   isError,
-  config,
   labels,
   onRetry,
 }: ComparisonWidgetProps) {
-  const showDelta = !!config?.showDelta;
-  const selected = resolveComparisonMetrics(config?.metrics);
-  const noChangeLabel = labels.noChangeLabel ?? "—";
-  const deltaLabel = labels.deltaLabel ?? ((sign, value) => `${sign}${value}`);
-
   if (isLoading) {
     return <div className="h-40 w-full animate-pulse rounded-xl bg-muted" aria-hidden="true" />;
   }
 
   if (isError) {
-    return <WidgetError labels={labels} onRetry={onRetry} />;
-  }
-
-  if (!data) {
     return (
-      <WidgetEmpty
-        icon={<BarChart3Icon className="h-10 w-10" />}
-        title={labels.emptyTitle}
-        description={labels.emptyDescription}
+      <WidgetError
+        labels={{ errorTitle: labels.error, retryLabel: labels.retry }}
+        onRetry={onRetry}
       />
     );
   }
 
-  const sentiment = dominantSentiment(data);
+  if (!data || data.metrics.length === 0) {
+    return (
+      <WidgetEmpty icon={<BarChart3Icon className="h-10 w-10" />} title={labels.empty} />
+    );
+  }
 
   return (
-    <div className="flex flex-col">
-      {selected.map((metric) => {
-        if (metric === "sentiment") {
-          return (
-            <MetricRow
-              key="sentiment"
-              label={labels.sentimentLabel}
-              value={
-                sentiment
-                  ? labels.sentimentValueLabels[sentiment.key] ?? sentiment.key
-                  : labels.sentimentNoneLabel
-              }
-              delta={null}
-              formatDelta={(n) => `${n}`}
-              showDelta={showDelta}
-              noChangeLabel={noChangeLabel}
-              deltaLabel={deltaLabel}
-            />
-          );
-        }
-
-        const meta = SNAPSHOT_METRICS[metric];
-        const current = meta.getCurrent(data.current);
-        const delta = meta.getDelta(data.delta);
-
-        return (
-          <MetricRow
-            key={metric}
-            label={labels.metricLabels[metric]}
-            value={meta.format(current)}
-            delta={delta}
-            formatDelta={meta.format}
-            showDelta={showDelta}
-            noChangeLabel={noChangeLabel}
-            deltaLabel={deltaLabel}
-          />
-        );
-      })}
+    <div className="flex flex-col" role="table" aria-label={labels.title}>
+      <div
+        role="row"
+        className="grid grid-cols-[1fr_auto_auto_auto] items-baseline gap-x-4 border-b border-border py-2"
+      >
+        <span role="columnheader" className="sr-only">
+          {labels.title}
+        </span>
+        <span
+          role="columnheader"
+          className="min-w-[64px] text-right text-xs font-medium text-muted-foreground"
+        >
+          {data.aLabel}
+        </span>
+        <span
+          role="columnheader"
+          className="min-w-[64px] text-right text-xs font-medium text-muted-foreground"
+        >
+          {data.bLabel}
+        </span>
+        <span role="columnheader" className="sr-only">
+          Δ
+        </span>
+      </div>
+      {data.metrics.map((metric, i) => (
+        <div
+          key={`${metric.label}-${i}`}
+          role="row"
+          className="grid grid-cols-[1fr_auto_auto_auto] items-baseline gap-x-4 border-b border-border py-2 last:border-b-0"
+        >
+          <span role="cell" className="truncate text-xs text-muted-foreground">
+            {metric.label}
+          </span>
+          <span
+            role="cell"
+            className="min-w-[64px] text-right text-sm font-semibold text-foreground tabular-nums"
+          >
+            {formatValue(metric.a)}
+          </span>
+          <span
+            role="cell"
+            className="min-w-[64px] text-right text-sm font-semibold text-foreground tabular-nums"
+          >
+            {formatValue(metric.b)}
+          </span>
+          <span role="cell" className="text-right">
+            <DeltaIndicator a={metric.a} b={metric.b} />
+          </span>
+        </div>
+      ))}
     </div>
   );
 }

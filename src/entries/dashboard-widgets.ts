@@ -35,6 +35,7 @@ export {
 export {
   FieldDistributionWidget,
   type FieldDistributionWidgetProps,
+  type FieldDistributionConfig,
   type FieldDistributionLabels,
 } from "../components/dashboards/field-distribution-widget";
 export {
@@ -59,9 +60,32 @@ export {
 export {
   ComparisonWidget,
   type ComparisonWidgetProps,
-  type ComparisonConfig,
-  type ComparisonLabels,
+  type ComparisonWidgetLabels,
+  type ComparisonWidgetData,
+  type ComparisonMetricRow,
 } from "../components/dashboards/comparison-widget";
+export {
+  MetricChartWidget,
+  type MetricChartWidgetProps,
+  type MetricChartWidgetConfig,
+  type MetricChartWidgetLabels,
+  type MetricChartData,
+  type MetricChartDatum,
+} from "../components/dashboards/metric-chart-widget";
+export {
+  TableWidget,
+  type TableWidgetProps,
+  type TableWidgetConfig,
+  type TableWidgetLabels,
+  type TableWidgetData,
+  type TableWidgetRow,
+  type TableWidgetColumn,
+} from "../components/dashboards/table-widget";
+export {
+  NarrativeWidget,
+  type NarrativeWidgetProps,
+  type NarrativeWidgetLabels,
+} from "../components/dashboards/narrative-widget";
 export {
   InsightBarWidget,
   type InsightBarWidgetProps,
@@ -116,6 +140,25 @@ export {
   type SnapshotDelta,
   type ComparisonMetricKey,
 } from "../components/dashboards/snapshot-metrics";
+
+// ── Spec threshold evaluation ──────────────────────────────────────────────
+export {
+  resolveThresholdStatus,
+  thresholdFillVar,
+  THRESHOLD_TEXT_CLASS,
+  THRESHOLD_FILL_VAR,
+  type SpecThreshold,
+  type SpecThresholdWhen,
+  type ThresholdStatus,
+} from "../components/dashboards/spec-thresholds";
+
+// ── Chart primitives ───────────────────────────────────────────────────────
+export {
+  AnalyticsDonutChart,
+  chartSeriesVar,
+  type AnalyticsDonutChartProps,
+  type DonutSlice,
+} from "../components/charts/analytics-donut-chart";
 
 // ── Pure presentational helpers ────────────────────────────────────────────
 export {

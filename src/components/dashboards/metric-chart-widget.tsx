@@ -1,0 +1,306 @@
+/**
+ * Metric-chart widget body (presentational) — renders a spec-driven metric as a
+ * line / bar / area / donut / stacked-bar chart. Data arrives as flat
+ * `MetricChartData` rows (`group` × optional `series` × `value`); the widget
+ * pivots them into one recharts series per distinct `series` value.
+ *
+ * Thresholds (single-series bar and donut only) color each mark by
+ * `resolveThresholdStatus`; line/area ignore thresholds. All user-facing
+ * strings are injected via `labels`.
+ */
+
+import type { ReactElement } from "react";
+import {
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
+import { useReducedMotion } from "../charts/use-reduced-motion";
+import { AnalyticsDonutChart, chartSeriesVar } from "../charts/analytics-donut-chart";
+import { WidgetError, WidgetEmpty } from "./widget-states";
+import { BarChart3Icon } from "./icons";
+import { resolveThresholdStatus, thresholdFillVar, type SpecThreshold } from "./spec-thresholds";
+import { formatCount, formatDurationHuman } from "./format";
+
+// ── Data contract ────────────────────────────────────────────────────────────
+
+export interface MetricChartDatum {
+  group: string;
+  series?: string | null;
+  value: number | null;
+}
+
+export interface MetricChartData {
+  rows: MetricChartDatum[];
+  valueFormat?: "number" | "duration";
+}
+
+// ── Props ────────────────────────────────────────────────────────────────────
+
+export interface MetricChartWidgetConfig {
+  mark: "line" | "bar" | "area" | "donut" | "stacked-bar";
+  thresholds?: SpecThreshold[];
+}
+
+export interface MetricChartWidgetLabels {
+  title: string;
+  empty: string;
+  emptyDescription?: string;
+  error: string;
+  retry?: string;
+}
+
+export interface MetricChartWidgetProps {
+  data?: MetricChartData;
+  isLoading: boolean;
+  isError: boolean;
+  config: MetricChartWidgetConfig;
+  labels: MetricChartWidgetLabels;
+  onRetry?: () => void;
+}
+
+// ── Pivot helpers ────────────────────────────────────────────────────────────
+
+interface Pivoted {
+  /** Distinct series keys in insertion order ("" = the unnamed series). */
+  seriesKeys: string[];
+  /** One record per group: `{ group, s0: value, s1: value, ... }`. */
+  rows: Array<Record<string, string | number | null>>;
+}
+
+/**
+ * Pivot flat rows into recharts shape: one record per `group`, one data key
+ * (`s0`, `s1`, …) per distinct series value in insertion order. Rows with a
+ * null/undefined series share the unnamed "" series. Duplicate (group, series)
+ * pairs sum their non-null values.
+ */
+function pivotRows(rows: MetricChartDatum[]): Pivoted {
+  const seriesKeys: string[] = [];
+  const groups: string[] = [];
+  const cells = new Map<string, number | null>();
+
+  for (const row of rows) {
+    const series = row.series ?? "";
+    if (!seriesKeys.includes(series)) seriesKeys.push(series);
+    if (!groups.includes(row.group)) groups.push(row.group);
+    const cellKey = `${row.group}\u0000${series}`;
+    const existing = cells.get(cellKey);
+    if (row.value == null) {
+      if (!cells.has(cellKey)) cells.set(cellKey, null);
+    } else {
+      cells.set(cellKey, (existing ?? 0) + row.value);
+    }
+  }
+
+  const pivoted = groups.map((group) => {
+    const record: Record<string, string | number | null> = { group };
+    seriesKeys.forEach((series, i) => {
+      const cell = cells.get(`${group}\u0000${series}`);
+      record[`s${i}`] = cell === undefined ? null : cell;
+    });
+    return record;
+  });
+
+  return { seriesKeys, rows: pivoted };
+}
+
+/** Sum non-null values per group (donut aggregation — series collapsed). */
+function sumByGroup(rows: MetricChartDatum[]): Array<{ group: string; total: number }> {
+  const totals = new Map<string, number>();
+  for (const row of rows) {
+    totals.set(row.group, (totals.get(row.group) ?? 0) + (row.value ?? 0));
+  }
+  return Array.from(totals.entries()).map(([group, total]) => ({ group, total }));
+}
+
+// ── Component ────────────────────────────────────────────────────────────────
+
+const AXIS_TICK = { fill: "var(--color-muted-foreground)", fontSize: 12 };
+
+const TOOLTIP_STYLE = {
+  backgroundColor: "var(--color-background)",
+  border: "1px solid var(--color-border)",
+  borderRadius: "6px",
+  color: "var(--color-foreground)",
+};
+
+export function MetricChartWidget({
+  data,
+  isLoading,
+  isError,
+  config,
+  labels,
+  onRetry,
+}: MetricChartWidgetProps) {
+  const reducedMotion = useReducedMotion();
+
+  if (isLoading) {
+    return <div className="h-80 w-full animate-pulse rounded-xl bg-muted" aria-hidden="true" />;
+  }
+
+  if (isError) {
+    return (
+      <WidgetError
+        labels={{ errorTitle: labels.error, retryLabel: labels.retry }}
+        onRetry={onRetry}
+      />
+    );
+  }
+
+  const rows = data?.rows ?? [];
+  if (rows.length === 0) {
+    return (
+      <WidgetEmpty
+        icon={<BarChart3Icon className="h-10 w-10" />}
+        title={labels.empty}
+        description={labels.emptyDescription}
+      />
+    );
+  }
+
+  const formatValue =
+    data?.valueFormat === "duration"
+      ? (v: number) => formatDurationHuman(v)
+      : formatCount;
+
+  const { thresholds } = config;
+
+  if (config.mark === "donut") {
+    const slices = sumByGroup(rows).map(({ group, total }, i) => {
+      const match = resolveThresholdStatus(total, thresholds);
+      return {
+        label: group,
+        value: total,
+        fill: match ? thresholdFillVar(match.status) : chartSeriesVar(i),
+      };
+    });
+    return (
+      <AnalyticsDonutChart data={slices} title={labels.title} valueFormatter={formatValue} />
+    );
+  }
+
+  const { seriesKeys, rows: chartData } = pivotRows(rows);
+  const multiSeries = seriesKeys.length > 1;
+  const seriesName = (key: string, i: number) => (key === "" ? labels.title : key) || `s${i}`;
+
+  const axes = (
+    <>
+      <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
+      <XAxis
+        dataKey="group"
+        stroke="var(--color-muted-foreground)"
+        tick={AXIS_TICK}
+        interval="preserveStartEnd"
+      />
+      <YAxis
+        stroke="var(--color-muted-foreground)"
+        tick={AXIS_TICK}
+        width={48}
+        allowDecimals={false}
+        tickFormatter={(v: number) => formatValue(Number(v))}
+      />
+      <Tooltip
+        contentStyle={TOOLTIP_STYLE}
+        formatter={(v) => formatValue(Number(v))}
+      />
+      {multiSeries && <Legend />}
+    </>
+  );
+
+  let chart: ReactElement;
+
+  if (config.mark === "line") {
+    chart = (
+      <LineChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
+        {axes}
+        {seriesKeys.map((key, i) => (
+          <Line
+            key={key || "__default"}
+            type="monotone"
+            dataKey={`s${i}`}
+            name={seriesName(key, i)}
+            stroke={chartSeriesVar(i)}
+            strokeWidth={2}
+            dot={{ fill: chartSeriesVar(i), r: 3 }}
+            activeDot={{ r: 5 }}
+            isAnimationActive={!reducedMotion}
+          />
+        ))}
+      </LineChart>
+    );
+  } else if (config.mark === "area") {
+    chart = (
+      <AreaChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
+        {axes}
+        {seriesKeys.map((key, i) => (
+          <Area
+            key={key || "__default"}
+            type="monotone"
+            dataKey={`s${i}`}
+            name={seriesName(key, i)}
+            stroke={chartSeriesVar(i)}
+            fill={chartSeriesVar(i)}
+            fillOpacity={0.25}
+            strokeWidth={2}
+            isAnimationActive={!reducedMotion}
+          />
+        ))}
+      </AreaChart>
+    );
+  } else {
+    const stacked = config.mark === "stacked-bar";
+    const colorByThreshold = !stacked && seriesKeys.length === 1 && !!thresholds?.length;
+    chart = (
+      <BarChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
+        {axes}
+        {seriesKeys.map((key, i) => (
+          <Bar
+            key={key || "__default"}
+            dataKey={`s${i}`}
+            name={seriesName(key, i)}
+            stackId={stacked ? "stack" : undefined}
+            fill={chartSeriesVar(i)}
+            radius={stacked ? undefined : [4, 4, 0, 0]}
+            isAnimationActive={!reducedMotion}
+          >
+            {colorByThreshold &&
+              chartData.map((record, j) => {
+                const value = record.s0;
+                const match =
+                  typeof value === "number"
+                    ? resolveThresholdStatus(value, thresholds)
+                    : null;
+                return (
+                  <Cell
+                    key={`cell-${j}`}
+                    fill={match ? thresholdFillVar(match.status) : chartSeriesVar(0)}
+                  />
+                );
+              })}
+          </Bar>
+        ))}
+      </BarChart>
+    );
+  }
+
+  return (
+    <figure className="w-full">
+      <figcaption className="sr-only">{labels.title}</figcaption>
+      <div aria-hidden="true">
+        <ResponsiveContainer width="100%" height={300}>
+          {chart}
+        </ResponsiveContainer>
+      </div>
+    </figure>
+  );
+}

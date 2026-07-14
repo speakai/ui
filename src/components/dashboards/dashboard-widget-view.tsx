@@ -31,6 +31,12 @@ import { ComparisonWidget, type ComparisonWidgetProps } from "./comparison-widge
 import { InsightBarWidget, type InsightBarWidgetProps } from "./insight-bar-widget";
 import { MediaListWidget, type MediaListWidgetProps } from "./media-list-widget";
 import { NotesWidget, type NotesWidgetProps } from "./notes-widget";
+import { NarrativeWidget, type NarrativeWidgetProps } from "./narrative-widget";
+import {
+  MetricChartWidget,
+  type MetricChartWidgetProps,
+} from "./metric-chart-widget";
+import { TableWidget, type TableWidgetProps } from "./table-widget";
 import {
   PublicUnavailableWidget,
   type PublicUnavailableLabels,
@@ -57,6 +63,9 @@ export type DashboardWidgetViewProps =
   | ({ type: "team-activity" } & InsightBarWidgetProps)
   | ({ type: "media-list" } & MediaListWidgetProps)
   | ({ type: "notes" } & NotesWidgetProps)
+  | ({ type: "narrative" } & NarrativeWidgetProps)
+  | ({ type: "metric-chart" } & MetricChartWidgetProps)
+  | ({ type: "table" } & TableWidgetProps)
   | { type: "public-unavailable"; labels: PublicUnavailableLabels };
 
 export function DashboardWidgetView(props: DashboardWidgetViewProps) {
@@ -84,6 +93,12 @@ export function DashboardWidgetView(props: DashboardWidgetViewProps) {
       return <MediaListWidget {...props} />;
     case "notes":
       return <NotesWidget {...props} />;
+    case "narrative":
+      return <NarrativeWidget {...props} />;
+    case "metric-chart":
+      return <MetricChartWidget {...props} />;
+    case "table":
+      return <TableWidget {...props} />;
     case "public-unavailable":
       return <PublicUnavailableWidget labels={props.labels} />;
     default: {
