@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.19.0 (2026-07-14)
+
+- Added opt-in elevated prop to side panel to stack above modal dialogs
+
 ## v0.18.0 (2026-06-30)
 
 - Added discoverable resize grip on resizable SidePanel
