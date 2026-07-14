@@ -8,7 +8,7 @@ import {
   Legend,
 } from "recharts";
 import { cn } from "../../utils/cn";
-import { useReducedMotion } from "./use-reduced-motion";
+// recharts v3 does not flush the initial paint of animated <path> series (Pie) in Chrome; disable mount animation so sectors render in one synchronous paint.
 import { SENTIMENT_OPTIONS } from "./sentiment-options";
 import type { SentimentValue, SentimentOverallEntry } from "./chart-types";
 
@@ -36,7 +36,6 @@ export function SentimentPieChart({
   onSliceClick,
   className,
 }: SentimentPieChartProps) {
-  const reducedMotion = useReducedMotion();
 
   const pieData = SENTIMENT_OPTIONS.map((opt) => {
     const entry = data[opt.value];
@@ -74,7 +73,7 @@ export function SentimentPieChart({
               outerRadius={110}
               cursor={onSliceClick ? "pointer" : undefined}
               onClick={handleClick}
-              isAnimationActive={!reducedMotion}
+              isAnimationActive={false}
             >
               {pieData.map((entry) => (
                 <Cell

@@ -8,7 +8,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { cn } from "../../utils/cn";
-import { useReducedMotion } from "./use-reduced-motion";
+// recharts v3 does not flush the initial paint of animated <path> series (Line/Area) in Chrome — see PR-note; disable mount animation so the curve renders in one synchronous paint.
 
 interface AnalyticsLineChartProps {
   timeline: string[];
@@ -48,7 +48,6 @@ export function AnalyticsLineChart({
   ghostValues,
   ghostLabel,
 }: AnalyticsLineChartProps) {
-  const reducedMotion = useReducedMotion();
   const hasGhost = Array.isArray(ghostValues) && ghostValues.length > 0;
   const chartData = timeline.map((date, i) => ({
     date,
@@ -108,7 +107,7 @@ export function AnalyticsLineChart({
                 dot={false}
                 activeDot={{ r: 4 }}
                 connectNulls
-                isAnimationActive={!reducedMotion}
+                isAnimationActive={false}
               />
             ) : null}
             <Line
@@ -119,7 +118,7 @@ export function AnalyticsLineChart({
               strokeWidth={2}
               dot={{ fill: "var(--color-chart-1)", r: 3 }}
               activeDot={{ r: 5 }}
-              isAnimationActive={!reducedMotion}
+              isAnimationActive={false}
             />
           </LineChart>
         </ResponsiveContainer>
