@@ -117,6 +117,59 @@ describe("TableWidget", () => {
     expect(names).toEqual(["Alpha", "Charlie", "Bravo"]);
   });
 
+  it("reflects config sort on the header and row order when data loads after first paint", () => {
+    // Simulates the real async query: first render has no data, data arrives later.
+    const { container, rerender } = render(
+      <TableWidget
+        data={undefined}
+        isLoading={true}
+        isError={false}
+        config={{ sort: { column: "Score", dir: "desc" } }}
+        labels={LABELS}
+      />,
+    );
+    rerender(
+      <TableWidget
+        data={DATA}
+        isLoading={false}
+        isError={false}
+        config={{ sort: { column: "Score", dir: "desc" } }}
+        labels={LABELS}
+      />,
+    );
+
+    const scoreHeader = screen.getByText("Score").closest("th") as HTMLElement;
+    expect(scoreHeader).toHaveAttribute("aria-sort", "descending");
+
+    const names = dataRows(container).map(
+      (row) => row.querySelector("td")?.textContent,
+    );
+    expect(names).toEqual(["Alpha", "Charlie", "Bravo"]);
+  });
+
+  it("clears an initial config sort when the user toggles the header off", async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+      <TableWidget
+        data={DATA}
+        isLoading={false}
+        isError={false}
+        config={{ sort: { column: "Score", dir: "desc" } }}
+        labels={LABELS}
+      />,
+    );
+    const scoreHeader = screen.getByText("Score").closest("th") as HTMLElement;
+    expect(scoreHeader).toHaveAttribute("aria-sort", "descending");
+
+    // desc → (toggle) off; must not fall back to the config sort
+    await user.click(screen.getByText("Score"));
+    expect(scoreHeader).not.toHaveAttribute("aria-sort");
+    const names = dataRows(container).map(
+      (row) => row.querySelector("td")?.textContent,
+    );
+    expect(names).toEqual(["Alpha", "Bravo", "Charlie"]);
+  });
+
   it("applies the threshold text class and label badge to matching cells", () => {
     render(
       <TableWidget

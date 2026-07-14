@@ -127,9 +127,17 @@ export function TableWidget({
     return { key: columnSortKey(index), dir: config.sort.dir as SortDirection };
   }, [config.sort, columns]);
 
-  const [sortKey, setSortKey] = useState<string | null>(initialSort?.key ?? null);
-  const [sortDir, setSortDir] = useState<SortDirection>(initialSort?.dir ?? null);
+  // `null` until the user interacts with a header, so the sort derived from
+  // freshly-loaded data (`initialSort`) is reflected on first paint. A lazy
+  // useState initializer would capture the pre-data `null` and never re-sync.
+  const [userSort, setUserSort] = useState<{
+    key: string | null;
+    dir: SortDirection;
+  } | null>(null);
   const [search, setSearch] = useState("");
+
+  const sortKey = userSort ? userSort.key : initialSort?.key ?? null;
+  const sortDir = userSort ? userSort.dir : initialSort?.dir ?? null;
 
   const rows = data?.rows ?? [];
   const hasNameColumn = rows.some((row) => row.name != null);
@@ -188,8 +196,7 @@ export function TableWidget({
   }
 
   const handleSort = (key: string, direction: SortDirection) => {
-    setSortKey(direction ? key : null);
-    setSortDir(direction);
+    setUserSort({ key: direction ? key : null, dir: direction });
   };
 
   const columnCount = columns.length + (hasNameColumn ? 1 : 0);
