@@ -48,6 +48,8 @@ export interface SidePanelProps extends HTMLAttributes<HTMLDivElement> {
   maxWidth?: number;
   /** Starting width in px before the user drags (defaults to the `size` width). */
   defaultWidth?: number;
+  /** Lifts the panel + backdrop above modal Dialogs, for the nested-in-a-dialog case. */
+  elevated?: boolean;
 }
 
 // ── Size Map ─────────────────────────────────────────────────────────────────
@@ -120,6 +122,7 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
       minWidth = 320,
       maxWidth = 880,
       defaultWidth,
+      elevated = false,
       className,
       children,
       ...props
@@ -289,7 +292,8 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
         {backdrop && (
           <div
             className={cn(
-              "fixed inset-0 z-40 bg-foreground/20 backdrop-blur-xs transition-opacity duration-200",
+              "fixed inset-0 bg-foreground/20 backdrop-blur-xs transition-opacity duration-200",
+              elevated ? "z-[72]" : "z-40",
               isVisible ? "opacity-100" : "pointer-events-none opacity-0"
             )}
             onClick={handleBackdropClick}
@@ -304,7 +308,11 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
           aria-modal="true"
           aria-label={title}
           className={cn(
-            "fixed inset-y-0 z-[60] flex flex-col border-border bg-card shadow-2xl transition-transform duration-200 ease-in-out",
+            "fixed inset-y-0 flex flex-col border-border bg-card shadow-2xl transition-transform duration-200 ease-in-out",
+            // z-[75]: above Dialog's z-[70] backdrop, but must stay below the
+            // consuming app's z-[80] Combobox dropdown portal (speak-client) so a
+            // Combobox opened inside an elevated panel still renders on top of it.
+            elevated ? "z-[75]" : "z-[60]",
             isRight ? "right-0 border-l" : "left-0 border-r",
             isVisible
               ? "translate-x-0"
