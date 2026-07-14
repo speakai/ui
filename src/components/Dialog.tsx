@@ -7,7 +7,9 @@ import {
   useCallback,
   useEffect,
   useRef,
+  useState,
 } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "../utils/cn";
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -59,6 +61,14 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
   ({ open, onClose, size = "default", className, children, ...props }, ref) => {
     const overlayRef = useRef<HTMLDivElement>(null);
     const panelRef = useRef<HTMLDivElement>(null);
+
+    // Portal to document.body (after mount) so `fixed inset-0` centers on the
+    // viewport even when a transformed ancestor (e.g. an open SidePanel) would
+    // otherwise become the containing block.
+    const [isMounted, setIsMounted] = useState(false);
+    useEffect(() => {
+      setIsMounted(true);
+    }, []);
 
     // Close on Escape
     useEffect(() => {
@@ -149,9 +159,9 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
       [onClose]
     );
 
-    if (!open) return null;
+    if (!open || !isMounted) return null;
 
-    return (
+    return createPortal(
       <div
         ref={overlayRef}
         className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-foreground/20 backdrop-blur-xs animate-fade-in"
@@ -179,7 +189,8 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
         >
           {children}
         </div>
-      </div>
+      </div>,
+      document.body
     );
   }
 );
