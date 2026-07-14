@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { render, cleanup } from "@testing-library/react";
+import { render, cleanup, screen } from "@testing-library/react";
 import { axe, toHaveNoViolations } from "jest-axe";
 import { Button } from "../src/components/Button";
 import { Card } from "../src/components/Card";
@@ -219,36 +219,52 @@ describe.each(themes)("Accessibility — %s mode", (theme) => {
     expect(await axe(container)).toHaveNoViolations();
   });
 
+  // Dialog portals its content to document.body (to escape transformed
+  // ancestors), so the RTL `container` div stays empty and `axe(container)`
+  // would trivially pass with nothing to check. Query the portaled dialog via
+  // `screen` and run axe against it directly. The `dark` class must also be
+  // applied at `document.body` (not the now-bypassed wrapper div) so the
+  // dark-theme iteration actually exercises dark-mode styles.
   it("Dialog has no a11y violations", async () => {
-    const { container } = renderWithTheme(
-      <Dialog open onClose={() => {}} aria-label="Example dialog">
-        <DialogHeader>
-          <h2>Title</h2>
-          <DialogCloseButton onClose={() => {}} />
-        </DialogHeader>
-        <DialogBody>Content</DialogBody>
-        <DialogFooter>
-          <Button>Close</Button>
-        </DialogFooter>
-      </Dialog>,
-      theme
-    );
-    expect(await axe(container)).toHaveNoViolations();
+    if (theme === "dark") document.body.classList.add("dark");
+    try {
+      render(
+        <Dialog open onClose={() => {}} aria-label="Example dialog">
+          <DialogHeader>
+            <h2>Title</h2>
+            <DialogCloseButton onClose={() => {}} />
+          </DialogHeader>
+          <DialogBody>Content</DialogBody>
+          <DialogFooter>
+            <Button>Close</Button>
+          </DialogFooter>
+        </Dialog>
+      );
+      const dialog = screen.getByRole("dialog");
+      expect(await axe(dialog)).toHaveNoViolations();
+    } finally {
+      document.body.classList.remove("dark");
+    }
   });
 
   it("ConfirmDialog has no a11y violations", async () => {
-    const { container } = renderWithTheme(
-      <ConfirmDialog
-        open
-        onClose={() => {}}
-        onConfirm={() => {}}
-        title="Delete?"
-        description="This cannot be undone."
-        aria-label="Confirm deletion"
-      />,
-      theme
-    );
-    expect(await axe(container)).toHaveNoViolations();
+    if (theme === "dark") document.body.classList.add("dark");
+    try {
+      render(
+        <ConfirmDialog
+          open
+          onClose={() => {}}
+          onConfirm={() => {}}
+          title="Delete?"
+          description="This cannot be undone."
+          aria-label="Confirm deletion"
+        />
+      );
+      const dialog = screen.getByRole("dialog");
+      expect(await axe(dialog)).toHaveNoViolations();
+    } finally {
+      document.body.classList.remove("dark");
+    }
   });
 
   it("SidePanel has no a11y violations", async () => {

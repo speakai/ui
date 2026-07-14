@@ -147,22 +147,17 @@ describe("ConfirmDialog", () => {
   // ── Variant button mapping ────────────────────────────────────────────
 
   it("danger variant uses danger confirm button", () => {
-    const { container } = render(
-      <ConfirmDialog {...defaultProps} variant="danger" />
-    );
-    // The confirm button should have danger styling
-    const buttons = container.querySelectorAll("button");
-    const confirmBtn = Array.from(buttons).find(b => b.textContent === "Confirm");
-    expect(confirmBtn?.className).toContain("bg-danger");
+    render(<ConfirmDialog {...defaultProps} variant="danger" />);
+    // The confirm button should have danger styling. Dialog content is portaled
+    // to document.body, so screen (not container) must be used to find it.
+    const confirmBtn = screen.getByRole("button", { name: "Confirm" });
+    expect(confirmBtn.className).toContain("bg-danger");
   });
 
   it("info variant uses primary confirm button", () => {
-    const { container } = render(
-      <ConfirmDialog {...defaultProps} variant="info" />
-    );
-    const buttons = container.querySelectorAll("button");
-    const confirmBtn = Array.from(buttons).find(b => b.textContent === "Confirm");
-    expect(confirmBtn?.className).toContain("bg-primary");
+    render(<ConfirmDialog {...defaultProps} variant="info" />);
+    const confirmBtn = screen.getByRole("button", { name: "Confirm" });
+    expect(confirmBtn.className).toContain("bg-primary");
   });
 
   // ── Escape key ────────────────────────────────────────────────────────
