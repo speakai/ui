@@ -233,7 +233,9 @@ export function MetricChartWidget({
             strokeWidth={2}
             dot={{ fill: chartSeriesVar(i), r: 3 }}
             activeDot={{ r: 5 }}
-            isAnimationActive={!reducedMotion}
+            // recharts v3 leaves animated <path> series (Line curves, Pie sectors)
+            // unpainted until a reflow; a static render draws the line on first paint.
+            isAnimationActive={false}
           />
         ))}
       </LineChart>
@@ -252,7 +254,8 @@ export function MetricChartWidget({
             fill={chartSeriesVar(i)}
             fillOpacity={0.25}
             strokeWidth={2}
-            isAnimationActive={!reducedMotion}
+            // Same recharts v3 path-paint bug as Line — render the area statically.
+            isAnimationActive={false}
           />
         ))}
       </AreaChart>

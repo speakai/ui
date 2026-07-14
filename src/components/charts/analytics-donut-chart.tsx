@@ -8,7 +8,6 @@
 
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { cn } from "../../utils/cn";
-import { useReducedMotion } from "./use-reduced-motion";
 
 /** Cycle through the 5 chart palette CSS vars for series/slice index `i`. */
 export function chartSeriesVar(index: number): string {
@@ -40,8 +39,6 @@ export function AnalyticsDonutChart({
   showLegend = true,
   className,
 }: AnalyticsDonutChartProps) {
-  const reducedMotion = useReducedMotion();
-
   return (
     <figure className={cn("w-full", className)}>
       <figcaption className="sr-only">{title}</figcaption>
@@ -56,7 +53,9 @@ export function AnalyticsDonutChart({
               cy="50%"
               innerRadius={60}
               outerRadius={110}
-              isAnimationActive={!reducedMotion}
+              // recharts v3 leaves animated <path> series (Pie sectors, Line curves)
+              // unpainted until a reflow; a static render commits the sectors on first paint.
+              isAnimationActive={false}
             >
               {data.map((slice, i) => (
                 <Cell key={`${slice.label}-${i}`} fill={slice.fill ?? chartSeriesVar(i)} />

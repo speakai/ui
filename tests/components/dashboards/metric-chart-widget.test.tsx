@@ -54,7 +54,14 @@ describe("MetricChartWidget", () => {
         labels={LABELS}
       />,
     );
-    expect(container.querySelectorAll(".recharts-line")).toHaveLength(2);
+    const lines = container.querySelectorAll(".recharts-line");
+    expect(lines).toHaveLength(2);
+    // Each series must draw a connected curve, not just scatter dots — assert the
+    // line path has non-empty geometry (regression guard for the blank-line bug).
+    lines.forEach((line) => {
+      const curve = line.querySelector("path.recharts-curve");
+      expect(curve?.getAttribute("d")?.length ?? 0).toBeGreaterThan(0);
+    });
   });
 
   it("shows a legend only when there is more than one series", () => {
