@@ -8,7 +8,6 @@ import {
   Legend,
 } from "recharts";
 import { cn } from "../../utils/cn";
-// recharts v3 does not flush the initial paint of animated <path> series (Pie) in Chrome; disable mount animation so sectors render in one synchronous paint.
 import { SENTIMENT_OPTIONS } from "./sentiment-options";
 import type { SentimentValue, SentimentOverallEntry } from "./chart-types";
 
@@ -36,7 +35,6 @@ export function SentimentPieChart({
   onSliceClick,
   className,
 }: SentimentPieChartProps) {
-
   const pieData = SENTIMENT_OPTIONS.map((opt) => {
     const entry = data[opt.value];
     return {
@@ -73,6 +71,8 @@ export function SentimentPieChart({
               outerRadius={110}
               cursor={onSliceClick ? "pointer" : undefined}
               onClick={handleClick}
+              // recharts v3 leaves animated <path> series (Pie sectors, Line curves)
+              // unpainted until a reflow; a static render commits the sectors on first paint.
               isAnimationActive={false}
             >
               {pieData.map((entry) => (

@@ -1,9 +1,8 @@
 /**
  * Snapshot delta-metric registry (pure) — the source of truth for the
- * period-over-period metrics shared by the `kpi-trend` and `comparison` widgets.
- *
- * Ported from speak-client as pure logic: icon glyphs swapped for the package's
- * inline icon set, and the i18n label removed (labels are injected per widget).
+ * period-over-period snapshot metrics host apps resolve into comparison rows
+ * and metric pickers. Icon glyphs come from the package's inline icon set;
+ * labels are injected per widget (no i18n here).
  */
 
 import type { ComponentType } from "react";
@@ -77,9 +76,6 @@ export const SNAPSHOT_METRIC_ORDER: SnapshotMetricKey[] = [
   "uniqueSpeakers",
 ];
 
-/** The KPI-trend widget's default metric when its config selects none. */
-export const DEFAULT_KPI_METRIC: SnapshotMetricKey = "totalFiles";
-
 function isSnapshotMetricKey(value: unknown): value is SnapshotMetricKey {
   return typeof value === "string" && value in SNAPSHOT_METRICS;
 }
@@ -99,22 +95,6 @@ export function resolveSnapshotMetrics(raw: unknown): SnapshotMetricKey[] {
     }
   }
   return resolved;
-}
-
-/**
- * Resolve which KPI metrics to render, preferring the modern `config.metrics`
- * list and falling back to the legacy single `config.metric` (then the default).
- */
-export function resolveKpiMetrics(
-  metrics: unknown,
-  legacyMetric: string | undefined,
-): SnapshotMetricKey[] {
-  const fromList = resolveSnapshotMetrics(metrics);
-  if (fromList.length > 0) return fromList;
-  if (legacyMetric && legacyMetric in SNAPSHOT_METRICS) {
-    return [legacyMetric as SnapshotMetricKey];
-  }
-  return [DEFAULT_KPI_METRIC];
 }
 
 /**

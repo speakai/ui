@@ -104,10 +104,8 @@ export {
 export {
   SNAPSHOT_METRICS,
   SNAPSHOT_METRIC_ORDER,
-  DEFAULT_KPI_METRIC,
   DEFAULT_COMPARISON_METRICS,
   resolveSnapshotMetrics,
-  resolveKpiMetrics,
   resolveComparisonMetrics,
   type SnapshotMetricKey,
   type SnapshotCurrent,

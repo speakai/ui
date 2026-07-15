@@ -8,7 +8,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { cn } from "../../utils/cn";
-// recharts v3 does not flush the initial paint of animated <path> series (Line/Area) in Chrome — see PR-note; disable mount animation so the curve renders in one synchronous paint.
 
 interface AnalyticsLineChartProps {
   timeline: string[];
@@ -107,6 +106,8 @@ export function AnalyticsLineChart({
                 dot={false}
                 activeDot={{ r: 4 }}
                 connectNulls
+                // recharts v3 leaves animated <path> series (Line curves, Pie sectors)
+                // unpainted until a reflow; a static render draws the line on first paint.
                 isAnimationActive={false}
               />
             ) : null}
@@ -118,6 +119,7 @@ export function AnalyticsLineChart({
               strokeWidth={2}
               dot={{ fill: "var(--color-chart-1)", r: 3 }}
               activeDot={{ r: 5 }}
+              // Same recharts v3 path-paint bug as the ghost line — render statically.
               isAnimationActive={false}
             />
           </LineChart>

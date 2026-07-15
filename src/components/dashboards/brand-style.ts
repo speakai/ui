@@ -6,8 +6,8 @@
  * charts inside and never leaks to the rest of the app. Background/foreground/
  * surface tokens are left untouched so dark mode and text contrast stay correct.
  *
- * Pure functions only — ported from speak-client so the builder and the public
- * view brand widgets identically.
+ * Pure functions only — shared so the builder and the public view brand
+ * widgets identically.
  */
 
 import type { CSSProperties } from "react";
