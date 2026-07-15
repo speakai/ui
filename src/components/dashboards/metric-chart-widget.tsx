@@ -9,7 +9,7 @@
  * strings are injected via `labels`.
  */
 
-import type { ReactElement } from "react";
+import { useRef, type ReactElement } from "react";
 import {
   LineChart,
   Line,
@@ -26,6 +26,7 @@ import {
   Legend,
 } from "recharts";
 import { useReducedMotion } from "../charts/use-reduced-motion";
+import { useContainerWidth } from "../charts/use-container-width";
 import { AnalyticsDonutChart, chartSeriesVar } from "../charts/analytics-donut-chart";
 import { WidgetError, WidgetEmpty } from "./widget-states";
 import { BarChart3Icon } from "./icons";
@@ -127,6 +128,9 @@ function sumByGroup(rows: MetricChartDatum[]): Array<{ group: string; total: num
 
 const AXIS_TICK = { fill: "var(--color-muted-foreground)", fontSize: 12 };
 
+/** Ellipsis-truncate x-axis category labels past this length (matches AnalyticsBarChart's field-distribution ticks). */
+const X_TICK_MAX_LENGTH = 16;
+
 const TOOLTIP_STYLE = {
   backgroundColor: "var(--color-background)",
   border: "1px solid var(--color-border)",
@@ -143,6 +147,9 @@ export function MetricChartWidget({
   onRetry,
 }: MetricChartWidgetProps) {
   const reducedMotion = useReducedMotion();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const containerWidth = useContainerWidth(containerRef);
+  const isMobile = containerWidth < 400;
 
   if (isLoading) {
     return <div className="h-80 w-full animate-pulse rounded-xl bg-muted" aria-hidden="true" />;
@@ -200,7 +207,13 @@ export function MetricChartWidget({
         dataKey="group"
         stroke="var(--color-muted-foreground)"
         tick={AXIS_TICK}
-        interval="preserveStartEnd"
+        angle={-45}
+        textAnchor="end"
+        interval={isMobile ? Math.max(1, Math.ceil(chartData.length / 6) - 1) : 0}
+        height={isMobile ? 50 : 80}
+        tickFormatter={(v: string) =>
+          v?.length > X_TICK_MAX_LENGTH ? v.slice(0, X_TICK_MAX_LENGTH) + "…" : (v ?? "")
+        }
       />
       <YAxis
         stroke="var(--color-muted-foreground)"
@@ -299,7 +312,7 @@ export function MetricChartWidget({
   return (
     <figure className="w-full">
       <figcaption className="sr-only">{labels.title}</figcaption>
-      <div aria-hidden="true">
+      <div ref={containerRef} aria-hidden="true">
         <ResponsiveContainer width="100%" height={300}>
           {chart}
         </ResponsiveContainer>

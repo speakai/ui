@@ -115,6 +115,7 @@ export function FieldDistributionWidget({
       chartLabel={labels.measureLabel}
       valueFormatter={valueFormatter}
       allowDecimals={measure !== "count" && !isSum}
+      categoricalPalette
     />
   );
 }

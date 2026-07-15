@@ -145,6 +145,31 @@ describe("MetricChartWidget", () => {
     expect(container.querySelector(".animate-pulse")).not.toBeNull();
   });
 
+  it("angles and ellipsis-truncates long x-axis category labels", () => {
+    const { container } = render(
+      <MetricChartWidget
+        data={{
+          rows: [
+            { group: "A very long category label", value: 5 },
+            { group: "Short", value: 3 },
+          ],
+        }}
+        isLoading={false}
+        isError={false}
+        config={{ mark: "bar" }}
+        labels={LABELS}
+      />,
+    );
+    // recharts v3 renders tick text in a shared layer — x-axis ticks are the
+    // rotated ones (y-axis ticks carry no transform).
+    const xTicks = Array.from(
+      container.querySelectorAll("text.recharts-cartesian-axis-tick-value"),
+    ).filter((t) => t.getAttribute("transform")?.includes("rotate(-45"));
+    const texts = xTicks.map((t) => t.textContent);
+    expect(texts).toContain("A very long cate…");
+    expect(texts).toContain("Short");
+  });
+
   it("colors single-series bar marks by threshold status", () => {
     const { container } = render(
       <MetricChartWidget
