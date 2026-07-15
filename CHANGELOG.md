@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.20.0 (2026-07-15)
+
+- Added opt-in categorical bar palette for metric charts, dismissOnOutsideClick for side panels, and spec v2 widget views for dashboard widgets. Fixed various issues with charts and dashboards.
+
 ## v0.19.1 (2026-07-14)
 
 - Fixed Dialog accessibility issues and improved test queries for portaled Dialog content
