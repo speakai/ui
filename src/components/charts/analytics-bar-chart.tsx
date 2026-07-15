@@ -1,13 +1,8 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type RefObject,
-} from "react";
+import { useCallback, useRef, type RefObject } from "react";
 import {
   BarChart,
   Bar,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -17,6 +12,8 @@ import {
 } from "recharts";
 import { cn } from "../../utils/cn";
 import { useReducedMotion } from "./use-reduced-motion";
+import { useContainerWidth } from "./use-container-width";
+import { chartSeriesVar } from "./analytics-donut-chart";
 import type { ChartInsight } from "./chart-types";
 
 interface AnalyticsBarChartProps {
@@ -34,6 +31,12 @@ interface AnalyticsBarChartProps {
   valueFormatter?: (value: number) => string;
   /** Allow fractional Y-axis ticks (default false — counts are integers). */
   allowDecimals?: boolean;
+  /**
+   * Color each bar by cycling the 5-color chart palette (categorical data —
+   * distinct categories read as distinct colors). Single-series only: ignored
+   * when `compareData` is present. Default false — all bars use chart-1.
+   */
+  categoricalPalette?: boolean;
 }
 
 export function AnalyticsBarChart({
@@ -49,32 +52,12 @@ export function AnalyticsBarChart({
   className,
   valueFormatter,
   allowDecimals,
+  categoricalPalette = false,
 }: AnalyticsBarChartProps) {
   const internalRef = useRef<HTMLDivElement>(null);
   const chartRef = externalRef ?? internalRef;
 
-  const [containerWidth, setContainerWidth] = useState(800);
-  useEffect(() => {
-    const el = (chartRef as RefObject<HTMLDivElement>).current;
-    if (!el) return;
-
-    let timeout: ReturnType<typeof setTimeout>;
-    const observer = new ResizeObserver((entries) => {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => {
-        const width = entries[0]?.contentRect.width;
-        if (width && width > 0) setContainerWidth(Math.floor(width));
-      }, 100);
-    });
-
-    observer.observe(el);
-    setContainerWidth(Math.floor(el.clientWidth));
-    return () => {
-      clearTimeout(timeout);
-      observer.disconnect();
-    };
-  }, [chartRef]);
-
+  const containerWidth = useContainerWidth(chartRef);
   const isMobile = containerWidth < 400;
   const reducedMotion = useReducedMotion();
 
@@ -100,6 +83,9 @@ export function AnalyticsBarChart({
       .slice(0, maxBars)
       .map(([text, vals]) => ({ text, ...vals }));
   })();
+
+  const colorByCategory =
+    categoricalPalette && (!compareData || compareData.length === 0);
 
   const handleBarClick = useCallback(
     (entry: { payload?: { text?: string } }, _index: number) => {
@@ -178,7 +164,12 @@ export function AnalyticsBarChart({
               cursor={onBarClick ? "pointer" : undefined}
               onClick={handleBarClick}
               isAnimationActive={!reducedMotion}
-            />
+            >
+              {colorByCategory &&
+                chartData.map((_, i) => (
+                  <Cell key={`cell-${i}`} fill={chartSeriesVar(i)} />
+                ))}
+            </Bar>
             {compareData && (
               <Bar
                 dataKey="compareNTimes"

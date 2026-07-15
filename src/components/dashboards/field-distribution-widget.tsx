@@ -1,10 +1,12 @@
 /**
  * Field-distribution widget body (presentational) — value frequency for a single
- * custom field, as a bar chart. Data is the shared `PublicFieldDistributionData`.
+ * custom field, as a bar chart (default) or donut. Data is the shared
+ * `PublicFieldDistributionData`.
  */
 
 import type { PublicFieldDistributionData } from "@speakai/shared";
 import { AnalyticsBarChart } from "../charts/analytics-bar-chart";
+import { AnalyticsDonutChart } from "../charts/analytics-donut-chart";
 import type { ChartInsight } from "../charts/chart-types";
 import { WidgetError, WidgetEmpty } from "./widget-states";
 import { TagsIcon } from "./icons";
@@ -20,19 +22,25 @@ export interface FieldDistributionLabels extends WidgetCommonLabels {
   measureLabel?: string;
 }
 
+export interface FieldDistributionConfig {
+  /**
+   * Selects what `nTimes` represents: "count" (default) | "words" | "duration"
+   * | "avg:<fieldId>" | "sum:<fieldId>" drive value formatting only — the
+   * server has already projected the chosen measure into `nTimes`. "percent"
+   * additionally converts counts to percentages of the total client-side.
+   */
+  measure?: string;
+  /** Chart rendering: grouped bars (default) or a donut. */
+  chartType?: "bar" | "donut";
+}
+
 export interface FieldDistributionWidgetProps {
   data: PublicFieldDistributionData | undefined;
   isLoading: boolean;
   isError: boolean;
   labels: FieldDistributionLabels;
   onRetry?: () => void;
-  /**
-   * Render-only config. `measure` selects what `nTimes` represents:
-   * "count" (default) | "words" | "duration" | "avg:<fieldId>" | "sum:<fieldId>".
-   * It drives value formatting only — the server has already projected the chosen
-   * measure into `nTimes`.
-   */
-  config?: { measure?: string };
+  config?: FieldDistributionConfig;
 }
 
 export function FieldDistributionWidget({
@@ -51,7 +59,7 @@ export function FieldDistributionWidget({
     return <WidgetError labels={labels} onRetry={onRetry} />;
   }
 
-  const insights: ChartInsight[] = data?.insights ?? [];
+  let insights: ChartInsight[] = data?.insights ?? [];
 
   if (insights.length === 0) {
     return (
@@ -66,16 +74,38 @@ export function FieldDistributionWidget({
   const measure = config?.measure ?? "count";
   const isAverage = measure.startsWith("avg:");
   const isSum = measure.startsWith("sum:");
+  const isPercent = measure === "percent";
+
+  if (isPercent) {
+    const total = insights.reduce((sum, d) => sum + d.nTimes, 0);
+    insights = insights.map((d) => ({
+      text: d.text,
+      nTimes: total > 0 ? Number(((d.nTimes / total) * 100).toFixed(1)) : 0,
+    }));
+  }
+
   // Averages of a numeric field can be fractional (e.g. 54.3) — show up to one
   // decimal. Sums reuse the grouped count formatter; duration stays human-readable.
-  const valueFormatter = isAverage
-    ? (v: number) =>
-        Number.isFinite(v)
-          ? v.toLocaleString("en-US", { maximumFractionDigits: 1 })
-          : String(v)
-    : measure === "duration"
-      ? formatDurationHuman
-      : formatCount;
+  const valueFormatter = isPercent
+    ? (v: number) => `${v.toFixed(1)}%`
+    : isAverage
+      ? (v: number) =>
+          Number.isFinite(v)
+            ? v.toLocaleString("en-US", { maximumFractionDigits: 1 })
+            : String(v)
+      : measure === "duration"
+        ? formatDurationHuman
+        : formatCount;
+
+  if (config?.chartType === "donut") {
+    return (
+      <AnalyticsDonutChart
+        data={insights.map((d) => ({ label: d.text, value: d.nTimes }))}
+        title={labels.title}
+        valueFormatter={valueFormatter}
+      />
+    );
+  }
 
   return (
     <AnalyticsBarChart
@@ -85,6 +115,7 @@ export function FieldDistributionWidget({
       chartLabel={labels.measureLabel}
       valueFormatter={valueFormatter}
       allowDecimals={measure !== "count" && !isSum}
+      categoricalPalette
     />
   );
 }

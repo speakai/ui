@@ -8,7 +8,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { cn } from "../../utils/cn";
-import { useReducedMotion } from "./use-reduced-motion";
 
 interface AnalyticsLineChartProps {
   timeline: string[];
@@ -48,7 +47,6 @@ export function AnalyticsLineChart({
   ghostValues,
   ghostLabel,
 }: AnalyticsLineChartProps) {
-  const reducedMotion = useReducedMotion();
   const hasGhost = Array.isArray(ghostValues) && ghostValues.length > 0;
   const chartData = timeline.map((date, i) => ({
     date,
@@ -108,7 +106,9 @@ export function AnalyticsLineChart({
                 dot={false}
                 activeDot={{ r: 4 }}
                 connectNulls
-                isAnimationActive={!reducedMotion}
+                // recharts v3 leaves animated <path> series (Line curves, Pie sectors)
+                // unpainted until a reflow; a static render draws the line on first paint.
+                isAnimationActive={false}
               />
             ) : null}
             <Line
@@ -119,7 +119,8 @@ export function AnalyticsLineChart({
               strokeWidth={2}
               dot={{ fill: "var(--color-chart-1)", r: 3 }}
               activeDot={{ r: 5 }}
-              isAnimationActive={!reducedMotion}
+              // Same recharts v3 path-paint bug as the ghost line — render statically.
+              isAnimationActive={false}
             />
           </LineChart>
         </ResponsiveContainer>

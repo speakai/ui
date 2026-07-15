@@ -22,11 +22,6 @@ export {
   type StatCardsLabels,
 } from "../components/dashboards/stat-cards-widget";
 export {
-  SentimentWidget,
-  type SentimentWidgetProps,
-  type SentimentLabels,
-} from "../components/dashboards/sentiment-widget";
-export {
   SentimentTrendWidget,
   type SentimentTrendWidgetProps,
   type SentimentTrendConfig,
@@ -35,15 +30,9 @@ export {
 export {
   FieldDistributionWidget,
   type FieldDistributionWidgetProps,
+  type FieldDistributionConfig,
   type FieldDistributionLabels,
 } from "../components/dashboards/field-distribution-widget";
-export {
-  UploadTimelineWidget,
-  buildUploadTimeline,
-  type UploadTimelineWidgetProps,
-  type UploadTimelineConfig,
-  type UploadTimelineLabels,
-} from "../components/dashboards/upload-timeline-widget";
 export {
   ThemesWidget,
   type ThemesWidgetProps,
@@ -51,28 +40,39 @@ export {
   type ThemesLabels,
 } from "../components/dashboards/themes-widget";
 export {
-  KpiTrendWidget,
-  type KpiTrendWidgetProps,
-  type KpiTrendConfig,
-  type KpiTrendLabels,
-} from "../components/dashboards/kpi-trend-widget";
-export {
   ComparisonWidget,
   type ComparisonWidgetProps,
-  type ComparisonConfig,
-  type ComparisonLabels,
+  type ComparisonWidgetLabels,
+  type ComparisonWidgetData,
+  type ComparisonMetricRow,
 } from "../components/dashboards/comparison-widget";
+export {
+  MetricChartWidget,
+  type MetricChartWidgetProps,
+  type MetricChartWidgetConfig,
+  type MetricChartWidgetLabels,
+  type MetricChartData,
+  type MetricChartDatum,
+} from "../components/dashboards/metric-chart-widget";
+export {
+  TableWidget,
+  type TableWidgetProps,
+  type TableWidgetConfig,
+  type TableWidgetLabels,
+  type TableWidgetData,
+  type TableWidgetRow,
+  type TableWidgetColumn,
+} from "../components/dashboards/table-widget";
+export {
+  NarrativeWidget,
+  type NarrativeWidgetProps,
+  type NarrativeWidgetLabels,
+} from "../components/dashboards/narrative-widget";
 export {
   InsightBarWidget,
   type InsightBarWidgetProps,
   type InsightBarLabels,
 } from "../components/dashboards/insight-bar-widget";
-export {
-  MediaListWidget,
-  type MediaListWidgetProps,
-  type MediaListRow,
-  type MediaListLabels,
-} from "../components/dashboards/media-list-widget";
 export {
   NotesWidget,
   type NotesWidgetProps,
@@ -81,7 +81,6 @@ export {
 } from "../components/dashboards/notes-widget";
 export {
   PublicUnavailableWidget,
-  PUBLIC_UNAVAILABLE_TYPES,
   type PublicUnavailableLabels,
 } from "../components/dashboards/public-unavailable-widget";
 
@@ -89,7 +88,6 @@ export {
 export type {
   WidgetDataState,
   WidgetCommonLabels,
-  DashboardWidgetType,
 } from "../components/dashboards/types";
 
 // ── Pure metric registries ─────────────────────────────────────────────────
@@ -106,16 +104,33 @@ export {
 export {
   SNAPSHOT_METRICS,
   SNAPSHOT_METRIC_ORDER,
-  DEFAULT_KPI_METRIC,
   DEFAULT_COMPARISON_METRICS,
   resolveSnapshotMetrics,
-  resolveKpiMetrics,
   resolveComparisonMetrics,
   type SnapshotMetricKey,
   type SnapshotCurrent,
   type SnapshotDelta,
   type ComparisonMetricKey,
 } from "../components/dashboards/snapshot-metrics";
+
+// ── Spec threshold evaluation ──────────────────────────────────────────────
+export {
+  resolveThresholdStatus,
+  thresholdFillVar,
+  THRESHOLD_TEXT_CLASS,
+  THRESHOLD_FILL_VAR,
+  type SpecThreshold,
+  type SpecThresholdWhen,
+  type ThresholdStatus,
+} from "../components/dashboards/spec-thresholds";
+
+// ── Chart primitives ───────────────────────────────────────────────────────
+export {
+  AnalyticsDonutChart,
+  chartSeriesVar,
+  type AnalyticsDonutChartProps,
+  type DonutSlice,
+} from "../components/charts/analytics-donut-chart";
 
 // ── Pure presentational helpers ────────────────────────────────────────────
 export {

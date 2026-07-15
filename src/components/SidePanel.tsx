@@ -26,6 +26,13 @@ export interface SidePanelProps extends HTMLAttributes<HTMLDivElement> {
   size?: SidePanelSize;
   /** Show backdrop overlay. Default true on mobile, configurable on desktop */
   backdrop?: boolean;
+  /**
+   * Backdrop-less panels close on any outside click by default. Set false for
+   * work-alongside panels (e.g. a chat panel driving the page behind it) where
+   * interacting with the page must not dismiss the panel. No effect when
+   * `backdrop` is true.
+   */
+  dismissOnOutsideClick?: boolean;
   /** Header content — replaces default title/back/close header when provided */
   header?: ReactNode;
   /** Footer content — sticky at bottom */
@@ -115,6 +122,7 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
       side = "right",
       size = "default",
       backdrop = true,
+      dismissOnOutsideClick = true,
       header,
       footer,
       panelId,
@@ -244,7 +252,7 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
 
     // Click-outside detection when backdrop is disabled
     useEffect(() => {
-      if (!open || backdrop) return;
+      if (!open || backdrop || !dismissOnOutsideClick) return;
 
       const handleClickOutside = (e: MouseEvent) => {
         const panel = panelRef.current;
@@ -256,7 +264,7 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
       // Use mousedown so it fires before any focus changes
       document.addEventListener("mousedown", handleClickOutside);
       return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [open, backdrop, onClose]);
+    }, [open, backdrop, dismissOnOutsideClick, onClose]);
 
     // Lock body scroll when open with backdrop (modal mode)
     useEffect(() => {

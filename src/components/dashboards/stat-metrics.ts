@@ -3,8 +3,8 @@
  * metrics the `stat-cards` widget can headline, in what order they default, and
  * how each maps a value out of an already-assembled values bag.
  *
- * Ported from speak-client as pure logic: icon glyphs swapped for the package's
- * inline icon set, and the i18n label removed (labels are injected per widget).
+ * Pure logic only: icon glyphs come from the package's inline icon set, and
+ * labels are injected per widget (no i18n here).
  */
 
 import type { ComponentType } from "react";
