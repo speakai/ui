@@ -1,20 +1,13 @@
 /**
  * Placeholder shown on the public shared-dashboard view for widget types whose
- * data the server does not serve publicly (team-activity, people, notes carry
- * PII/identity or have no public data path). Rendered read-only in place of the
- * widget body so the layout stays intact without any authed call.
+ * data the server does not serve publicly (no public data path, or the data
+ * carries PII/identity). Rendered read-only in place of the widget body so the
+ * layout stays intact without any authed call. The host app decides which
+ * types get the swap — the server's public widget surface owns that list.
  */
 
 import { EmptyState } from "../EmptyState";
 import { EyeOffIcon } from "./icons";
-import type { DashboardWidgetType } from "@speakai/shared";
-
-/**
- * Widget types whose data the server does NOT serve on the public share endpoint.
- * Single source of truth for the dispatcher's public-view placeholder swap.
- */
-export const PUBLIC_UNAVAILABLE_TYPES: ReadonlySet<DashboardWidgetType> =
-  new Set<DashboardWidgetType>(["team-activity", "people", "notes"]);
 
 export interface PublicUnavailableLabels {
   title: string;

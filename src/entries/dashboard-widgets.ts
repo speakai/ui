@@ -22,11 +22,6 @@ export {
   type StatCardsLabels,
 } from "../components/dashboards/stat-cards-widget";
 export {
-  SentimentWidget,
-  type SentimentWidgetProps,
-  type SentimentLabels,
-} from "../components/dashboards/sentiment-widget";
-export {
   SentimentTrendWidget,
   type SentimentTrendWidgetProps,
   type SentimentTrendConfig,
@@ -39,24 +34,11 @@ export {
   type FieldDistributionLabels,
 } from "../components/dashboards/field-distribution-widget";
 export {
-  UploadTimelineWidget,
-  buildUploadTimeline,
-  type UploadTimelineWidgetProps,
-  type UploadTimelineConfig,
-  type UploadTimelineLabels,
-} from "../components/dashboards/upload-timeline-widget";
-export {
   ThemesWidget,
   type ThemesWidgetProps,
   type ThemesConfig,
   type ThemesLabels,
 } from "../components/dashboards/themes-widget";
-export {
-  KpiTrendWidget,
-  type KpiTrendWidgetProps,
-  type KpiTrendConfig,
-  type KpiTrendLabels,
-} from "../components/dashboards/kpi-trend-widget";
 export {
   ComparisonWidget,
   type ComparisonWidgetProps,
@@ -92,12 +74,6 @@ export {
   type InsightBarLabels,
 } from "../components/dashboards/insight-bar-widget";
 export {
-  MediaListWidget,
-  type MediaListWidgetProps,
-  type MediaListRow,
-  type MediaListLabels,
-} from "../components/dashboards/media-list-widget";
-export {
   NotesWidget,
   type NotesWidgetProps,
   type NotesConfig,
@@ -105,7 +81,6 @@ export {
 } from "../components/dashboards/notes-widget";
 export {
   PublicUnavailableWidget,
-  PUBLIC_UNAVAILABLE_TYPES,
   type PublicUnavailableLabels,
 } from "../components/dashboards/public-unavailable-widget";
 
@@ -113,7 +88,6 @@ export {
 export type {
   WidgetDataState,
   WidgetCommonLabels,
-  DashboardWidgetType,
 } from "../components/dashboards/types";
 
 // ── Pure metric registries ─────────────────────────────────────────────────

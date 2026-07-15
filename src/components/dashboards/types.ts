@@ -10,8 +10,6 @@
  * widget defines its own `*Labels` and `*Config` types here.
  */
 
-import type { DashboardWidgetType } from "@speakai/shared";
-
 /**
  * The async envelope every data-backed widget receives. `data` is the
  * already-fetched, already-typed response (the matching `@speakai/shared`
@@ -34,6 +32,3 @@ export interface WidgetCommonLabels {
   /** Retry button label. */
   retryLabel?: string;
 }
-
-/** The 12 widget type literals, re-exported for dispatcher consumers. */
-export type { DashboardWidgetType };
