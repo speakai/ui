@@ -256,7 +256,7 @@ export function MetricChartWidget({
         tickFormatter={(v: number) => formatValue(Number(v))}
       />
       <Tooltip
-        cursor={{ fill: "var(--color-muted)", opacity: 0.4 }}
+        cursor={false}
         contentStyle={TOOLTIP_CONTENT_STYLE}
         labelStyle={TOOLTIP_LABEL_STYLE}
         itemStyle={TOOLTIP_ITEM_STYLE}

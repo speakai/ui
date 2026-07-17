@@ -155,7 +155,7 @@ export function AnalyticsBarChart({
               }
             />
             <Tooltip
-              cursor={{ fill: "var(--color-muted)", opacity: 0.4 }}
+              cursor={false}
               contentStyle={{
                 backgroundColor: "var(--color-popover)",
                 border: "1px solid var(--color-border)",
