@@ -80,6 +80,7 @@ export function AnalyticsWordCloud({
 }: AnalyticsWordCloudProps) {
   const internalRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(600);
+  const [containerHeight, setContainerHeight] = useState(300);
 
   useImperativeHandle(externalRef, () => internalRef.current!);
 
@@ -88,18 +89,20 @@ export function AnalyticsWordCloud({
     if (!el) return;
 
     let timeout: ReturnType<typeof setTimeout>;
+    const measure = (width: number, height: number) => {
+      if (width > 0) setContainerWidth(Math.min(600, Math.floor(width)));
+      if (height > 0) setContainerHeight(Math.max(160, Math.floor(height)));
+    };
     const observer = new ResizeObserver((entries) => {
       clearTimeout(timeout);
       timeout = setTimeout(() => {
-        const width = entries[0]?.contentRect.width;
-        if (width && width > 0) {
-          setContainerWidth(Math.min(600, Math.floor(width)));
-        }
+        const rect = entries[0]?.contentRect;
+        if (rect) measure(rect.width, rect.height);
       }, 150);
     });
 
     observer.observe(el);
-    setContainerWidth(Math.min(600, Math.floor(el.clientWidth)));
+    measure(el.clientWidth, el.clientHeight);
 
     return () => {
       clearTimeout(timeout);
@@ -156,7 +159,7 @@ export function AnalyticsWordCloud({
   return (
     <WordCloudErrorBoundary
       fallback={
-        <div className="flex h-[300px] items-center justify-center text-sm text-muted-foreground">
+        <div className="flex h-full min-h-[220px] items-center justify-center text-sm text-muted-foreground">
           Word cloud could not be rendered
         </div>
       }
@@ -164,13 +167,13 @@ export function AnalyticsWordCloud({
       <div
         ref={internalRef}
         className={cn(
-          "h-[300px] w-full overflow-hidden",
+          "h-full min-h-[220px] w-full overflow-hidden",
           onWordClick && "[&_text]:cursor-pointer [&_text:hover]:opacity-80",
           className,
         )}
         aria-hidden="true"
       >
-        <Suspense fallback={<Skeleton className="h-[300px] w-full rounded-lg" />}>
+        <Suspense fallback={<Skeleton className="h-full w-full rounded-lg" />}>
           <WordCloudInner
             words={words}
             fontSize={fontSize}
@@ -180,7 +183,7 @@ export function AnalyticsWordCloud({
             padding={4}
             rotate={() => 0}
             width={containerWidth}
-            height={300}
+            height={containerHeight}
             onWordClick={handleWordClick}
           />
         </Suspense>

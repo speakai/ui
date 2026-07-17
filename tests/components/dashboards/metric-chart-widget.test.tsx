@@ -145,7 +145,7 @@ describe("MetricChartWidget", () => {
     expect(container.querySelector(".animate-pulse")).not.toBeNull();
   });
 
-  it("angles and ellipsis-truncates long x-axis category labels", () => {
+  it("wraps long x-axis category labels across two lines when few bars have room (flat)", () => {
     const { container } = render(
       <MetricChartWidget
         data={{
@@ -160,14 +160,37 @@ describe("MetricChartWidget", () => {
         labels={LABELS}
       />,
     );
-    // recharts v3 renders tick text in a shared layer — x-axis ticks are the
-    // rotated ones (y-axis ticks carry no transform).
-    const xTicks = Array.from(
+    const ticks = Array.from(
       container.querySelectorAll("text.recharts-cartesian-axis-tick-value"),
-    ).filter((t) => t.getAttribute("transform")?.includes("rotate(-45"));
-    const texts = xTicks.map((t) => t.textContent);
-    expect(texts).toContain("A very long cate…");
-    expect(texts).toContain("Short");
+    ).filter((t) => !(t.getAttribute("transform")?.includes("rotate")));
+    // The long label is flat (not angled) and wraps across multiple <tspan> lines.
+    const longTick = ticks.find((t) => (t.textContent ?? "").startsWith("A very long"));
+    expect(longTick).toBeTruthy();
+    expect(longTick?.querySelectorAll("tspan").length ?? 0).toBeGreaterThan(1);
+    expect(ticks.map((t) => t.textContent)).toContain("Short");
+  });
+
+  it("angles and ellipsis-truncates x-axis category labels when many bars are packed tight", () => {
+    const rows = Array.from({ length: 12 }, (_, i) => ({
+      group: `A very long category label ${i}`,
+      value: i + 1,
+    }));
+    const { container } = render(
+      <MetricChartWidget
+        data={{ rows }}
+        isLoading={false}
+        isError={false}
+        config={{ mark: "bar" }}
+        labels={LABELS}
+      />,
+    );
+    const texts = Array.from(
+      container.querySelectorAll("text.recharts-cartesian-axis-tick-value"),
+    )
+      .filter((t) => t.getAttribute("transform")?.includes("rotate(-45"))
+      .map((t) => t.textContent ?? "");
+    expect(texts.length).toBeGreaterThan(0);
+    expect(texts.every((s) => s.endsWith("…") && s.length <= 16)).toBe(true);
   });
 
   it("colors single-series bar marks by threshold status", () => {

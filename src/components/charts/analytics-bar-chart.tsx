@@ -14,6 +14,7 @@ import { cn } from "../../utils/cn";
 import { useReducedMotion } from "./use-reduced-motion";
 import { useContainerWidth } from "./use-container-width";
 import { chartSeriesVar } from "./analytics-donut-chart";
+import { computeCategoryAxis, CategoryAxisTick } from "./category-axis";
 import type { ChartInsight } from "./chart-types";
 
 interface AnalyticsBarChartProps {
@@ -87,6 +88,13 @@ export function AnalyticsBarChart({
   const colorByCategory =
     categoricalPalette && (!compareData || compareData.length === 0);
 
+  const axisLayout = computeCategoryAxis(
+    chartData.length,
+    containerWidth,
+    isMobile,
+    tickMaxLength,
+  );
+
   const handleBarClick = useCallback(
     (entry: { payload?: { text?: string } }, _index: number) => {
       if (onBarClick && entry.payload?.text) {
@@ -97,17 +105,17 @@ export function AnalyticsBarChart({
   );
 
   return (
-    <figure className={cn("w-full", className)}>
+    <figure className={cn("flex h-full min-h-[220px] w-full flex-col", className)}>
       <figcaption className="sr-only">{title}</figcaption>
-      <div ref={chartRef as RefObject<HTMLDivElement>} aria-hidden="true">
-        <ResponsiveContainer width="100%" height={isMobile ? 280 : 400}>
+      <div ref={chartRef as RefObject<HTMLDivElement>} className="min-h-0 flex-1" aria-hidden="true">
+        <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={chartData}
             margin={{
               top: 10,
               right: isMobile ? 8 : 20,
               left: 0,
-              bottom: isMobile ? 40 : 60,
+              bottom: 5,
             }}
           >
             <CartesianGrid
@@ -118,18 +126,18 @@ export function AnalyticsBarChart({
             <XAxis
               dataKey="text"
               stroke="var(--color-muted-foreground)"
-              tick={{
-                fill: "var(--color-muted-foreground)",
-                fontSize: isMobile ? 10 : 12,
-              }}
-              angle={-45}
-              textAnchor="end"
-              interval={isMobile ? Math.max(1, Math.ceil(chartData.length / 6) - 1) : 0}
-              height={isMobile ? 50 : 80}
-              tickFormatter={(v: string) =>
-                tickMaxLength && v?.length > tickMaxLength
-                  ? v.slice(0, tickMaxLength) + "…"
-                  : (v ?? "")
+              interval={axisLayout.interval}
+              height={axisLayout.height}
+              tickMargin={8}
+              tick={
+                <CategoryAxisTick
+                  angle={axisLayout.angle}
+                  textAnchor={axisLayout.textAnchor}
+                  maxCharsPerLine={axisLayout.maxCharsPerLine}
+                  maxLines={axisLayout.maxLines}
+                  fill="var(--color-muted-foreground)"
+                  fontSize={isMobile ? 10 : 12}
+                />
               }
             />
             <YAxis
@@ -167,6 +175,7 @@ export function AnalyticsBarChart({
               radius={[4, 4, 0, 0]}
               cursor={onBarClick ? "pointer" : undefined}
               onClick={handleBarClick}
+              activeBar={{ fillOpacity: 0.82, stroke: "var(--color-foreground)", strokeWidth: 1.5 }}
               isAnimationActive={!reducedMotion}
             >
               {colorByCategory &&

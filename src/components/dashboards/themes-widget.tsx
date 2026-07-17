@@ -31,6 +31,8 @@ export interface ThemesWidgetProps {
   config?: ThemesConfig;
   labels: ThemesLabels;
   onRetry?: () => void;
+  /** Called with the clicked theme name (word cloud or bar) — e.g. to drive a search/filter. */
+  onWordClick?: (text: string) => void;
 }
 
 export function ThemesWidget({
@@ -40,6 +42,7 @@ export function ThemesWidget({
   config,
   labels,
   onRetry,
+  onWordClick,
 }: ThemesWidgetProps) {
   if (isLoading) {
     return <div className="h-72 w-full animate-pulse rounded-xl bg-muted" aria-hidden="true" />;
@@ -65,8 +68,15 @@ export function ThemesWidget({
   }
 
   if (config?.chartType === "bar") {
-    return <AnalyticsBarChart data={insights} title={labels.title} tickMaxLength={16} />;
+    return (
+      <AnalyticsBarChart
+        data={insights}
+        title={labels.title}
+        tickMaxLength={16}
+        onBarClick={onWordClick}
+      />
+    );
   }
 
-  return <AnalyticsWordCloud data={insights} />;
+  return <AnalyticsWordCloud data={insights} onWordClick={onWordClick} />;
 }

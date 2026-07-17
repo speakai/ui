@@ -28,6 +28,7 @@ import {
 import { useReducedMotion } from "../charts/use-reduced-motion";
 import { useContainerWidth } from "../charts/use-container-width";
 import { AnalyticsDonutChart, chartSeriesVar } from "../charts/analytics-donut-chart";
+import { computeCategoryAxis, CategoryAxisTick } from "../charts/category-axis";
 import { WidgetError, WidgetEmpty } from "./widget-states";
 import { BarChart3Icon } from "./icons";
 import { resolveThresholdStatus, thresholdFillVar, type SpecThreshold } from "./spec-thresholds";
@@ -216,19 +217,35 @@ export function MetricChartWidget({
   const multiSeries = seriesKeys.length > 1;
   const seriesName = (key: string, i: number) => (key === "" ? labels.title : key) || `s${i}`;
 
+  // Flat/wrapped category labels are a bar-chart affordance; line/area x-axes
+  // carry date labels that read better angled than wrapped, so keep them as-is.
+  const allowFlat = config.mark === "bar" || config.mark === "stacked-bar";
+  const axisLayout = computeCategoryAxis(
+    chartData.length,
+    containerWidth,
+    isMobile,
+    X_TICK_MAX_LENGTH,
+    allowFlat,
+  );
+
   const axes = (
     <>
       <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
       <XAxis
         dataKey="group"
         stroke="var(--color-muted-foreground)"
-        tick={AXIS_TICK}
-        angle={-45}
-        textAnchor="end"
-        interval={isMobile ? Math.max(1, Math.ceil(chartData.length / 6) - 1) : 0}
-        height={isMobile ? 50 : 80}
-        tickFormatter={(v: string) =>
-          v?.length > X_TICK_MAX_LENGTH ? v.slice(0, X_TICK_MAX_LENGTH) + "…" : (v ?? "")
+        interval={axisLayout.interval}
+        height={axisLayout.height}
+        tickMargin={8}
+        tick={
+          <CategoryAxisTick
+            angle={axisLayout.angle}
+            textAnchor={axisLayout.textAnchor}
+            maxCharsPerLine={axisLayout.maxCharsPerLine}
+            maxLines={axisLayout.maxLines}
+            fill="var(--color-muted-foreground)"
+            fontSize={isMobile ? 10 : 12}
+          />
         }
       />
       <YAxis
@@ -296,7 +313,7 @@ export function MetricChartWidget({
     const stacked = config.mark === "stacked-bar";
     const colorByThreshold = !stacked && seriesKeys.length === 1 && !!thresholds?.length;
     chart = (
-      <BarChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
+      <BarChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
         {axes}
         {seriesKeys.map((key, i) => (
           <Bar
@@ -306,6 +323,7 @@ export function MetricChartWidget({
             stackId={stacked ? "stack" : undefined}
             fill={chartSeriesVar(i)}
             radius={stacked ? undefined : [4, 4, 0, 0]}
+            activeBar={{ fillOpacity: 0.82, stroke: "var(--color-foreground)", strokeWidth: 1.5 }}
             isAnimationActive={!reducedMotion}
           >
             {colorByThreshold &&
@@ -329,10 +347,10 @@ export function MetricChartWidget({
   }
 
   return (
-    <figure className="w-full">
+    <figure className="flex h-full min-h-[220px] w-full flex-col">
       <figcaption className="sr-only">{labels.title}</figcaption>
-      <div ref={containerRef} aria-hidden="true">
-        <ResponsiveContainer width="100%" height={300}>
+      <div ref={containerRef} className="min-h-0 flex-1" aria-hidden="true">
+        <ResponsiveContainer width="100%" height="100%">
           {chart}
         </ResponsiveContainer>
       </div>

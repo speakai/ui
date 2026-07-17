@@ -40,10 +40,10 @@ export function AnalyticsDonutChart({
   className,
 }: AnalyticsDonutChartProps) {
   return (
-    <figure className={cn("w-full", className)}>
+    <figure className={cn("flex h-full min-h-[220px] w-full flex-col", className)}>
       <figcaption className="sr-only">{title}</figcaption>
-      <div aria-hidden="true">
-        <ResponsiveContainer width="100%" height={320}>
+      <div className="min-h-0 flex-1" aria-hidden="true">
+        <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
               data={data}
