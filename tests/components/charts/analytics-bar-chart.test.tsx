@@ -85,7 +85,7 @@ describe("AnalyticsBarChart", () => {
     expect(fills).not.toContain("var(--color-chart-3)");
   });
 
-  it("ellipsis-truncates x-axis ticks past tickMaxLength", () => {
+  it("wraps a long category label across two lines when a bar has room (flat)", () => {
     const { container } = render(
       <AnalyticsBarChart
         data={[{ text: "A very long category label", nTimes: 4 }]}
@@ -93,10 +93,30 @@ describe("AnalyticsBarChart", () => {
         tickMaxLength={16}
       />,
     );
-    // recharts v3 renders tick text in a shared layer, not under .recharts-xAxis.
+    const tick = container.querySelector("text.recharts-cartesian-axis-tick-value");
+    // Flat layout: no rotation, and the label wraps into <tspan> lines instead
+    // of being clipped to a single ellipsis-truncated line.
+    expect(tick?.getAttribute("transform") ?? "").not.toContain("rotate");
+    const lines = Array.from(tick?.querySelectorAll("tspan") ?? []).map((t) => t.textContent ?? "");
+    expect(lines.length).toBeGreaterThan(1);
+    expect(lines.join(" ")).not.toContain("…");
+  });
+
+  it("angles and ellipsis-truncates x-axis ticks to tickMaxLength when bars are packed tight", () => {
+    const data = Array.from({ length: 12 }, (_, i) => ({
+      text: `A very long category label ${i}`,
+      nTimes: i + 1,
+    }));
+    const { container } = render(
+      <AnalyticsBarChart data={data} title="Distribution" tickMaxLength={16} />,
+    );
     const texts = Array.from(
       container.querySelectorAll("text.recharts-cartesian-axis-tick-value"),
-    ).map((t) => t.textContent);
-    expect(texts).toContain("A very long cate…");
+    )
+      .filter((t) => t.getAttribute("transform")?.includes("rotate(-45"))
+      .map((t) => t.textContent ?? "");
+    expect(texts.length).toBeGreaterThan(0);
+    // Angled = single line, capped at tickMaxLength (16) with a trailing ellipsis.
+    expect(texts.every((s) => s.endsWith("…") && s.length <= 16)).toBe(true);
   });
 });

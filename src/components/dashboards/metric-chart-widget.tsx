@@ -28,6 +28,7 @@ import {
 import { useReducedMotion } from "../charts/use-reduced-motion";
 import { useContainerWidth } from "../charts/use-container-width";
 import { AnalyticsDonutChart, chartSeriesVar } from "../charts/analytics-donut-chart";
+import { computeCategoryAxis, CategoryAxisTick } from "../charts/category-axis";
 import { WidgetError, WidgetEmpty } from "./widget-states";
 import { BarChart3Icon } from "./icons";
 import { resolveThresholdStatus, thresholdFillVar, type SpecThreshold } from "./spec-thresholds";
@@ -216,19 +217,34 @@ export function MetricChartWidget({
   const multiSeries = seriesKeys.length > 1;
   const seriesName = (key: string, i: number) => (key === "" ? labels.title : key) || `s${i}`;
 
+  // Flat/wrapped category labels are a bar-chart affordance; line/area x-axes
+  // carry date labels that read better angled than wrapped, so keep them as-is.
+  const allowFlat = config.mark === "bar" || config.mark === "stacked-bar";
+  const axisLayout = computeCategoryAxis(
+    chartData.length,
+    containerWidth,
+    isMobile,
+    X_TICK_MAX_LENGTH,
+    allowFlat,
+  );
+
   const axes = (
     <>
       <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
       <XAxis
         dataKey="group"
         stroke="var(--color-muted-foreground)"
-        tick={AXIS_TICK}
-        angle={-45}
-        textAnchor="end"
-        interval={isMobile ? Math.max(1, Math.ceil(chartData.length / 6) - 1) : 0}
-        height={isMobile ? 50 : 80}
-        tickFormatter={(v: string) =>
-          v?.length > X_TICK_MAX_LENGTH ? v.slice(0, X_TICK_MAX_LENGTH) + "…" : (v ?? "")
+        interval={axisLayout.interval}
+        height={axisLayout.height}
+        tick={
+          <CategoryAxisTick
+            angle={axisLayout.angle}
+            textAnchor={axisLayout.textAnchor}
+            maxCharsPerLine={axisLayout.maxCharsPerLine}
+            maxLines={axisLayout.maxLines}
+            fill="var(--color-muted-foreground)"
+            fontSize={isMobile ? 10 : 12}
+          />
         }
       />
       <YAxis

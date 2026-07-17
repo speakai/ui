@@ -14,6 +14,7 @@ import { cn } from "../../utils/cn";
 import { useReducedMotion } from "./use-reduced-motion";
 import { useContainerWidth } from "./use-container-width";
 import { chartSeriesVar } from "./analytics-donut-chart";
+import { computeCategoryAxis, CategoryAxisTick } from "./category-axis";
 import type { ChartInsight } from "./chart-types";
 
 interface AnalyticsBarChartProps {
@@ -87,6 +88,13 @@ export function AnalyticsBarChart({
   const colorByCategory =
     categoricalPalette && (!compareData || compareData.length === 0);
 
+  const axisLayout = computeCategoryAxis(
+    chartData.length,
+    containerWidth,
+    isMobile,
+    tickMaxLength,
+  );
+
   const handleBarClick = useCallback(
     (entry: { payload?: { text?: string } }, _index: number) => {
       if (onBarClick && entry.payload?.text) {
@@ -118,18 +126,17 @@ export function AnalyticsBarChart({
             <XAxis
               dataKey="text"
               stroke="var(--color-muted-foreground)"
-              tick={{
-                fill: "var(--color-muted-foreground)",
-                fontSize: isMobile ? 10 : 12,
-              }}
-              angle={-45}
-              textAnchor="end"
-              interval={isMobile ? Math.max(1, Math.ceil(chartData.length / 6) - 1) : 0}
-              height={isMobile ? 50 : 80}
-              tickFormatter={(v: string) =>
-                tickMaxLength && v?.length > tickMaxLength
-                  ? v.slice(0, tickMaxLength) + "…"
-                  : (v ?? "")
+              interval={axisLayout.interval}
+              height={axisLayout.height}
+              tick={
+                <CategoryAxisTick
+                  angle={axisLayout.angle}
+                  textAnchor={axisLayout.textAnchor}
+                  maxCharsPerLine={axisLayout.maxCharsPerLine}
+                  maxLines={axisLayout.maxLines}
+                  fill="var(--color-muted-foreground)"
+                  fontSize={isMobile ? 10 : 12}
+                />
               }
             />
             <YAxis
