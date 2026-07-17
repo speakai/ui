@@ -323,7 +323,7 @@ export function MetricChartWidget({
             stackId={stacked ? "stack" : undefined}
             fill={chartSeriesVar(i)}
             radius={stacked ? undefined : [4, 4, 0, 0]}
-            activeBar={{ fillOpacity: 0.82, stroke: "var(--color-foreground)", strokeWidth: 1.5 }}
+            activeBar={{ fillOpacity: 0.8 }}
             isAnimationActive={!reducedMotion}
           >
             {colorByThreshold &&
