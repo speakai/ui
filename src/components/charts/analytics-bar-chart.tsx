@@ -147,12 +147,16 @@ export function AnalyticsBarChart({
               }
             />
             <Tooltip
+              cursor={{ fill: "var(--color-muted)", opacity: 0.4 }}
               contentStyle={{
-                backgroundColor: "var(--color-background)",
+                backgroundColor: "var(--color-popover)",
                 border: "1px solid var(--color-border)",
-                borderRadius: "6px",
-                color: "var(--color-foreground)",
+                borderRadius: "8px",
+                boxShadow: "0 4px 12px rgb(0 0 0 / 0.12)",
+                padding: "8px 12px",
               }}
+              labelStyle={{ color: "var(--color-muted-foreground)", fontSize: 12, fontWeight: 500, marginBottom: 4 }}
+              itemStyle={{ color: "var(--color-popover-foreground)", fontSize: 13, padding: 0 }}
               formatter={(v) => (valueFormatter ? valueFormatter(Number(v)) : v)}
             />
             {compareData && <Legend />}

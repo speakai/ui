@@ -9,7 +9,7 @@
  * strings are injected via `labels`.
  */
 
-import { useRef, type ReactElement } from "react";
+import { useRef, type CSSProperties, type ReactElement } from "react";
 import {
   LineChart,
   Line,
@@ -131,11 +131,27 @@ const AXIS_TICK = { fill: "var(--color-muted-foreground)", fontSize: 12 };
 /** Ellipsis-truncate x-axis category labels past this length (matches AnalyticsBarChart's field-distribution ticks). */
 const X_TICK_MAX_LENGTH = 16;
 
-const TOOLTIP_STYLE = {
-  backgroundColor: "var(--color-background)",
+// Card-style tooltip on the floating `--color-popover` surface (not the page
+// `--color-background`), with a subtle shadow so it reads as a lifted card in
+// both themes. Paired with a low-opacity `cursor` fill below, which replaces
+// recharts' default opaque grey column overlay.
+const TOOLTIP_CONTENT_STYLE: CSSProperties = {
+  backgroundColor: "var(--color-popover)",
   border: "1px solid var(--color-border)",
-  borderRadius: "6px",
-  color: "var(--color-foreground)",
+  borderRadius: "8px",
+  boxShadow: "0 4px 12px rgb(0 0 0 / 0.12)",
+  padding: "8px 12px",
+};
+const TOOLTIP_LABEL_STYLE: CSSProperties = {
+  color: "var(--color-muted-foreground)",
+  fontSize: 12,
+  fontWeight: 500,
+  marginBottom: 4,
+};
+const TOOLTIP_ITEM_STYLE: CSSProperties = {
+  color: "var(--color-popover-foreground)",
+  fontSize: 13,
+  padding: 0,
 };
 
 export function MetricChartWidget({
@@ -223,7 +239,10 @@ export function MetricChartWidget({
         tickFormatter={(v: number) => formatValue(Number(v))}
       />
       <Tooltip
-        contentStyle={TOOLTIP_STYLE}
+        cursor={{ fill: "var(--color-muted)", opacity: 0.4 }}
+        contentStyle={TOOLTIP_CONTENT_STYLE}
+        labelStyle={TOOLTIP_LABEL_STYLE}
+        itemStyle={TOOLTIP_ITEM_STYLE}
         formatter={(v) => formatValue(Number(v))}
       />
       {multiSeries && <Legend />}
