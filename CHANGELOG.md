@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.21.0 (2026-07-17)
+
+- Added responsive bar-chart x-axis labels
+
 ## v0.20.1 (2026-07-17)
 
 - Fixed themed card tooltip and subtle hover cursor on bar charts
