@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.20.1 (2026-07-17)
+
+- Fixed themed card tooltip and subtle hover cursor on bar charts
+
 ## v0.20.0 (2026-07-15)
 
 - Added opt-in categorical bar palette for metric charts, dismissOnOutsideClick for side panels, and spec v2 widget views for dashboard widgets. Fixed various issues with charts and dashboards.
