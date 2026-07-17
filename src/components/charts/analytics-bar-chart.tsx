@@ -105,17 +105,17 @@ export function AnalyticsBarChart({
   );
 
   return (
-    <figure className={cn("w-full", className)}>
+    <figure className={cn("flex h-full min-h-[220px] w-full flex-col", className)}>
       <figcaption className="sr-only">{title}</figcaption>
-      <div ref={chartRef as RefObject<HTMLDivElement>} aria-hidden="true">
-        <ResponsiveContainer width="100%" height={isMobile ? 280 : 400}>
+      <div ref={chartRef as RefObject<HTMLDivElement>} className="min-h-0 flex-1" aria-hidden="true">
+        <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={chartData}
             margin={{
               top: 10,
               right: isMobile ? 8 : 20,
               left: 0,
-              bottom: isMobile ? 40 : 60,
+              bottom: 5,
             }}
           >
             <CartesianGrid
@@ -128,6 +128,7 @@ export function AnalyticsBarChart({
               stroke="var(--color-muted-foreground)"
               interval={axisLayout.interval}
               height={axisLayout.height}
+              tickMargin={8}
               tick={
                 <CategoryAxisTick
                   angle={axisLayout.angle}
@@ -174,6 +175,7 @@ export function AnalyticsBarChart({
               radius={[4, 4, 0, 0]}
               cursor={onBarClick ? "pointer" : undefined}
               onClick={handleBarClick}
+              activeBar={{ fillOpacity: 0.82, stroke: "var(--color-foreground)", strokeWidth: 1.5 }}
               isAnimationActive={!reducedMotion}
             >
               {colorByCategory &&

@@ -236,6 +236,7 @@ export function MetricChartWidget({
         stroke="var(--color-muted-foreground)"
         interval={axisLayout.interval}
         height={axisLayout.height}
+        tickMargin={8}
         tick={
           <CategoryAxisTick
             angle={axisLayout.angle}
@@ -312,7 +313,7 @@ export function MetricChartWidget({
     const stacked = config.mark === "stacked-bar";
     const colorByThreshold = !stacked && seriesKeys.length === 1 && !!thresholds?.length;
     chart = (
-      <BarChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
+      <BarChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
         {axes}
         {seriesKeys.map((key, i) => (
           <Bar
@@ -322,6 +323,7 @@ export function MetricChartWidget({
             stackId={stacked ? "stack" : undefined}
             fill={chartSeriesVar(i)}
             radius={stacked ? undefined : [4, 4, 0, 0]}
+            activeBar={{ fillOpacity: 0.82, stroke: "var(--color-foreground)", strokeWidth: 1.5 }}
             isAnimationActive={!reducedMotion}
           >
             {colorByThreshold &&
@@ -345,10 +347,10 @@ export function MetricChartWidget({
   }
 
   return (
-    <figure className="w-full">
+    <figure className="flex h-full min-h-[220px] w-full flex-col">
       <figcaption className="sr-only">{labels.title}</figcaption>
-      <div ref={containerRef} aria-hidden="true">
-        <ResponsiveContainer width="100%" height={300}>
+      <div ref={containerRef} className="min-h-0 flex-1" aria-hidden="true">
+        <ResponsiveContainer width="100%" height="100%">
           {chart}
         </ResponsiveContainer>
       </div>

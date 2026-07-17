@@ -47,7 +47,7 @@ export function computeCategoryAxis(
     return {
       angle: 0,
       textAnchor: "middle",
-      height: 44,
+      height: 52, // room for the 8px tickMargin gap + up to 2 wrapped lines
       interval: 0,
       maxCharsPerLine: charCap ? Math.min(charCap, roomChars) : roomChars,
       maxLines: 2,
