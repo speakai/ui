@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.21.1 (2026-07-21)
+
+- Fixed Dropdown functionality
+
 ## v0.21.0 (2026-07-17)
 
 - Added responsive bar-chart x-axis labels
