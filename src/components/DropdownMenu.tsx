@@ -1,11 +1,14 @@
 import {
+  createContext,
   forwardRef,
   HTMLAttributes,
   KeyboardEvent,
   ReactNode,
   useCallback,
+  useContext,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -13,6 +16,11 @@ import { createPortal } from "react-dom";
 import { cn } from "../utils/cn";
 
 // ── DropdownMenu ─────────────────────────────────────────────────────────────
+
+// Lets a DropdownMenuItem close the menu it lives in when selected, matching the
+// Radix menu contract callers expect. Null outside a DropdownMenu (e.g. an item
+// rendered standalone), in which case selecting is a no-op for close.
+const DropdownMenuContext = createContext<{ close: () => void } | null>(null);
 
 export interface DropdownMenuProps {
   /** Trigger element — when provided, DropdownMenu manages open/close internally. When omitted, use the `open` prop to control visibility externally. */
@@ -78,6 +86,11 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
     const toggle = useCallback(() => {
       setOpen(!isOpen);
     }, [isOpen, setOpen]);
+
+    const menuContextValue = useMemo(
+      () => ({ close: () => setOpen(false) }),
+      [setOpen]
+    );
 
     /** Returns all focusable menu items (skips disabled, headers, dividers) */
     const getMenuItems = useCallback(() => {
@@ -282,7 +295,9 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
             className
           )}
         >
-          {children}
+          <DropdownMenuContext.Provider value={menuContextValue}>
+            {children}
+          </DropdownMenuContext.Provider>
         </div>
       );
     }
@@ -313,7 +328,9 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
           width
         )}
       >
-        {children}
+        <DropdownMenuContext.Provider value={menuContextValue}>
+          {children}
+        </DropdownMenuContext.Provider>
       </div>
     ) : null;
 
@@ -356,33 +373,66 @@ export interface DropdownMenuItemProps
   variant?: "default" | "danger";
   icon?: ReactNode;
   disabled?: boolean;
+  /**
+   * Close the menu after this item runs its onClick. Defaults to true so items
+   * that open a dialog or navigate leave the menu closed behind them. Set false
+   * for items that toggle state in place and should keep the menu open.
+   */
+  closeOnSelect?: boolean;
 }
 
 export const DropdownMenuItem = forwardRef<
   HTMLButtonElement,
   DropdownMenuItemProps
->(({ variant = "default", icon, disabled = false, className, children, ...props }, ref) => (
-  <button
-    ref={ref}
-    role="menuitem"
-    tabIndex={-1}
-    className={cn(
-      "flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors",
-      "focus:bg-muted focus:text-foreground focus:outline-hidden",
-      "hover:bg-muted hover:text-foreground",
-      variant === "danger"
-        ? "text-danger hover:bg-danger/10 hover:text-danger focus:bg-danger/10 focus:text-danger"
-        : "text-popover-foreground",
-      disabled && "pointer-events-none opacity-50",
-      className
-    )}
-    disabled={disabled}
-    {...props}
-  >
-    {icon && <span className="shrink-0" aria-hidden="true">{icon}</span>}
-    {children}
-  </button>
-));
+>(
+  (
+    {
+      variant = "default",
+      icon,
+      disabled = false,
+      closeOnSelect = true,
+      className,
+      children,
+      onClick,
+      ...props
+    },
+    ref
+  ) => {
+    const menu = useContext(DropdownMenuContext);
+    const handleClick = useCallback(
+      (e: React.MouseEvent<HTMLButtonElement>) => {
+        onClick?.(e);
+        // Respect a handler that stopped the activation (e.g. preventDefault to
+        // keep a submenu open); otherwise close the menu the item lives in.
+        if (closeOnSelect && !e.defaultPrevented) menu?.close();
+      },
+      [onClick, closeOnSelect, menu]
+    );
+    return (
+      <button
+        ref={ref}
+        role="menuitem"
+        tabIndex={-1}
+        className={cn(
+          "flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors",
+          "focus:bg-muted focus:text-foreground focus:outline-hidden",
+          "hover:bg-muted hover:text-foreground",
+          variant === "danger"
+            ? "text-danger hover:bg-danger/10 hover:text-danger focus:bg-danger/10 focus:text-danger"
+            : "text-popover-foreground",
+          disabled && "pointer-events-none opacity-50",
+          className
+        )}
+        disabled={disabled}
+        onClick={handleClick}
+        {...props}
+      >
+        {icon && <span className="shrink-0" aria-hidden="true">{icon}</span>}
+        {children}
+      </button>
+    );
+  }
+);
 DropdownMenuItem.displayName = "DropdownMenuItem";
 
 // ── DropdownMenuHeader ───────────────────────────────────────────────────────

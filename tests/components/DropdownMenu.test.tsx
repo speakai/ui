@@ -242,6 +242,54 @@ describe("DropdownMenu keyboard navigation", () => {
   });
 });
 
+describe("DropdownMenu close on select", () => {
+  it("closes the menu after an item is selected", async () => {
+    const user = userEvent.setup();
+    const onClick = vi.fn();
+    render(
+      <DropdownMenu trigger={<button>Menu</button>}>
+        <DropdownMenuItem onClick={onClick}>Move to Folder</DropdownMenuItem>
+      </DropdownMenu>
+    );
+    await user.click(screen.getByText("Menu"));
+    await user.click(screen.getByText("Move to Folder"));
+    expect(onClick).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(screen.queryByText("Move to Folder")).not.toBeInTheDocument();
+    });
+  });
+
+  it("keeps the menu open when closeOnSelect is false", async () => {
+    const user = userEvent.setup();
+    const onClick = vi.fn();
+    render(
+      <DropdownMenu trigger={<button>Menu</button>}>
+        <DropdownMenuItem closeOnSelect={false} onClick={onClick}>
+          Toggle
+        </DropdownMenuItem>
+      </DropdownMenu>
+    );
+    await user.click(screen.getByText("Menu"));
+    await user.click(screen.getByText("Toggle"));
+    expect(onClick).toHaveBeenCalledTimes(1);
+    expect(screen.getByText("Toggle")).toBeInTheDocument();
+  });
+
+  it("does not close when the item handler calls preventDefault", async () => {
+    const user = userEvent.setup();
+    render(
+      <DropdownMenu trigger={<button>Menu</button>}>
+        <DropdownMenuItem onClick={(e) => e.preventDefault()}>
+          Guarded
+        </DropdownMenuItem>
+      </DropdownMenu>
+    );
+    await user.click(screen.getByText("Menu"));
+    await user.click(screen.getByText("Guarded"));
+    expect(screen.getByText("Guarded")).toBeInTheDocument();
+  });
+});
+
 describe("DropdownMenuItem", () => {
   it("renders with role=menuitem", () => {
     render(<DropdownMenuItem>Edit</DropdownMenuItem>);
