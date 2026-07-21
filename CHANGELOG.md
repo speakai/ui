@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.22.1 (2026-07-21)
+
+- Fixed transcript save round-trip discarding segment data, Backspace deleting merged paragraphs, and reading order on Enter split
+
 ## v0.22.0 (2026-07-21)
 
 - Added dense-label skipping and sleeker bar hover to charts component
