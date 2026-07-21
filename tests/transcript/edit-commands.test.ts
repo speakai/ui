@@ -119,16 +119,17 @@ describe("handleBackspaceKey", () => {
     expect(dispatch).not.toHaveBeenCalled();
   });
 
-  it("W1 parentOffset 1 — backspace at parentOffset===1 inside sentence triggers merge", () => {
-    // parentOffset 1 means the cursor is one step past the sentence's opening token.
-    // This position still counts as "sentence boundary" and must trigger merge.
+  it("W1 parentOffset 1 — defers so the first character is deleted, not merged", () => {
+    // parentOffset counts into the parent's content, so 1 is already past the
+    // first character: Backspace there must delete it via baseKeymap, never
+    // collapse the sentence into the previous paragraph.
     const state = makeTwoSentenceState();
     const stateWithCursor = setCursor(state, 1, 1);
 
     let dispatched = false;
     const result = handleBackspaceKey(stateWithCursor, () => { dispatched = true; });
-    expect(result).toBe(true);
-    expect(dispatched).toBe(true);
+    expect(result).toBe(false);
+    expect(dispatched).toBe(false);
   });
 
   it("W1 mid-sentence control — parentOffset 2 returns false", () => {

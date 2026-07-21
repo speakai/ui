@@ -226,6 +226,17 @@ export function prevMatch(view: EditorView) {
   );
 }
 
+/**
+ * Replacement text inheriting the marks of the text it replaces.
+ *
+ * Word marks carry per-word timings and are the only source `extractWordEntities`
+ * reads, so unmarked replacement text silently deletes that word's timing on save.
+ */
+function markedReplacement(view: EditorView, from: number, replacement: string) {
+  const marks = view.state.doc.nodeAt(from)?.marks ?? [];
+  return view.state.schema.text(replacement, marks);
+}
+
 export function replaceCurrentMatch(view: EditorView, replacement: string) {
   const state = findReplacePluginKey.getState(view.state) as FindReplacePluginState | undefined;
   if (!state || state.currentMatchIndex < 0) return;
@@ -236,7 +247,7 @@ export function replaceCurrentMatch(view: EditorView, replacement: string) {
   const tr = view.state.tr.replaceWith(
     match.from,
     match.to,
-    view.state.schema.text(replacement)
+    markedReplacement(view, match.from, replacement)
   );
   view.dispatch(tr);
 }
@@ -250,7 +261,7 @@ export function replaceAllMatches(view: EditorView, replacement: string) {
   const sortedMatches = [...state.matches].sort((a, b) => b.from - a.from);
 
   for (const match of sortedMatches) {
-    tr = tr.replaceWith(match.from, match.to, view.state.schema.text(replacement));
+    tr = tr.replaceWith(match.from, match.to, markedReplacement(view, match.from, replacement));
   }
 
   view.dispatch(tr);

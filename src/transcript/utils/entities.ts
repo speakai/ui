@@ -19,17 +19,22 @@ export function extractSegmentsFromDoc(doc: PMNode): ITranscriptSegment[] {
   doc.descendants((node) => {
     if (node.type.name === "transcript_block") {
       const text = getBlockText(node);
-      if (!text.trim()) return false;
-
       const entities = extractWordEntities(node);
+      // Blank text with word marks means timed content the user did not delete
+      // — dropping it would discard those timings permanently.
+      if (!text.trim() && entities.length === 0) return false;
       const startInSec = parseFloat(node.attrs.startInSec || node.attrs.startTime || "0");
       const endInSec = parseFloat(node.attrs.endInSec || node.attrs.endTime || "0");
 
+      // sentenceId carries the source segment's id; falling back to position
+      // would re-point clips and insights anchored to it.
+      const sourceId = Number(node.attrs.sentenceId);
+
       segments.push({
-        id: segmentIndex,
+        id: Number.isFinite(sourceId) ? sourceId : segmentIndex,
         text: text.trim(),
         speakerId: node.attrs.speakerId || "0",
-        confidence: 1,
+        confidence: Number(node.attrs.confidence ?? 1),
         language: node.attrs.language || "",
         instances: [
           {
