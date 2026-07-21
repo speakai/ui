@@ -9,7 +9,7 @@
 import { describe, it, expect } from "vitest";
 import { EditorState, TextSelection } from "prosemirror-state";
 import { transcriptSchema as schema } from "../../src/transcript/schema";
-import { handleEnterKey } from "../../src/transcript/plugins/edit-commands";
+import { handleEnterKey, handleBackspaceKey } from "../../src/transcript/plugins/edit-commands";
 
 /** One sentence per word, each carrying a word mark, spanning [start,end]. */
 function buildBlock(id: number, text: string, start: number, end: number) {
@@ -82,6 +82,53 @@ function withCursor(state: EditorState, offset: number): EditorState {
     state.tr.setSelection(TextSelection.near(state.doc.resolve(sentencePos! + 1 + offset)))
   );
 }
+
+describe("handleBackspaceKey — multi-block paragraph_container", () => {
+  /** Two containers: the first with three blocks, the second with two. */
+  function makeTwoContainerState(): EditorState {
+    const first = schema.node(
+      "paragraph_container",
+      { speakerId: "0", speaker: { name: "Speaker 0", userId: "0", speakerImg: "" }, paragraphId: 1, start: 0, end: 30 },
+      [buildBlock(1, "alpha bravo", 0, 10), buildBlock(2, "charlie delta", 10, 20), buildBlock(3, "echo foxtrot", 20, 30)]
+    );
+    const second = schema.node(
+      "paragraph_container",
+      { speakerId: "1", speaker: { name: "Speaker 1", userId: "1", speakerImg: "" }, paragraphId: 2, start: 30, end: 50 },
+      [buildBlock(4, "golf hotel", 30, 40), buildBlock(5, "india juliet", 40, 50)]
+    );
+    return EditorState.create({ doc: schema.node("doc", null, [first, second]) });
+  }
+
+  /** Caret at the very start of the second container's first sentence. */
+  function cursorAtSecondContainerStart(state: EditorState): EditorState {
+    const positions: number[] = [];
+    state.doc.descendants((node, pos) => {
+      if (node.type.name === "sentence") positions.push(pos);
+      return true;
+    });
+    // Sentences 0-2 are in container one; index 3 opens container two.
+    return state.apply(state.tr.setSelection(TextSelection.near(state.doc.resolve(positions[3] + 1))));
+  }
+
+  it("merges without discarding the other blocks in either paragraph", () => {
+    const state = cursorAtSecondContainerStart(makeTwoContainerState());
+    const before = state.doc.textContent;
+
+    let tr: import("prosemirror-state").Transaction | null = null;
+    expect(handleBackspaceKey(state, (t) => { tr = t; })).toBe(true);
+    const after = state.apply(tr!);
+
+    // Every word must survive a merge — only the paragraph break is removed.
+    for (const word of ["alpha", "bravo", "charlie", "delta", "echo", "foxtrot", "golf", "hotel", "india", "juliet"]) {
+      expect(after.doc.textContent).toContain(word);
+    }
+    expect(after.doc.textContent.replace(/\s+/g, "")).toBe(before.replace(/\s+/g, ""));
+
+    const containers = shape(after);
+    expect(containers).toHaveLength(1);
+    expect(containers[0].blocks).toBe(4); // 2 kept + 1 merged + 1 carried
+  });
+});
 
 describe("handleEnterKey — multi-block paragraph_container", () => {
   it("moves the trailing blocks into the new paragraph so reading order is preserved", () => {

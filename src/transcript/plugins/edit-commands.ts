@@ -156,9 +156,10 @@ export function handleBackspaceKey(
 
   const { $from } = selection;
 
-  // Pre-dispatch guard 2: boundary test — only fire at the start of a sentence node.
-  // parentOffset 1 is included because ProseMirror counts the opening token as position 0.
-  if (!($from.parent.type.name === "sentence" && ($from.parentOffset === 0 || $from.parentOffset === 1))) return false;
+  // Pre-dispatch guard 2: only merge at the true start of a sentence. parentOffset
+  // is an offset into the parent's content, so 1 is already past the first
+  // character and must delete it rather than merge paragraphs.
+  if (!($from.parent.type.name === "sentence" && $from.parentOffset === 0)) return false;
 
   // Resolve sentence, block, paragraph nodes and positions.
   let sentenceNode: import("prosemirror-model").Node | null = null;
@@ -306,7 +307,22 @@ export function handleBackspaceKey(
 
     const newBlock = schema.node("transcript_block", prevBlock.attrs, newBlockSentences);
 
-    const newParagraph = schema.node("paragraph_container", prevParagraphNode.attrs, [newBlock]);
+    // The replace range below spans both paragraphs in full, so every block that
+    // is not part of the merge has to be carried over — only the previous
+    // paragraph's last block and the cursor's block are consumed by it.
+    const blocksBeforeMerge: import("prosemirror-model").Node[] = [];
+    for (let i = 0; i < prevParagraphNode.childCount - 1; i++) {
+      blocksBeforeMerge.push(prevParagraphNode.child(i));
+    }
+
+    let cursorBlockIndex = 0;
+    paragraphNode.forEach((blk, _offset, index) => {
+      if (blk === parentBlock) cursorBlockIndex = index;
+    });
+    const blocksAfterMerge: import("prosemirror-model").Node[] = [];
+    for (let i = cursorBlockIndex + 1; i < paragraphNode.childCount; i++) {
+      blocksAfterMerge.push(paragraphNode.child(i));
+    }
 
     const replaceStart = prevParagraphPos;
     const replaceEnd = paragraphPos + paragraphNode.nodeSize;
@@ -322,30 +338,48 @@ export function handleBackspaceKey(
       : parseFloat(newBlock.attrs.startInSec || "0");
     const mergedBlockEnd = mergedEndTime;
 
-    const mergedParagraphStart = mergedBlockStart;
-    const mergedParagraphEnd = mergedBlockEnd;
-
     const finalBlock = schema.node("transcript_block", {
       ...newBlock.attrs,
       startInSec: mergedBlockStart,
       endInSec: mergedBlockEnd,
     }, newBlockSentences);
 
+    // The replace range spans both paragraphs in full, so the blocks that the
+    // merge did not consume have to be carried into the replacement or they are
+    // deleted along with the paragraph break.
+    const finalBlocks = [...blocksBeforeMerge, finalBlock, ...blocksAfterMerge];
+    const numeric = (value: unknown, fallback: number) => {
+      const n = typeof value === "number" ? value : parseFloat(String(value ?? ""));
+      return Number.isFinite(n) ? n : fallback;
+    };
+    const mergedParagraphStart = finalBlocks.reduce(
+      (min, blk) => Math.min(min, numeric(blk.attrs.startInSec, mergedBlockStart)),
+      mergedBlockStart
+    );
+    const mergedParagraphEnd = finalBlocks.reduce(
+      (max, blk) => Math.max(max, numeric(blk.attrs.endInSec, mergedBlockEnd)),
+      mergedBlockEnd
+    );
+
     const finalParagraph = schema.node("paragraph_container", {
       ...prevParagraphNode.attrs,
       start: mergedParagraphStart,
       end: mergedParagraphEnd,
-    }, [finalBlock]);
+    }, finalBlocks);
 
     try {
       tr.replaceWith(replaceStart, replaceEnd, finalParagraph);
 
+      // Sentences ahead of the merged one inside the merged block: everything
+      // the previous block contributed except its last sentence.
       const prevSentencesSize = newBlockSentences
-        .slice(0, newBlockSentences.length - 1)
+        .slice(0, prevBlock.childCount - 1)
         .reduce((sum, s) => sum + s.nodeSize, 0);
+      const blocksBeforeSize = blocksBeforeMerge.reduce((sum, b) => sum + b.nodeSize, 0);
       const cursorPos =
         prevParagraphPos +
         1 + // paragraph_container open
+        blocksBeforeSize +
         1 + // transcript_block open
         prevSentencesSize +
         1 + // merged sentence open
