@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.22.2 (2026-07-21)
+
+- Fixed timestamp precision in saved transcripts
+
 ## v0.22.1 (2026-07-21)
 
 - Fixed transcript save round-trip discarding segment data, Backspace deleting merged paragraphs, and reading order on Enter split
