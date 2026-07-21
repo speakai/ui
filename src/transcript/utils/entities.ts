@@ -103,12 +103,22 @@ function extractWordEntities(node: PMNode): IWordEntity[] {
 /**
  * Format seconds into H:MM:SS string for instances.
  */
+/**
+ * Formats seconds as HH:MM:SS.mmm, matching the transcription source.
+ *
+ * Milliseconds are significant: these strings feed caption and subtitle
+ * exports, and truncating to whole seconds silently degrades every segment on
+ * each save.
+ */
 function formatTime(seconds: number): string {
-  if (isNaN(seconds) || seconds < 0) return "0:00:00";
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = Math.floor(seconds % 60);
-  return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  if (!Number.isFinite(seconds) || seconds < 0) return "00:00:00.000";
+  // Round to milliseconds first so 9.9996 does not format as 09.999.
+  const totalMs = Math.round(seconds * 1000);
+  const h = Math.floor(totalMs / 3600000);
+  const m = Math.floor((totalMs % 3600000) / 60000);
+  const s = Math.floor((totalMs % 60000) / 1000);
+  const ms = totalMs % 1000;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}.${String(ms).padStart(3, "0")}`;
 }
 
 /** Returns true when [start, end] is a valid, ordered, finite, non-negative time pair. */
