@@ -68,11 +68,15 @@ export function ThemesWidget({
   }
 
   if (config?.chartType === "bar") {
+    // Top themes by frequency, each a distinct palette color — reads cleaner and
+    // more precise than a word cloud for a small set of dominant clusters.
+    const topThemes = [...insights].sort((a, b) => b.nTimes - a.nTimes).slice(0, 10);
     return (
       <AnalyticsBarChart
-        data={insights}
+        data={topThemes}
         title={labels.title}
         tickMaxLength={16}
+        categoricalPalette
         onBarClick={onWordClick}
       />
     );

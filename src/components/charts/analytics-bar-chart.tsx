@@ -155,7 +155,7 @@ export function AnalyticsBarChart({
               }
             />
             <Tooltip
-              cursor={{ fill: "var(--color-muted)", opacity: 0.4 }}
+              cursor={false}
               contentStyle={{
                 backgroundColor: "var(--color-popover)",
                 border: "1px solid var(--color-border)",
@@ -175,7 +175,7 @@ export function AnalyticsBarChart({
               radius={[4, 4, 0, 0]}
               cursor={onBarClick ? "pointer" : undefined}
               onClick={handleBarClick}
-              activeBar={{ fillOpacity: 0.82, stroke: "var(--color-foreground)", strokeWidth: 1.5 }}
+              activeBar={{ fillOpacity: 0.8 }}
               isAnimationActive={!reducedMotion}
             >
               {colorByCategory &&

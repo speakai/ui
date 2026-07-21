@@ -30,6 +30,20 @@ describe("computeCategoryAxis", () => {
     expect(layout.maxCharsPerLine).toBeLessThanOrEqual(16);
   });
 
+  it("skips ticks on a dense desktop chart so angled labels don't collide", () => {
+    // 40 bars in 700px → 17.5px/bar, well below the 40px angled threshold.
+    const layout = computeCategoryAxis(40, 700, false);
+    expect(layout.angle).toBe(-45);
+    expect(layout.interval).toBeGreaterThan(0);
+  });
+
+  it("shows every angled label when bars are wide enough to clear", () => {
+    // 10 bars in 700px → 70px/bar, above the 40px angled threshold.
+    const layout = computeCategoryAxis(10, 700, false);
+    expect(layout.angle).toBe(-45);
+    expect(layout.interval).toBe(0);
+  });
+
   it("forces the angled layout when allowFlat=false (line/area time-series axes)", () => {
     const layout = computeCategoryAxis(4, 1200, false, 16, false);
     expect(layout.angle).toBe(-45);

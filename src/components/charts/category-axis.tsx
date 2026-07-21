@@ -24,6 +24,8 @@ export interface CategoryAxisLayout {
 const CHAR_PX = 7;
 /** Below this per-bar width, flat labels collide — angle them instead. */
 const FLAT_MIN_PER_BAR_PX = 88;
+/** Below this per-bar width, even angled labels collide — skip some ticks. */
+const ANGLED_MIN_PER_BAR_PX = 40;
 
 /**
  * Choose an x-axis label layout for `count` categories in `containerWidth` px.
@@ -54,11 +56,18 @@ export function computeCategoryAxis(
     };
   }
 
+  // Dense angled charts: once bars are narrower than a rotated label can clear,
+  // skip labels so they don't collide. `interval=N` renders every (N+1)th tick;
+  // the hover tooltip still shows every category's full label.
+  const denseInterval = perBar < ANGLED_MIN_PER_BAR_PX
+    ? Math.ceil(ANGLED_MIN_PER_BAR_PX / perBar) - 1
+    : 0;
+
   return {
     angle: -45,
     textAnchor: "end",
     height: isMobile ? 50 : 80,
-    interval: isMobile ? Math.max(1, Math.ceil(count / 6) - 1) : 0,
+    interval: isMobile ? Math.max(1, Math.ceil(count / 6) - 1) : denseInterval,
     maxCharsPerLine: charCap ?? 16,
     maxLines: 1,
   };
