@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.22.0 (2026-07-21)
+
+- Added dense-label skipping and sleeker bar hover to charts component
+
 ## v0.21.1 (2026-07-21)
 
 - Fixed Dropdown functionality
