@@ -464,26 +464,26 @@ export function handleEnterKey(
 
   if (!dispatch) return true;
 
-  const textBeforeNodes = splitTextNodesWithMarks(
-    sentenceNode,
-    0,
-    relativePos,
-    schema,
-    { origStart: startInSec, origEnd: endInSec, newStart: startInSec, newEnd: splitTime },
-  );
-  const textAfterNodes = splitTextNodesWithMarks(
-    sentenceNode,
-    relativePos,
-    totalTextLength,
-    schema,
-    { origStart: startInSec, origEnd: endInSec, newStart: splitTime, newEnd: endInSec },
-  );
+  // Word marks carry absolute transcription timings; splitting a paragraph does
+  // not change when the words were spoken, so they are copied rather than
+  // re-timed onto the two new windows.
+  const textBeforeNodes = splitTextNodesWithMarks(sentenceNode, 0, relativePos, schema);
+  const textAfterNodes = splitTextNodesWithMarks(sentenceNode, relativePos, totalTextLength, schema);
 
   const $sentPos = state.doc.resolve(sentencePos);
   const sentenceIndexInBlock = $sentPos.index();
   const remainingSentences: import("prosemirror-model").Node[] = [];
   for (let i = sentenceIndexInBlock + 1; i < blockNode.childCount; i++) {
     remainingSentences.push(blockNode.child(i));
+  }
+
+  // A paragraph_container holds one transcript_block per source segment, so the
+  // blocks following the cursor's block must move to the new paragraph too —
+  // leaving them behind strands the split-off text after them in reading order.
+  const blockIndexInParagraph = state.doc.resolve(blockPos).index();
+  const remainingBlocks: import("prosemirror-model").Node[] = [];
+  for (let i = blockIndexInParagraph + 1; i < paragraphContainer.childCount; i++) {
+    remainingBlocks.push(paragraphContainer.child(i));
   }
 
   const tr = state.tr;
@@ -545,6 +545,25 @@ export function handleEnterKey(
       removeStart += updatedBlock.child(i).nodeSize;
     }
     const removeEnd = mappedBlockPos + updatedBlock.nodeSize - 1;
+
+    if (removeStart < removeEnd) {
+      tr.delete(removeStart, removeEnd);
+    }
+  }
+
+  if (remainingBlocks.length > 0) {
+    const mappedParaPos = tr.mapping.map(paragraphPos);
+    const updatedPara = tr.doc.nodeAt(mappedParaPos);
+    if (!updatedPara) {
+      console.error("[Enter] Could not find updated paragraph for block move");
+      return false;
+    }
+
+    let removeStart = mappedParaPos + 1;
+    for (let i = 0; i <= blockIndexInParagraph; i++) {
+      removeStart += updatedPara.child(i).nodeSize;
+    }
+    const removeEnd = mappedParaPos + updatedPara.nodeSize - 1;
 
     if (removeStart < removeEnd) {
       tr.delete(removeStart, removeEnd);
@@ -667,6 +686,12 @@ export function handleEnterKey(
     newBlock.content,
   );
 
+  const newParagraphBlocks = [finalNewBlock, ...remainingBlocks];
+  const newParagraphEnd = newParagraphBlocks.reduce((latest, blk) => {
+    const be = typeof blk.attrs.endInSec === "number" ? blk.attrs.endInSec : parseFloat(blk.attrs.endInSec || "0");
+    return Number.isFinite(be) && be > latest ? be : latest;
+  }, newBlockEnd);
+
   const newParagraph = schema.node(
     "paragraph_container",
     {
@@ -674,9 +699,9 @@ export function handleEnterKey(
       speaker: preservedSpeaker,
       paragraphId: newParagraphId,
       start: newBlockStart,
-      end: newBlockEnd,
+      end: newParagraphEnd,
     },
-    [finalNewBlock],
+    newParagraphBlocks,
   );
 
   // Insert new paragraph immediately after the current one.
