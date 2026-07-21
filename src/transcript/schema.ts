@@ -76,6 +76,7 @@ const transcriptBlockSpec: NodeSpec = {
   attrs: {
     paragraphId: { default: 1 },
     sentenceId: { default: 1 },
+    confidence: { default: 1 },
     speakerId: { default: "" },
     speaker: { default: {} },
     text: { default: "" },
