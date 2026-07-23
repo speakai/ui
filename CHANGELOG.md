@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.22.3 (2026-07-23)
+
+- Fixed transcript search to match phrases that span word nodes
+
 ## v0.22.2 (2026-07-21)
 
 - Fixed timestamp precision in saved transcripts
