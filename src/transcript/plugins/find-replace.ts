@@ -29,6 +29,45 @@ interface FindReplaceMeta {
   currentMatchIndex?: number;
 }
 
+/**
+ * A textblock's inline text flattened into one string, with the map needed to
+ * translate an offset in that string back to a document position.
+ */
+interface FlatBlock {
+  text: string;
+  runs: Array<{ flatStart: number; docPos: number; length: number }>;
+}
+
+function flattenTextblock(node: PMNode, blockPos: number): FlatBlock {
+  let text = "";
+  const runs: FlatBlock["runs"] = [];
+  node.forEach((child, offset) => {
+    if (child.isText && child.text) {
+      runs.push({ flatStart: text.length, docPos: blockPos + 1 + offset, length: child.text.length });
+      text += child.text;
+    }
+  });
+  return { text, runs };
+}
+
+/** Map an offset in the flattened string back to a document position. */
+function flatOffsetToDocPos({ runs }: FlatBlock, offset: number): number | null {
+  for (const run of runs) {
+    if (offset >= run.flatStart && offset <= run.flatStart + run.length) {
+      return run.docPos + (offset - run.flatStart);
+    }
+  }
+  return null;
+}
+
+/**
+ * Find every match of `query` in the document.
+ *
+ * Each transcript word is its own text node, so a multi-word phrase spans
+ * several nodes. Matching is done against each textblock's flattened text and
+ * mapped back to document positions; searching node-by-node would only ever
+ * match within a single word.
+ */
 function findMatches(
   doc: PMNode,
   query: string,
@@ -39,42 +78,53 @@ function findMatches(
 
   const matches: Array<{ from: number; to: number }> = [];
 
+  let regex: RegExp | null = null;
   if (useRegex) {
-    let regex: RegExp;
     try {
       regex = new RegExp(query, caseSensitive ? "g" : "gi");
     } catch {
       return [];
     }
-
-    doc.descendants((node, pos) => {
-      if (node.isText && node.text) {
-        regex.lastIndex = 0;
-        let match: RegExpExecArray | null;
-        while ((match = regex.exec(node.text)) !== null) {
-          if (match.index === regex.lastIndex) regex.lastIndex++;
-          matches.push({ from: pos + match.index, to: pos + match.index + match[0].length });
-        }
-      }
-    });
-  } else {
-    const searchStr = caseSensitive ? query : query.toLowerCase();
-
-    doc.descendants((node, pos) => {
-      if (node.isText && node.text) {
-        const text = caseSensitive ? node.text : node.text.toLowerCase();
-        let index = text.indexOf(searchStr);
-
-        while (index !== -1) {
-          matches.push({ from: pos + index, to: pos + index + searchStr.length });
-          index = text.indexOf(searchStr, index + 1);
-        }
-      }
-    });
   }
+  const searchStr = caseSensitive ? query : query.toLowerCase();
+
+  const pushMatch = (block: FlatBlock, start: number, end: number) => {
+    const from = flatOffsetToDocPos(block, start);
+    const to = flatOffsetToDocPos(block, end);
+    if (from != null && to != null && to > from) matches.push({ from, to });
+  };
+
+  doc.descendants((node, pos) => {
+    if (!node.isTextblock) return true;
+
+    const block = flattenTextblock(node, pos);
+    if (!block.text) return false;
+
+    if (regex) {
+      regex.lastIndex = 0;
+      let match: RegExpExecArray | null;
+      while ((match = regex.exec(block.text)) !== null) {
+        if (match.index === regex.lastIndex) regex.lastIndex++;
+        if (match[0].length > 0) pushMatch(block, match.index, match.index + match[0].length);
+      }
+    } else {
+      const haystack = caseSensitive ? block.text : block.text.toLowerCase();
+      let index = haystack.indexOf(searchStr);
+      while (index !== -1) {
+        pushMatch(block, index, index + searchStr.length);
+        index = haystack.indexOf(searchStr, index + 1);
+      }
+    }
+
+    // Textblock content is already covered by the flattened scan.
+    return false;
+  });
 
   return matches;
 }
+
+/** Exposed for unit tests; not part of the public plugin surface. */
+export const findMatchesForTest = findMatches;
 
 function buildDecorations(
   doc: PMNode,
