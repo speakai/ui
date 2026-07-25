@@ -29,12 +29,11 @@ interface AnalyticsLineChartProps {
 }
 
 function formatDate(value: string): string {
-  try {
-    const d = new Date(value);
-    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-  } catch {
-    return value;
-  }
+  const d = new Date(value);
+  // Non-ISO / already-bucketed labels (e.g. week/month) don't parse — show them as-is
+  // rather than rendering "Invalid Date".
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 export function AnalyticsLineChart({
@@ -61,7 +60,7 @@ export function AnalyticsLineChart({
         <ResponsiveContainer width="100%" height={300}>
           <LineChart
             data={chartData}
-            margin={{ top: 10, right: 20, left: 0, bottom: 10 }}
+            margin={{ top: 10, right: 20, left: 0, bottom: 16 }}
           >
             <CartesianGrid
               strokeDasharray="3 3"
@@ -73,7 +72,11 @@ export function AnalyticsLineChart({
               stroke="var(--color-muted-foreground)"
               tick={{ fill: "var(--color-muted-foreground)", fontSize: 12 }}
               tickFormatter={formatDate}
-              interval="preserveStartEnd"
+              tickMargin={8}
+              height={28}
+              // Space ticks by pixel gap so a dense daily series still renders readable,
+              // non-overlapping date labels (Recharts otherwise drops every label when they collide).
+              minTickGap={44}
             />
             <YAxis
               stroke="var(--color-muted-foreground)"
