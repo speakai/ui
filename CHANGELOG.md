@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.22.4 (2026-07-25)
+
+- Fixed rendering of x-axis date labels on the sentiment/line chart
+
 ## v0.22.3 (2026-07-23)
 
 - Fixed transcript search to match phrases that span word nodes
