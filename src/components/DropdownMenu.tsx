@@ -65,9 +65,11 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
     const menuRef = useRef<HTMLDivElement>(null);
     const focusIndexRef = useRef(-1);
 
-    const [coords, setCoords] = useState<{ top: number; left: number } | null>(
-      null
-    );
+    const [coords, setCoords] = useState<{
+      top: number;
+      left: number;
+      maxHeight: number;
+    } | null>(null);
 
     const setOpen = useCallback(
       (value: boolean) => {
@@ -208,10 +210,24 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
         placement = "bottom";
       }
 
-      const top =
+      // Space available in the chosen direction. Caps the menu height so a menu
+      // taller than the gap can scroll internally instead of overflowing the
+      // viewport edge (upward-opening menus previously computed a negative top
+      // and rendered their first rows off-screen, unreachable).
+      const available = Math.max(
+        0,
+        placement === "bottom"
+          ? vh - trig.bottom - GAP - VIEWPORT_PADDING
+          : trig.top - GAP - VIEWPORT_PADDING
+      );
+
+      // Clamp the top edge into the viewport. For an upward menu, anchor its
+      // bottom at the trigger and let `available` bound how far up it starts.
+      let top =
         placement === "bottom"
           ? trig.bottom + GAP
-          : trig.top - menu.height - GAP;
+          : trig.top - Math.min(menu.height, available) - GAP;
+      top = Math.max(VIEWPORT_PADDING, top);
 
       let left = align === "right" ? trig.right - menu.width : trig.left;
       if (left + menu.width > vw - VIEWPORT_PADDING) {
@@ -221,7 +237,7 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
         left = VIEWPORT_PADDING;
       }
 
-      setCoords({ top, left });
+      setCoords({ top, left, maxHeight: available });
     }, [isOpen, side, align, trigger]);
 
     // Keyboard navigation within the menu
@@ -313,13 +329,11 @@ export const DropdownMenu = forwardRef<HTMLDivElement, DropdownMenuProps>(
           position: "fixed",
           top: coords?.top ?? 0,
           left: coords?.left ?? 0,
-          // Cap to the actual space between menu top and viewport bottom so
-          // overflow-y-auto can show a scrollbar. A static max-h-[60vh] is
-          // often larger than the available space, so content fits the cap
-          // but the menu still extends past the viewport edge unscrolled.
-          maxHeight: coords
-            ? `${window.innerHeight - coords.top - VIEWPORT_PADDING}px`
-            : undefined,
+          // Cap to the space available in the chosen direction so
+          // overflow-y-auto can show a scrollbar. This is measured against the
+          // trigger and viewport in the layout effect, so it clamps correctly
+          // even when the menu opens upward near the viewport bottom.
+          maxHeight: coords ? `${coords.maxHeight}px` : undefined,
           visibility: coords ? "visible" : "hidden",
         }}
         className={cn(

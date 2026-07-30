@@ -290,6 +290,78 @@ describe("DropdownMenu close on select", () => {
   });
 });
 
+describe("DropdownMenu upward positioning", () => {
+  // A tall side="top" menu anchored near the viewport bottom must not compute a
+  // negative top (which pushed its first rows off-screen and out of reach). It
+  // should clamp the top into the viewport and cap maxHeight to the space above.
+  it("clamps top into the viewport and caps maxHeight when opening upward", async () => {
+    const INNER_HEIGHT = 800;
+    const TRIGGER_TOP = 760;
+    const TRIGGER_BOTTOM = 790;
+    const MENU_HEIGHT = 900; // taller than the space above the trigger
+
+    const prevInnerHeight = window.innerHeight;
+    const prevInnerWidth = window.innerWidth;
+    Object.defineProperty(window, "innerHeight", {
+      value: INNER_HEIGHT,
+      configurable: true,
+    });
+    Object.defineProperty(window, "innerWidth", {
+      value: 1024,
+      configurable: true,
+    });
+
+    const rectSpy = vi
+      .spyOn(HTMLElement.prototype, "getBoundingClientRect")
+      .mockImplementation(function (this: HTMLElement) {
+        const isMenu = this.getAttribute("role") === "menu";
+        const rect = isMenu
+          ? { top: 0, left: 100, bottom: MENU_HEIGHT, right: 300, width: 200, height: MENU_HEIGHT }
+          : { top: TRIGGER_TOP, left: 100, bottom: TRIGGER_BOTTOM, right: 300, width: 200, height: 30 };
+        return { ...rect, x: rect.left, y: rect.top, toJSON: () => ({}) } as DOMRect;
+      });
+
+    try {
+      const user = userEvent.setup();
+      render(
+        <DropdownMenu trigger={<button>Menu</button>} side="top">
+          {Array.from({ length: 12 }, (_, i) => (
+            <DropdownMenuItem key={i}>Model {i}</DropdownMenuItem>
+          ))}
+        </DropdownMenu>
+      );
+      await user.click(screen.getByText("Menu"));
+
+      const menu = screen.getByRole("menu");
+      await waitFor(() => {
+        expect(menu.style.top).not.toBe("");
+      });
+
+      const VIEWPORT_PADDING = 8;
+      const top = parseFloat(menu.style.top);
+      const maxHeight = parseFloat(menu.style.maxHeight);
+
+      // Top edge stays on-screen (never negative / above the padding line).
+      expect(top).toBeGreaterThanOrEqual(VIEWPORT_PADDING);
+      // maxHeight fits the viewport and the space above the trigger, so the
+      // list scrolls internally instead of overflowing off the top edge.
+      expect(maxHeight).toBeLessThanOrEqual(INNER_HEIGHT);
+      expect(maxHeight).toBeLessThanOrEqual(TRIGGER_TOP - VIEWPORT_PADDING);
+      expect(top + maxHeight).toBeLessThanOrEqual(INNER_HEIGHT);
+    } finally {
+      rectSpy.mockRestore();
+      Object.defineProperty(window, "innerHeight", {
+        value: prevInnerHeight,
+        configurable: true,
+      });
+      Object.defineProperty(window, "innerWidth", {
+        value: prevInnerWidth,
+        configurable: true,
+      });
+    }
+  });
+});
+
 describe("DropdownMenuItem", () => {
   it("renders with role=menuitem", () => {
     render(<DropdownMenuItem>Edit</DropdownMenuItem>);
