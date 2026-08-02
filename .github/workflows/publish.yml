@@ -107,6 +107,9 @@ jobs:
       - name: Analyze changes with AI
         if: steps.commits.outputs.has_changes == 'true'
         id: ai
+        # Non-fatal: GitHub Models is being retired and 410s during brownouts.
+        # When it fails, the next step falls back to conventional-commit analysis.
+        continue-on-error: true
         uses: actions/ai-inference@v2
         with:
           model: openai/gpt-4o-mini
@@ -137,11 +140,26 @@ jobs:
         id: bump
         env:
           AI_RESPONSE: ${{ steps.ai.outputs.response }}
+          COMMIT_LOG: ${{ steps.commits.outputs.log }}
         run: |
           echo "AI response: $AI_RESPONSE"
 
           BUMP=$(echo "$AI_RESPONSE" | grep -oP 'bump:\s*\K\w+' | head -1)
           CHANGELOG=$(echo "$AI_RESPONSE" | grep -oP 'changelog:\s*\K.+' | head -1)
+
+          # Fallback: if the AI step was unavailable (e.g. GitHub Models outage),
+          # derive the bump from conventional-commit prefixes so releases still ship.
+          if [ -z "$BUMP" ]; then
+            echo "AI unavailable — falling back to conventional-commit analysis."
+            if echo "$COMMIT_LOG" | grep -qiE 'BREAKING CHANGE|!:'; then
+              BUMP=major
+            elif echo "$COMMIT_LOG" | grep -qiE 'feat(\(|:)'; then
+              BUMP=minor
+            else
+              BUMP=patch
+            fi
+            CHANGELOG=$(echo "$COMMIT_LOG" | sed 's/^[0-9a-f]* //' | paste -sd '; ' -)
+          fi
 
           echo "Detected bump: $BUMP"
           echo "Changelog: $CHANGELOG"
