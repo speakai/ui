@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.23.0 (2026-08-02)
+
+- Merge pull request #39 from speakai/fix/release-ai-fallback;fix(ci): make release resilient to GitHub Models outage Merge pull request #38 from speakai/feat/table-percent-format;feat(dashboard-table): support percent column format
+
 ## v0.22.4 (2026-07-25)
 
 - Fixed rendering of x-axis date labels on the sentiment/line chart
