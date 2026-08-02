@@ -31,7 +31,7 @@ import { formatCount, formatDurationHuman } from "./format";
 export interface TableWidgetColumn {
   header: string;
   thresholds?: SpecThreshold[];
-  format?: "number" | "duration";
+  format?: "number" | "duration" | "percent";
 }
 
 export interface TableWidgetRow {
@@ -104,7 +104,9 @@ function formatCell(
 ): string {
   if (cell == null) return "—";
   if (typeof cell !== "number") return cell;
-  return format === "duration" ? formatDurationHuman(cell) : formatCount(cell);
+  if (format === "duration") return formatDurationHuman(cell);
+  if (format === "percent") return `${Math.round(cell * 100)}%`;
+  return formatCount(cell);
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
