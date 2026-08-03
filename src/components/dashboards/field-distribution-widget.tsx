@@ -32,8 +32,74 @@ export interface FieldDistributionConfig {
    * additionally converts counts to percentages of the total client-side.
    */
   measure?: string;
-  /** Chart rendering: grouped bars (default) or a donut. */
-  chartType?: "bar" | "donut";
+  /** Rendering: grouped bars (default), a donut, or a comparison table. */
+  chartType?: "bar" | "donut" | "table";
+}
+
+/**
+ * Comparison table: one row per category with its value, share of total, and
+ * the change vs the prior window. Preferred over paired bars when the reader
+ * needs exact numbers and a delta rather than an eyeballed comparison.
+ */
+function FieldDistributionTable({
+  rows,
+  prev,
+  valueFormatter,
+  measureLabel,
+}: {
+  rows: ChartInsight[];
+  prev: ChartInsight[];
+  valueFormatter: (v: number) => string;
+  measureLabel?: string;
+}) {
+  const total = rows.reduce((sum, d) => sum + d.nTimes, 0);
+  const prevByText = new Map(prev.map((d) => [d.text, d.nTimes]));
+  const hasPrev = prev.length > 0;
+  return (
+    <div className="w-full overflow-x-auto">
+      <table className="w-full border-collapse text-sm">
+        <thead>
+          <tr className="border-b border-border text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <th className="py-2 pr-3 text-left">Category</th>
+            <th className="py-2 px-3 text-right">{measureLabel ?? "Count"}</th>
+            <th className="py-2 px-3 text-right">% of total</th>
+            {hasPrev && <th className="py-2 pl-3 text-right">vs prev period</th>}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((d) => {
+            const pct = total > 0 ? Math.round((d.nTimes / total) * 100) : 0;
+            const prevN = prevByText.get(d.text);
+            const delta = prevN != null ? d.nTimes - prevN : null;
+            const deltaPct =
+              prevN != null && prevN > 0 ? Math.round(((d.nTimes - prevN) / prevN) * 100) : null;
+            const arrow = delta == null || delta === 0 ? "" : delta > 0 ? "▲" : "▼";
+            const sign = (n: number) => (n > 0 ? "+" : "−");
+            return (
+              <tr key={d.text} className="border-b border-border/50 last:border-0">
+                <td className="py-2 pr-3 text-left text-foreground">{d.text}</td>
+                <td className="py-2 px-3 text-right font-medium tabular-nums text-foreground">
+                  {valueFormatter(d.nTimes)}
+                </td>
+                <td className="py-2 px-3 text-right tabular-nums text-muted-foreground">{pct}%</td>
+                {hasPrev && (
+                  <td className="py-2 pl-3 text-right tabular-nums text-muted-foreground">
+                    {delta == null
+                      ? "—"
+                      : delta === 0
+                        ? "no change"
+                        : `${arrow} ${sign(delta)}${Math.abs(delta)}${
+                            deltaPct != null ? ` (${sign(deltaPct)}${Math.abs(deltaPct)}%)` : ""
+                          }`}
+                  </td>
+                )}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
 }
 
 export interface FieldDistributionWidgetProps {
@@ -77,6 +143,21 @@ export function FieldDistributionWidget({
   const isAverage = measure.startsWith("avg:");
   const isSum = measure.startsWith("sum:");
   const isPercent = measure === "percent";
+
+  // Table renders from raw counts (it computes its own share-of-total), so build
+  // it before the percent transform mutates `insights`.
+  if (config?.chartType === "table") {
+    const countFormatter =
+      measure === "duration" ? formatDurationHuman : (v: number) => formatCount(v);
+    return (
+      <FieldDistributionTable
+        rows={data?.insights ?? []}
+        prev={data?.compareInsights ?? []}
+        valueFormatter={countFormatter}
+        measureLabel={labels.measureLabel}
+      />
+    );
+  }
 
   let compareInsights: ChartInsight[] = data?.compareInsights ?? [];
 
