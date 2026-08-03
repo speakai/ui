@@ -20,6 +20,8 @@ export interface FieldDistributionLabels extends WidgetCommonLabels {
   emptyDescription?: string;
   /** Bar series label, e.g. "Media" / "Words" / "Duration". */
   measureLabel?: string;
+  /** Label for the prior-period series when a comparison is present. */
+  compareLabel?: string;
 }
 
 export interface FieldDistributionConfig {
@@ -76,12 +78,21 @@ export function FieldDistributionWidget({
   const isSum = measure.startsWith("sum:");
   const isPercent = measure === "percent";
 
+  let compareInsights: ChartInsight[] = data?.compareInsights ?? [];
+
   if (isPercent) {
     const total = insights.reduce((sum, d) => sum + d.nTimes, 0);
     insights = insights.map((d) => ({
       text: d.text,
       nTimes: total > 0 ? Number(((d.nTimes / total) * 100).toFixed(1)) : 0,
     }));
+    if (compareInsights.length > 0) {
+      const cTotal = compareInsights.reduce((sum, d) => sum + d.nTimes, 0);
+      compareInsights = compareInsights.map((d) => ({
+        text: d.text,
+        nTimes: cTotal > 0 ? Number(((d.nTimes / cTotal) * 100).toFixed(1)) : 0,
+      }));
+    }
   }
 
   // Averages of a numeric field can be fractional (e.g. 54.3) — show up to one
@@ -107,12 +118,15 @@ export function FieldDistributionWidget({
     );
   }
 
+  const hasCompare = compareInsights.length > 0;
   return (
     <AnalyticsBarChart
       data={insights}
+      compareData={hasCompare ? compareInsights : undefined}
       title={labels.title}
       tickMaxLength={16}
-      chartLabel={labels.measureLabel}
+      chartLabel={hasCompare ? "This period" : labels.measureLabel}
+      compareLabel={labels.compareLabel ?? "Previous period"}
       valueFormatter={valueFormatter}
       allowDecimals={measure !== "count" && !isSum}
       categoricalPalette
