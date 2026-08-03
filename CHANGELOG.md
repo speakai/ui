@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.24.0 (2026-08-03)
+
+- Merge pull request #41 from speakai/feat/field-distribution-paired-bars;feat(field-distribution): render paired bars when compareInsights present
+
 ## v0.23.0 (2026-08-02)
 
 - Merge pull request #39 from speakai/fix/release-ai-fallback;fix(ci): make release resilient to GitHub Models outage Merge pull request #38 from speakai/feat/table-percent-format;feat(dashboard-table): support percent column format
