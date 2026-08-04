@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.25.0 (2026-08-04)
+
+- Merge pull request #42 from speakai/feat/field-distribution-table;feat(dashboards): comparison-table render for field-distribution
+
 ## v0.24.0 (2026-08-03)
 
 - Merge pull request #41 from speakai/feat/field-distribution-paired-bars;feat(field-distribution): render paired bars when compareInsights present
