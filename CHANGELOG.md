@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.25.1 (2026-08-13)
+
+- updated package
+
 ## v0.25.0 (2026-08-04)
 
 - Merge pull request #42 from speakai/feat/field-distribution-table;feat(dashboards): comparison-table render for field-distribution
