@@ -6,7 +6,14 @@
  * `analytics-bar-chart` / `analytics-line-chart`.
  */
 
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
 import { cn } from "../../utils/cn";
 
 /** Cycle through the 5 chart palette CSS vars for series/slice index `i`. */
@@ -40,39 +47,49 @@ export function AnalyticsDonutChart({
   className,
 }: AnalyticsDonutChartProps) {
   return (
-    <figure className={cn("flex h-full min-h-[220px] w-full flex-col", className)}>
+    <figure
+      className={cn("flex h-full min-h-[220px] w-full flex-col", className)}
+    >
       <figcaption className="sr-only">{title}</figcaption>
-      <div className="min-h-0 flex-1" aria-hidden="true">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={data}
-              dataKey="value"
-              nameKey="label"
-              cx="50%"
-              cy="50%"
-              innerRadius={60}
-              outerRadius={110}
-              // recharts v3 leaves animated <path> series (Pie sectors, Line curves)
-              // unpainted until a reflow; a static render commits the sectors on first paint.
-              isAnimationActive={false}
-            >
-              {data.map((slice, i) => (
-                <Cell key={`${slice.label}-${i}`} fill={slice.fill ?? chartSeriesVar(i)} />
-              ))}
-            </Pie>
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "var(--color-background)",
-                border: "1px solid var(--color-border)",
-                borderRadius: "6px",
-                color: "var(--color-foreground)",
-              }}
-              formatter={(v) => (valueFormatter ? valueFormatter(Number(v)) : v)}
-            />
-            {showLegend && <Legend />}
-          </PieChart>
-        </ResponsiveContainer>
+      <div className="relative min-h-0 flex-1" aria-hidden="true">
+        {/* See analytics-bar-chart: height:100% needs a definite parent height. */}
+        <div className="absolute inset-0">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={data}
+                dataKey="value"
+                nameKey="label"
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={110}
+                // recharts v3 leaves animated <path> series (Pie sectors, Line curves)
+                // unpainted until a reflow; a static render commits the sectors on first paint.
+                isAnimationActive={false}
+              >
+                {data.map((slice, i) => (
+                  <Cell
+                    key={`${slice.label}-${i}`}
+                    fill={slice.fill ?? chartSeriesVar(i)}
+                  />
+                ))}
+              </Pie>
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "var(--color-background)",
+                  border: "1px solid var(--color-border)",
+                  borderRadius: "6px",
+                  color: "var(--color-foreground)",
+                }}
+                formatter={(v) =>
+                  valueFormatter ? valueFormatter(Number(v)) : v
+                }
+              />
+              {showLegend && <Legend />}
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </figure>
   );

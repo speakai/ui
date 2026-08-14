@@ -27,11 +27,18 @@ import {
 } from "recharts";
 import { useReducedMotion } from "../charts/use-reduced-motion";
 import { useContainerWidth } from "../charts/use-container-width";
-import { AnalyticsDonutChart, chartSeriesVar } from "../charts/analytics-donut-chart";
+import {
+  AnalyticsDonutChart,
+  chartSeriesVar,
+} from "../charts/analytics-donut-chart";
 import { computeCategoryAxis, CategoryAxisTick } from "../charts/category-axis";
 import { WidgetError, WidgetEmpty } from "./widget-states";
 import { BarChart3Icon } from "./icons";
-import { resolveThresholdStatus, thresholdFillVar, type SpecThreshold } from "./spec-thresholds";
+import {
+  resolveThresholdStatus,
+  thresholdFillVar,
+  type SpecThreshold,
+} from "./spec-thresholds";
 import { formatCount, formatDurationHuman } from "./format";
 
 // ── Data contract ────────────────────────────────────────────────────────────
@@ -117,12 +124,17 @@ function pivotRows(rows: MetricChartDatum[]): Pivoted {
 }
 
 /** Sum non-null values per group (donut aggregation — series collapsed). */
-function sumByGroup(rows: MetricChartDatum[]): Array<{ group: string; total: number }> {
+function sumByGroup(
+  rows: MetricChartDatum[],
+): Array<{ group: string; total: number }> {
   const totals = new Map<string, number>();
   for (const row of rows) {
     totals.set(row.group, (totals.get(row.group) ?? 0) + (row.value ?? 0));
   }
-  return Array.from(totals.entries()).map(([group, total]) => ({ group, total }));
+  return Array.from(totals.entries()).map(([group, total]) => ({
+    group,
+    total,
+  }));
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -169,7 +181,12 @@ export function MetricChartWidget({
   const isMobile = containerWidth < 400;
 
   if (isLoading) {
-    return <div className="h-80 w-full animate-pulse rounded-xl bg-muted" aria-hidden="true" />;
+    return (
+      <div
+        className="h-80 w-full animate-pulse rounded-xl bg-muted"
+        aria-hidden="true"
+      />
+    );
   }
 
   if (isError) {
@@ -209,13 +226,18 @@ export function MetricChartWidget({
       };
     });
     return (
-      <AnalyticsDonutChart data={slices} title={labels.title} valueFormatter={formatValue} />
+      <AnalyticsDonutChart
+        data={slices}
+        title={labels.title}
+        valueFormatter={formatValue}
+      />
     );
   }
 
   const { seriesKeys, rows: chartData } = pivotRows(rows);
   const multiSeries = seriesKeys.length > 1;
-  const seriesName = (key: string, i: number) => (key === "" ? labels.title : key) || `s${i}`;
+  const seriesName = (key: string, i: number) =>
+    (key === "" ? labels.title : key) || `s${i}`;
 
   // Flat/wrapped category labels are a bar-chart affordance; line/area x-axes
   // carry date labels that read better angled than wrapped, so keep them as-is.
@@ -230,7 +252,11 @@ export function MetricChartWidget({
 
   const axes = (
     <>
-      <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
+      <CartesianGrid
+        strokeDasharray="3 3"
+        stroke="var(--color-border)"
+        vertical={false}
+      />
       <XAxis
         dataKey="group"
         stroke="var(--color-muted-foreground)"
@@ -270,7 +296,10 @@ export function MetricChartWidget({
 
   if (config.mark === "line") {
     chart = (
-      <LineChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
+      <LineChart
+        data={chartData}
+        margin={{ top: 10, right: 20, left: 0, bottom: 10 }}
+      >
         {axes}
         {seriesKeys.map((key, i) => (
           <Line
@@ -291,7 +320,10 @@ export function MetricChartWidget({
     );
   } else if (config.mark === "area") {
     chart = (
-      <AreaChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
+      <AreaChart
+        data={chartData}
+        margin={{ top: 10, right: 20, left: 0, bottom: 10 }}
+      >
         {axes}
         {seriesKeys.map((key, i) => (
           <Area
@@ -311,9 +343,13 @@ export function MetricChartWidget({
     );
   } else {
     const stacked = config.mark === "stacked-bar";
-    const colorByThreshold = !stacked && seriesKeys.length === 1 && !!thresholds?.length;
+    const colorByThreshold =
+      !stacked && seriesKeys.length === 1 && !!thresholds?.length;
     chart = (
-      <BarChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
+      <BarChart
+        data={chartData}
+        margin={{ top: 10, right: 20, left: 0, bottom: 5 }}
+      >
         {axes}
         {seriesKeys.map((key, i) => (
           <Bar
@@ -336,7 +372,9 @@ export function MetricChartWidget({
                 return (
                   <Cell
                     key={`cell-${j}`}
-                    fill={match ? thresholdFillVar(match.status) : chartSeriesVar(0)}
+                    fill={
+                      match ? thresholdFillVar(match.status) : chartSeriesVar(0)
+                    }
                   />
                 );
               })}
@@ -349,10 +387,17 @@ export function MetricChartWidget({
   return (
     <figure className="flex h-full min-h-[220px] w-full flex-col">
       <figcaption className="sr-only">{labels.title}</figcaption>
-      <div ref={containerRef} className="min-h-0 flex-1" aria-hidden="true">
-        <ResponsiveContainer width="100%" height="100%">
-          {chart}
-        </ResponsiveContainer>
+      <div
+        ref={containerRef}
+        className="relative min-h-0 flex-1"
+        aria-hidden="true"
+      >
+        {/* See analytics-bar-chart: height:100% needs a definite parent height. */}
+        <div className="absolute inset-0">
+          <ResponsiveContainer width="100%" height="100%">
+            {chart}
+          </ResponsiveContainer>
+        </div>
       </div>
     </figure>
   );
