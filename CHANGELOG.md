@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.25.2 (2026-08-14)
+
+- fix(charts): stop chart bodies collapsing to zero and the word cloud growing without bound (#44)
+
 ## v0.25.1 (2026-08-13)
 
 - updated package
