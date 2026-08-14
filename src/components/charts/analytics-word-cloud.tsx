@@ -15,8 +15,10 @@ import type { ChartInsight } from "./chart-types";
 
 // -- Lazy-load word cloud (no SSR) -------------------------------------------
 
-const WordCloudInner = lazy(
-  () => import("@isoterik/react-word-cloud").then((mod) => ({ default: mod.WordCloud })),
+const WordCloudInner = lazy(() =>
+  import("@isoterik/react-word-cloud").then((mod) => ({
+    default: mod.WordCloud,
+  })),
 );
 
 // -- Minimal error boundary for the word cloud render -------------------------
@@ -167,7 +169,12 @@ export function AnalyticsWordCloud({
       <div
         ref={internalRef}
         className={cn(
-          "h-full min-h-[220px] w-full overflow-hidden",
+          "relative h-full min-h-[220px] w-full overflow-hidden",
+          // The word cloud SVG carries only a viewBox, so left in flow it sizes itself
+          // from its own aspect ratio and feeds that height straight back into the
+          // ResizeObserver below — the box then grows without bound. Out of flow it
+          // fills the box instead of defining it.
+          "[&>svg]:absolute [&>svg]:inset-0 [&>svg]:h-full [&>svg]:w-full",
           onWordClick && "[&_text]:cursor-pointer [&_text:hover]:opacity-80",
           className,
         )}
