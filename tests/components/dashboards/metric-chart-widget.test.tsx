@@ -146,12 +146,16 @@ describe("MetricChartWidget", () => {
   });
 
   it("wraps long x-axis category labels across two lines when few bars have room (flat)", () => {
+    // Multi-series keeps the vertical layout (single-series categorical bars
+    // render as a horizontal leaderboard instead).
     const { container } = render(
       <MetricChartWidget
         data={{
           rows: [
-            { group: "A very long category label", value: 5 },
-            { group: "Short", value: 3 },
+            { group: "A very long category label", series: "a", value: 5 },
+            { group: "A very long category label", series: "b", value: 4 },
+            { group: "Short", series: "a", value: 3 },
+            { group: "Short", series: "b", value: 2 },
           ],
         }}
         isLoading={false}
@@ -171,7 +175,9 @@ describe("MetricChartWidget", () => {
   });
 
   it("angles and ellipsis-truncates x-axis category labels when many bars are packed tight", () => {
-    const rows = Array.from({ length: 12 }, (_, i) => ({
+    // 13+ groups keep the vertical layout (up to 12 single-series categorical
+    // groups render as a horizontal leaderboard instead).
+    const rows = Array.from({ length: 13 }, (_, i) => ({
       group: `A very long category label ${i}`,
       value: i + 1,
     }));
@@ -191,6 +197,34 @@ describe("MetricChartWidget", () => {
       .map((t) => t.textContent ?? "");
     expect(texts.length).toBeGreaterThan(0);
     expect(texts.every((s) => s.endsWith("…") && s.length <= 16)).toBe(true);
+  });
+
+  it("renders single-series categorical bars as a ranked horizontal leaderboard with value labels", () => {
+    const { container } = render(
+      <MetricChartWidget
+        data={{
+          rows: [
+            { group: "Devon Park", value: 3.9 },
+            { group: "Priya Nair", value: 4.9 },
+            { group: "Sam Delaney", value: 1.4 },
+          ],
+        }}
+        isLoading={false}
+        isError={false}
+        config={{ mark: "bar" }}
+        labels={LABELS}
+      />,
+    );
+    // Category labels render as axis text, ranked by value best-first
+    // (the vertical layout would render them in data order instead).
+    const names = ["Priya Nair", "Devon Park", "Sam Delaney"];
+    const texts = Array.from(container.querySelectorAll("text")).map(
+      (t) => t.textContent ?? "",
+    );
+    expect(texts.filter((s) => names.includes(s))).toEqual(names);
+    // Value labels render at the bar ends, keeping one decimal for scores.
+    expect(texts).toContain("4.9");
+    expect(texts).toContain("1.4");
   });
 
   it("colors single-series bar marks by threshold status", () => {
