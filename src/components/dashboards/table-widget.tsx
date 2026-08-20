@@ -17,6 +17,7 @@ import {
   TableEmpty,
   type SortDirection,
 } from "../Table";
+import { Popover } from "../Popover";
 import { WidgetError, WidgetEmpty } from "./widget-states";
 import { BarChart3Icon } from "./icons";
 import {
@@ -63,6 +64,8 @@ export interface TableWidgetLabels {
   searchPlaceholder: string;
   nameHeader: string;
   totalCaption?: string;
+  /** Trigger label on clamped long-text cells. Defaults to "Read more". */
+  readMore?: string;
 }
 
 export interface TableWidgetProps {
@@ -107,6 +110,41 @@ function formatCell(
   if (format === "duration") return formatDurationHuman(cell);
   if (format === "percent") return `${Math.round(cell * 100)}%`;
   return formatCount(cell);
+}
+
+/** Text cells longer than this clamp to a preview with a read-more popover. */
+const LONG_TEXT_LIMIT = 140;
+
+/**
+ * Clamped preview of a long text cell with the full text in a popover, so
+ * narrative fields (briefs, summaries, coaching notes) keep table rows scannable.
+ * The trigger stops click propagation so opening it never fires the row's
+ * openMedia navigation.
+ */
+function LongTextCell({ text, readMoreLabel }: { text: string; readMoreLabel: string }) {
+  return (
+    <div className="max-w-md">
+      <span className="line-clamp-3 whitespace-pre-line">{text}</span>
+      <span onClick={(e) => e.stopPropagation()}>
+        <Popover
+          side="bottom"
+          align="start"
+          trigger={
+            <button
+              type="button"
+              className="mt-1 text-xs font-medium text-primary underline-offset-2 hover:underline focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {readMoreLabel}
+            </button>
+          }
+        >
+          <div className="max-h-72 w-80 max-w-[80vw] overflow-y-auto whitespace-pre-line p-1 text-sm text-popover-foreground">
+            {text}
+          </div>
+        </Popover>
+      </span>
+    </div>
+  );
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -268,12 +306,22 @@ export function TableWidget({
                       typeof cell === "number"
                         ? resolveThresholdStatus(cell, column.thresholds)
                         : null;
+                    const formatted = formatCell(cell, column.format);
+                    const isLongText =
+                      typeof cell === "string" && cell.length > LONG_TEXT_LIMIT;
                     return (
                       <TableCell
                         key={colIndex}
                         className={cn(match && THRESHOLD_TEXT_CLASS[match.status])}
                       >
-                        {formatCell(cell, column.format)}
+                        {isLongText ? (
+                          <LongTextCell
+                            text={formatted}
+                            readMoreLabel={labels.readMore ?? "Read more"}
+                          />
+                        ) : (
+                          formatted
+                        )}
                         {match?.label && (
                           <span className="ml-1.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                             {match.label}

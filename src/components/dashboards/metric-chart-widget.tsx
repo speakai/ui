@@ -25,7 +25,6 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { useReducedMotion } from "../charts/use-reduced-motion";
 import { useContainerWidth } from "../charts/use-container-width";
 import {
   AnalyticsDonutChart,
@@ -175,7 +174,6 @@ export function MetricChartWidget({
   labels,
   onRetry,
 }: MetricChartWidgetProps) {
-  const reducedMotion = useReducedMotion();
   const containerRef = useRef<HTMLDivElement>(null);
   const containerWidth = useContainerWidth(containerRef);
   const isMobile = containerWidth < 400;
@@ -360,7 +358,10 @@ export function MetricChartWidget({
             fill={chartSeriesVar(i)}
             radius={stacked ? undefined : [4, 4, 0, 0]}
             activeBar={{ fillOpacity: 0.8 }}
-            isAnimationActive={!reducedMotion}
+            // Same recharts v3 paint bug as Line/Area above: animated bars grow
+            // from height 0 and never repaint without a reflow, leaving flat
+            // bars on embed/share surfaces. Render statically.
+            isAnimationActive={false}
           >
             {colorByThreshold &&
               chartData.map((record, j) => {
