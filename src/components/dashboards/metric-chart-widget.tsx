@@ -19,6 +19,7 @@ import {
   Bar,
   Cell,
   XAxis,
+  LabelList,
   YAxis,
   CartesianGrid,
   Tooltip,
@@ -142,6 +143,9 @@ const AXIS_TICK = { fill: "var(--color-muted-foreground)", fontSize: 12 };
 
 /** Ellipsis-truncate x-axis category labels past this length (matches AnalyticsBarChart's field-distribution ticks). */
 const X_TICK_MAX_LENGTH = 16;
+
+/** Groups that look like dates keep the vertical time-series bar layout. */
+const DATE_GROUP_RE = /^\d{4}-\d{2}/;
 
 // Card-style tooltip on the floating `--color-popover` surface (not the page
 // `--color-background`), with a subtle shadow so it reads as a lifted card in
@@ -343,11 +347,101 @@ export function MetricChartWidget({
     const stacked = config.mark === "stacked-bar";
     const colorByThreshold =
       !stacked && seriesKeys.length === 1 && !!thresholds?.length;
-    chart = (
-      <BarChart
-        data={chartData}
-        margin={{ top: 10, right: 20, left: 0, bottom: 5 }}
-      >
+    // Categorical single-series bars (leaderboards, by-client comparisons) read
+    // far better as ranked horizontal bars with value labels; date-like groups
+    // keep the vertical time-series layout.
+    const categorical =
+      !stacked &&
+      seriesKeys.length === 1 &&
+      chartData.length > 0 &&
+      chartData.length <= 12 &&
+      chartData.every((r) => !DATE_GROUP_RE.test(String(r.group)));
+    if (categorical) {
+      const ranked = [...chartData].sort(
+        (a, b) => (Number(b.s0) || 0) - (Number(a.s0) || 0),
+      );
+      const barFill = (record: Record<string, string | number | null>) => {
+        const value = record.s0;
+        const match =
+          colorByThreshold && typeof value === "number"
+            ? resolveThresholdStatus(value, thresholds)
+            : null;
+        return match ? thresholdFillVar(match.status) : chartSeriesVar(0);
+      };
+      // Leaderboard values are often 1-5 scores: keep one decimal instead of
+      // formatCount's integer rounding, which would collapse 4.9 and 5 together.
+      const labelFor = (v: unknown) => {
+        const n = Number(v);
+        if (!Number.isFinite(n)) return "";
+        return !Number.isInteger(n) && Math.abs(n) < 100
+          ? n.toFixed(1)
+          : formatValue(n);
+      };
+      chart = (
+        <BarChart
+          data={ranked}
+          layout="vertical"
+          margin={{ top: 10, right: 44, left: 8, bottom: 5 }}
+        >
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke="var(--color-border)"
+            horizontal={false}
+          />
+          <XAxis
+            type="number"
+            stroke="var(--color-muted-foreground)"
+            tick={AXIS_TICK}
+            allowDecimals={false}
+            tickFormatter={(v: number) => formatValue(Number(v))}
+          />
+          <YAxis
+            type="category"
+            dataKey="group"
+            width={isMobile ? 96 : 136}
+            stroke="var(--color-muted-foreground)"
+            tick={AXIS_TICK}
+            tickFormatter={(v: string) =>
+              v.length > 16 ? `${v.slice(0, 15)}…` : v
+            }
+          />
+          <Tooltip
+            cursor={false}
+            contentStyle={TOOLTIP_CONTENT_STYLE}
+            labelStyle={TOOLTIP_LABEL_STYLE}
+            itemStyle={TOOLTIP_ITEM_STYLE}
+            formatter={(v) => formatValue(Number(v))}
+          />
+          <Bar
+            dataKey="s0"
+            name={seriesName(seriesKeys[0] ?? "", 0)}
+            fill={chartSeriesVar(0)}
+            radius={[0, 4, 4, 0]}
+            activeBar={{ fillOpacity: 0.8 }}
+            isAnimationActive={false}
+          >
+            <LabelList
+              dataKey="s0"
+              position="right"
+              formatter={labelFor}
+              style={{
+                fill: "var(--color-foreground)",
+                fontSize: 12,
+                fontWeight: 600,
+              }}
+            />
+            {ranked.map((record, j) => (
+              <Cell key={`cell-${j}`} fill={barFill(record)} />
+            ))}
+          </Bar>
+        </BarChart>
+      );
+    } else {
+      chart = (
+        <BarChart
+          data={chartData}
+          margin={{ top: 10, right: 20, left: 0, bottom: 5 }}
+        >
         {axes}
         {seriesKeys.map((key, i) => (
           <Bar
@@ -381,8 +475,9 @@ export function MetricChartWidget({
               })}
           </Bar>
         ))}
-      </BarChart>
-    );
+        </BarChart>
+      );
+    }
   }
 
   return (
