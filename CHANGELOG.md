@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.26.0 (2026-08-20)
+
+- Merge pull request #46 from speakai/fix/dashboard-bar-paint-and-table-readmore;feat(dashboards): ranked horizontal leaderboard for categorical bars, universal table row hover fix(dashboards): static bar render on share surfaces + read-more popover for long table cells
+
 ## v0.25.2 (2026-08-14)
 
 - fix(charts): stop chart bodies collapsing to zero and the word cloud growing without bound (#44)
