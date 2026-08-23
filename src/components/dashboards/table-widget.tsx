@@ -75,6 +75,8 @@ export interface TableWidgetProps {
   config: TableWidgetConfig;
   labels: TableWidgetLabels;
   onRowClick?: (mediaId: string) => void;
+  /** Group rows (rowsAre: "groups") become clickable and report the group's value, e.g. an Account ID. */
+  onGroupRowClick?: (groupName: string) => void;
   onRetry?: () => void;
 }
 
@@ -156,6 +158,7 @@ export function TableWidget({
   config,
   labels,
   onRowClick,
+  onGroupRowClick,
   onRetry,
 }: TableWidgetProps) {
   const columns = data?.columns ?? [];
@@ -284,7 +287,9 @@ export function TableWidget({
             <TableEmpty colSpan={columnCount} title={labels.empty} />
           ) : (
             visibleRows.map((row, rowIndex) => {
-              const rowClickable = clickable && !!row.mediaId;
+              const groupClickable =
+                !row.mediaId && row.name != null && !!onGroupRowClick;
+              const rowClickable = (clickable && !!row.mediaId) || groupClickable;
               return (
                 <TableRow
                   key={`${row.mediaId ?? row.name ?? ""}-${rowIndex}`}
@@ -294,7 +299,10 @@ export function TableWidget({
                   className={rowClickable ? undefined : "hover:bg-muted/40"}
                   onClick={
                     rowClickable
-                      ? () => onRowClick?.(row.mediaId as string)
+                      ? () =>
+                          row.mediaId
+                            ? onRowClick?.(row.mediaId as string)
+                            : onGroupRowClick?.(row.name as string)
                       : undefined
                   }
                 >
