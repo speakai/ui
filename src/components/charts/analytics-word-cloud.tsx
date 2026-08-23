@@ -93,7 +93,8 @@ export function AnalyticsWordCloud({
     let timeout: ReturnType<typeof setTimeout>;
     const measure = (width: number, height: number) => {
       if (width > 0) setContainerWidth(Math.min(600, Math.floor(width)));
-      if (height > 0) setContainerHeight(Math.max(160, Math.floor(height)));
+      if (height > 0)
+        setContainerHeight(Math.min(600, Math.max(160, Math.floor(height))));
     };
     const observer = new ResizeObserver((entries) => {
       clearTimeout(timeout);
