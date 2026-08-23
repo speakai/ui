@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.26.1 (2026-08-23)
+
+- Merge pull request #47 from speakai/fix/word-cloud-container-height-clamp;Clamp word cloud container height to 600px like width
+
 ## v0.26.0 (2026-08-20)
 
 - Merge pull request #46 from speakai/fix/dashboard-bar-paint-and-table-readmore;feat(dashboards): ranked horizontal leaderboard for categorical bars, universal table row hover fix(dashboards): static bar render on share surfaces + read-more popover for long table cells
