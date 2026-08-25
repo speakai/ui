@@ -219,8 +219,10 @@ export const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(
       default: cn(
         "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
         "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
+        // Brand-coloured active label. Plain classes, not `aria-selected:` — the safelist
+        // generator drops `aria-`-prefixed tokens, so those never reach consumers' CSS.
         isActive
-          ? "bg-card text-foreground shadow-xs"
+          ? "bg-card text-primary font-semibold shadow-xs"
           : "text-muted-foreground hover:text-foreground"
       ),
       underline: cn(
