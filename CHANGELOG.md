@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.27.0 (2026-08-25)
+
+- Merge pull request #49 from speakai/feat/brand-active-tab-and-word-cloud-guard;feat(tabs,charts): brand-coloured active tab and a word-cloud chunk guard
+
 ## v0.26.1 (2026-08-23)
 
 - Merge pull request #47 from speakai/fix/word-cloud-container-height-clamp;Clamp word cloud container height to 600px like width
