@@ -15,10 +15,29 @@ import type { ChartInsight } from "./chart-types";
 
 // -- Lazy-load word cloud (no SSR) -------------------------------------------
 
+/**
+ * True when the dynamic chunk actually carries the `WordCloud` export.
+ *
+ * @param mod - The resolved module namespace.
+ * @returns Whether `WordCloud` is present.
+ */
+export function hasWordCloudExport(mod: unknown): boolean {
+  return (
+    typeof mod === "object" &&
+    mod !== null &&
+    Boolean((mod as { WordCloud?: unknown }).WordCloud)
+  );
+}
+
 const WordCloudInner = lazy(() =>
-  import("@isoterik/react-word-cloud").then((mod) => ({
-    default: mod.WordCloud,
-  })),
+  // A stale or truncated deploy can resolve this chunk without the export; throwing
+  // here reaches the error boundary instead of a bare undefined-property crash.
+  import("@isoterik/react-word-cloud").then((mod) => {
+    if (!hasWordCloudExport(mod)) {
+      throw new Error("WordCloud export missing from @isoterik/react-word-cloud chunk");
+    }
+    return { default: mod.WordCloud };
+  }),
 );
 
 // -- Minimal error boundary for the word cloud render -------------------------
@@ -27,11 +46,17 @@ interface ErrorBoundaryState {
   hasError: boolean;
 }
 
+interface WordCloudErrorBoundaryProps {
+  children: ReactNode;
+  fallback: ReactNode;
+  onError?: (error: Error, info: ErrorInfo) => void;
+}
+
 class WordCloudErrorBoundary extends Component<
-  { children: ReactNode; fallback: ReactNode },
+  WordCloudErrorBoundaryProps,
   ErrorBoundaryState
 > {
-  constructor(props: { children: ReactNode; fallback: ReactNode }) {
+  constructor(props: WordCloudErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
   }
@@ -40,8 +65,8 @@ class WordCloudErrorBoundary extends Component<
     return { hasError: true };
   }
 
-  componentDidCatch(_error: Error, _info: ErrorInfo) {
-    // Swallow — fallback is rendered below
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    this.props.onError?.(error, info);
   }
 
   render() {
@@ -69,6 +94,8 @@ interface AnalyticsWordCloudProps {
   onWordClick?: (text: string) => void;
   /** External ref to the container div, e.g. for PNG export. */
   containerRef?: RefObject<HTMLDivElement | null>;
+  /** Called when the chunk fails to load or the cloud throws. Wire to your error reporter. */
+  onError?: (error: Error, info: ErrorInfo) => void;
 }
 
 // -- Component ---------------------------------------------------------------
@@ -79,6 +106,7 @@ export function AnalyticsWordCloud({
   className,
   onWordClick,
   containerRef: externalRef,
+  onError,
 }: AnalyticsWordCloudProps) {
   const internalRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(600);
@@ -161,6 +189,7 @@ export function AnalyticsWordCloud({
 
   return (
     <WordCloudErrorBoundary
+      onError={onError}
       fallback={
         <div className="flex h-full min-h-[220px] items-center justify-center text-sm text-muted-foreground">
           Word cloud could not be rendered
