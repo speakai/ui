@@ -61,12 +61,19 @@ export function formatNumberSuffix(input: number, decimals?: number): string {
  * Format a count for display: full locale-grouped digits ("1,327"), falling back
  * to compact K/M/B notation only for very large values so a stat card stays
  * readable. Use this for dashboard metric values where "1K" would hide precision.
+ *
+ * Fractional values keep two decimal places ("4.80", "2.54") — an average like a
+ * 1-5 score must never round to a whole number, which collapses a leaderboard
+ * into ties and misreports the value.
  */
 export function formatCount(input: number): string {
   if (Number.isNaN(input) || !isNumeric(input)) return String(input);
-  return Math.abs(input) < 100_000
-    ? Math.round(input).toLocaleString("en-US")
-    : formatNumberSuffix(input, 1);
+  if (Math.abs(input) >= 100_000) return formatNumberSuffix(input, 1);
+  if (Number.isInteger(input)) return input.toLocaleString("en-US");
+  return input.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 }
 
 /** Format aggregate seconds as a human-readable duration (e.g. "1,004h 4m"). */
