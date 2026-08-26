@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.27.1 (2026-08-26)
+
+- Merge pull request #50 from speakai/fix/dashboard-decimal-precision;fix(dashboards): keep two decimals on fractional metric values
+
 ## v0.27.0 (2026-08-25)
 
 - Merge pull request #49 from speakai/feat/brand-active-tab-and-word-cloud-guard;feat(tabs,charts): brand-coloured active tab and a word-cloud chunk guard
