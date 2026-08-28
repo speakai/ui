@@ -119,6 +119,24 @@ describe("Tooltip", () => {
     vi.useRealTimers();
   });
 
+  // jsdom computes no layout, so the width utility is the only assertable part of this.
+  // Without one the bubble shrink-fits inside its absolute-positioned wrapper and, on a
+  // small trigger such as an icon button, collapses to roughly one word per line.
+  it("sizes the bubble to its content, not to the trigger", () => {
+    vi.useFakeTimers();
+    render(
+      <Tooltip content="Insert a variable into your prompt">
+        <button aria-label="Insert" />
+      </Tooltip>,
+    );
+    fireEvent.mouseEnter(screen.getByLabelText("Insert"));
+    act(() => {
+      vi.runAllTimers();
+    });
+
+    expect(screen.getByRole("tooltip")).toHaveClass("w-max");
+  });
+
   it("renders ReactNode content", () => {
     vi.useFakeTimers();
     render(
