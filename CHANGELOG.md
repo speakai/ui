@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.27.2 (2026-08-28)
+
+- Merge pull request #51 from speakai/fix/tooltip-shrink-to-fit;fix(tooltip): size the bubble to its content
+
 ## v0.27.1 (2026-08-26)
 
 - Merge pull request #50 from speakai/fix/dashboard-decimal-precision;fix(dashboards): keep two decimals on fractional metric values
