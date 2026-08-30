@@ -210,7 +210,6 @@ export function FieldDistributionWidget({
       compareLabel={labels.compareLabel ?? "Previous period"}
       valueFormatter={valueFormatter}
       allowDecimals={measure !== "count" && !isSum}
-      categoricalPalette
     />
   );
 }

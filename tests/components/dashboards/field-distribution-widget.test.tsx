@@ -29,7 +29,7 @@ const LABELS = {
 };
 
 describe("FieldDistributionWidget", () => {
-  it("renders bar-mode categories in distinct palette colors", () => {
+  it("renders bar-mode categories in the single chart color (one ranking, not a palette cycle)", () => {
     const { container } = render(
       <FieldDistributionWidget
         data={{
@@ -52,8 +52,8 @@ describe("FieldDistributionWidget", () => {
     ).map((el) => el.getAttribute("fill"));
     expect(fills).toEqual([
       "var(--color-chart-1)",
-      "var(--color-chart-2)",
-      "var(--color-chart-3)",
+      "var(--color-chart-1)",
+      "var(--color-chart-1)",
     ]);
   });
 });

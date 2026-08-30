@@ -417,6 +417,7 @@ export function MetricChartWidget({
             name={seriesName(seriesKeys[0] ?? "", 0)}
             fill={chartSeriesVar(0)}
             radius={[0, 4, 4, 0]}
+            maxBarSize={28}
             activeBar={{ fillOpacity: 0.8 }}
             isAnimationActive={false}
           >
@@ -451,6 +452,7 @@ export function MetricChartWidget({
             stackId={stacked ? "stack" : undefined}
             fill={chartSeriesVar(i)}
             radius={stacked ? undefined : [4, 4, 0, 0]}
+            maxBarSize={48}
             activeBar={{ fillOpacity: 0.8 }}
             // Same recharts v3 paint bug as Line/Area above: animated bars grow
             // from height 0 and never repaint without a reflow, leaving flat
