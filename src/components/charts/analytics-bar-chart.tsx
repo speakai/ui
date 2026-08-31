@@ -9,6 +9,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  LabelList,
 } from "recharts";
 import { cn } from "../../utils/cn";
 import { useReducedMotion } from "./use-reduced-motion";
@@ -194,11 +195,26 @@ export function AnalyticsBarChart({
                 name={chartLabel || "Count"}
                 fill="var(--color-chart-1)"
                 radius={[4, 4, 0, 0]}
+                maxBarSize={48}
                 cursor={onBarClick ? "pointer" : undefined}
                 onClick={handleBarClick}
                 activeBar={{ fillOpacity: 0.8 }}
                 isAnimationActive={!reducedMotion}
               >
+                {!compareData && chartData.length <= 12 && (
+                  <LabelList
+                    dataKey="nTimes"
+                    position="top"
+                    formatter={(v: unknown) =>
+                      valueFormatter ? valueFormatter(Number(v)) : String(v)
+                    }
+                    style={{
+                      fill: "var(--color-foreground)",
+                      fontSize: 12,
+                      fontWeight: 600,
+                    }}
+                  />
+                )}
                 {colorByCategory &&
                   chartData.map((_, i) => (
                     <Cell key={`cell-${i}`} fill={chartSeriesVar(i)} />
@@ -210,6 +226,7 @@ export function AnalyticsBarChart({
                   name={compareLabel || "Compare"}
                   fill="var(--color-chart-2)"
                   radius={[4, 4, 0, 0]}
+                  maxBarSize={48}
                   isAnimationActive={!reducedMotion}
                 />
               )}

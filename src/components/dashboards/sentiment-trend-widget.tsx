@@ -26,6 +26,26 @@ export interface SentimentTrendLabels extends WidgetCommonLabels {
   ghostLabel?: string;
 }
 
+/**
+ * Order a sentiment series chronologically, keeping values (and the
+ * index-aligned ghost series) attached to their dates. The server emits
+ * timeline points in aggregation order, so the x-axis can interleave months.
+ */
+export function sortSentimentSeries(
+  timeline: string[],
+  values: number[],
+  ghost?: number[],
+): { timeline: string[]; values: number[]; ghostValues?: number[] } {
+  const order = timeline
+    .map((t, i) => ({ t, i, ms: new Date(t).getTime() }))
+    .sort((a, b) => (a.ms || 0) - (b.ms || 0));
+  return {
+    timeline: order.map((o) => o.t),
+    values: order.map((o) => values[o.i]),
+    ghostValues: ghost ? order.map((o) => ghost[o.i]) : undefined,
+  };
+}
+
 export interface SentimentTrendWidgetProps {
   data: PublicSentimentData | undefined;
   isLoading: boolean;
@@ -52,12 +72,15 @@ export function SentimentTrendWidget({
   }
 
   const rate = data?.sentiment?.rate;
-  const timeline = rate?.timeline ?? [];
-  const values = rate?.compound ?? [];
-  const ghostValues =
+  const rawGhost =
     config?.ghostValues && config.ghostValues.length > 0
       ? config.ghostValues
       : undefined;
+  const { timeline, values, ghostValues } = sortSentimentSeries(
+    rate?.timeline ?? [],
+    rate?.compound ?? [],
+    rawGhost,
+  );
 
   if (timeline.length === 0) {
     return (

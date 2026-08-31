@@ -46,6 +46,12 @@ export function AnalyticsDonutChart({
   showLegend = true,
   className,
 }: AnalyticsDonutChartProps) {
+  const total = data.reduce((sum, s) => sum + (Number.isFinite(s.value) ? s.value : 0), 0);
+  const withShare = (v: number) => {
+    const base = valueFormatter ? valueFormatter(v) : String(v);
+    if (total <= 0) return base;
+    return `${base} (${Math.round((v / total) * 100)}%)`;
+  };
   return (
     <figure
       className={cn("flex h-full min-h-[220px] w-full flex-col", className)}
@@ -82,9 +88,7 @@ export function AnalyticsDonutChart({
                   borderRadius: "6px",
                   color: "var(--color-foreground)",
                 }}
-                formatter={(v) =>
-                  valueFormatter ? valueFormatter(Number(v)) : v
-                }
+                formatter={(v) => withShare(Number(v))}
               />
               {showLegend && <Legend />}
             </PieChart>
