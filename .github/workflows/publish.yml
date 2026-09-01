@@ -110,7 +110,7 @@ jobs:
         # Non-fatal: GitHub Models is being retired and 410s during brownouts.
         # When it fails, the next step falls back to conventional-commit analysis.
         continue-on-error: true
-        uses: actions/ai-inference@v2
+        uses: actions/ai-inference@v3
         with:
           model: openai/gpt-4o-mini
           temperature: 0
