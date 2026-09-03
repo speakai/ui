@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.28.0 (2026-09-03)
+
+- Updated package;Merge pull request #52 from speakai/fix/dashboard-chart-quality feat(charts): donut tooltips show share of total alongside the value;fix(dashboards): chart rendering quality — single-color rankings, capped bar size, value labels, chronological sentiment axis
+
 ## v0.27.2 (2026-08-28)
 
 - Merge pull request #51 from speakai/fix/tooltip-shrink-to-fit;fix(tooltip): size the bubble to its content
