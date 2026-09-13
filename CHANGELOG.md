@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.29.0 (2026-09-13)
+
+- Merge pull request #55 from speakai/feat/table-widget-pagination-top-scroll;feat(dashboards): table widget pagination and mirrored top scrollbar
+
 ## v0.28.0 (2026-09-03)
 
 - Updated package;Merge pull request #52 from speakai/fix/dashboard-chart-quality feat(charts): donut tooltips show share of total alongside the value;fix(dashboards): chart rendering quality — single-color rankings, capped bar size, value labels, chronological sentiment axis
