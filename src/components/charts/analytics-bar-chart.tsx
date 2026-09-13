@@ -123,7 +123,9 @@ export function AnalyticsBarChart({
             <BarChart
               data={chartData}
               margin={{
-                top: 10,
+                // Room for the value LabelList drawn above the tallest bar; Recharts often
+                // snaps the axis max to dataMax, so a 10px top clipped the label (e.g. "60").
+                top: 24,
                 right: isMobile ? 8 : 20,
                 left: 0,
                 bottom: 5,
