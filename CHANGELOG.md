@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.28.1 (2026-09-13)
+
+- Merge pull request #56 from speakai/feat/table-column-sizing;fix(dashboard-table): column sizing so scores, dates and short labels never wrap and long text clamps to two lines
+
 ## v0.28.0 (2026-09-03)
 
 - Updated package;Merge pull request #52 from speakai/fix/dashboard-chart-quality feat(charts): donut tooltips show share of total alongside the value;fix(dashboards): chart rendering quality — single-color rankings, capped bar size, value labels, chronological sentiment axis
