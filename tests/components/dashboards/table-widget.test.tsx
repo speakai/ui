@@ -272,3 +272,141 @@ describe("TableWidget", () => {
     expect(loading.container.querySelector(".animate-pulse")).not.toBeNull();
   });
 });
+
+describe("TableWidget pagination", () => {
+  const manyRows = (count: number): TableWidgetData => ({
+    columns: [{ header: "Score", format: "number" }],
+    rows: Array.from({ length: count }, (_, i) => ({
+      name: `Row ${String(i + 1).padStart(3, "0")}`,
+      mediaId: `m${i + 1}`,
+      cells: [i + 1],
+    })),
+    total: count,
+  });
+
+  it("hides the pager when every row fits on one page", () => {
+    render(
+      <TableWidget data={DATA} isLoading={false} isError={false} config={{}} labels={LABELS} />,
+    );
+    expect(screen.queryByLabelText("Next page")).toBeNull();
+  });
+
+  it("shows 25 rows by default and pages through the rest", async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+      <TableWidget data={manyRows(54)} isLoading={false} isError={false} config={{}} labels={LABELS} />,
+    );
+    expect(dataRows(container)).toHaveLength(25);
+    expect(screen.getByText("1–25 of 54")).toBeInTheDocument();
+    expect(screen.getByLabelText("Previous page")).toBeDisabled();
+
+    await user.click(screen.getByLabelText("Next page"));
+    expect(dataRows(container)).toHaveLength(25);
+    expect(screen.getByText("26–50 of 54")).toBeInTheDocument();
+    expect(dataRows(container)[0].textContent).toContain("Row 026");
+
+    await user.click(screen.getByLabelText("Next page"));
+    expect(dataRows(container)).toHaveLength(4);
+    expect(screen.getByText("51–54 of 54")).toBeInTheDocument();
+    expect(screen.getByLabelText("Next page")).toBeDisabled();
+  });
+
+  it("honours config.pageSize and lets the viewer change rows per page", async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+      <TableWidget
+        data={manyRows(54)}
+        isLoading={false}
+        isError={false}
+        config={{ pageSize: 10 }}
+        labels={LABELS}
+      />,
+    );
+    expect(dataRows(container)).toHaveLength(10);
+    await user.selectOptions(screen.getByLabelText("Rows per page"), "50");
+    expect(dataRows(container)).toHaveLength(50);
+    expect(screen.getByText("1–50 of 54")).toBeInTheDocument();
+  });
+
+  it("returns to the first page when the sort changes", async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+      <TableWidget data={manyRows(54)} isLoading={false} isError={false} config={{}} labels={LABELS} />,
+    );
+    await user.click(screen.getByLabelText("Next page"));
+    expect(screen.getByText("26–50 of 54")).toBeInTheDocument();
+
+    await user.click(screen.getByText("Score")); // asc
+    await user.click(screen.getByText("Score")); // desc
+    expect(screen.getByText("1–25 of 54")).toBeInTheDocument();
+    expect(dataRows(container)[0].textContent).toContain("Row 054");
+  });
+
+  it("pages over the searched subset, not the full data set", async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+      <TableWidget
+        data={manyRows(54)}
+        isLoading={false}
+        isError={false}
+        config={{ searchable: true, pageSize: 10 }}
+        labels={LABELS}
+      />,
+    );
+    await user.click(screen.getByLabelText("Next page"));
+    await user.type(screen.getByPlaceholderText("Search rows"), "Row 04");
+    // Row 040..049 = 10 rows, so one page and the pager collapses
+    expect(dataRows(container)).toHaveLength(10);
+    expect(screen.queryByLabelText("Next page")).toBeNull();
+  });
+
+  it("uses custom pager labels when provided", () => {
+    render(
+      <TableWidget
+        data={manyRows(30)}
+        isLoading={false}
+        isError={false}
+        config={{}}
+        labels={{
+          ...LABELS,
+          rowsPerPage: "Lignes par page",
+          nextPage: "Suivant",
+          previousPage: "Précédent",
+          pageSummary: (from, to, total) => `${from} à ${to} sur ${total}`,
+        }}
+      />,
+    );
+    expect(screen.getByText("Lignes par page")).toBeInTheDocument();
+    expect(screen.getByLabelText("Suivant")).toBeInTheDocument();
+    expect(screen.getByText("1 à 25 sur 30")).toBeInTheDocument();
+  });
+});
+
+describe("TableWidget top scrollbar", () => {
+  it("renders a mirrored top scrollbar only when the table overflows its container", () => {
+    const { container, rerender } = render(
+      <TableWidget data={DATA} isLoading={false} isError={false} config={{}} labels={LABELS} />,
+    );
+    // jsdom reports 0 for scrollWidth/clientWidth: no overflow, no bar.
+    expect(screen.queryByTestId("table-top-scrollbar")).toBeNull();
+
+    const table = container.querySelector("table") as HTMLTableElement;
+    const wrapper = table.parentElement as HTMLElement;
+    Object.defineProperty(table, "scrollWidth", { configurable: true, value: 1600 });
+    Object.defineProperty(wrapper, "clientWidth", { configurable: true, value: 800 });
+
+    // A data change re-measures; the bar appears sized to the table width.
+    rerender(
+      <TableWidget
+        data={{ ...DATA, rows: [...DATA.rows] }}
+        isLoading={false}
+        isError={false}
+        config={{}}
+        labels={LABELS}
+      />,
+    );
+    const bar = screen.getByTestId("table-top-scrollbar");
+    expect(bar).toBeInTheDocument();
+    expect((bar.firstElementChild as HTMLElement).style.width).toBe("1600px");
+  });
+});

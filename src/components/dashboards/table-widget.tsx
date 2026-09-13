@@ -5,7 +5,7 @@
  * user-facing strings are injected via `labels`.
  */
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { cn } from "../../utils/cn";
 import {
   Table,
@@ -53,6 +53,8 @@ export interface TableWidgetConfig {
   sort?: { column: string; dir: "asc" | "desc" };
   searchable?: boolean;
   rowClick?: "openMedia" | "none";
+  /** Rows shown per page before the pager appears. Defaults to 25. */
+  pageSize?: number;
 }
 
 export interface TableWidgetLabels {
@@ -66,6 +68,14 @@ export interface TableWidgetLabels {
   totalCaption?: string;
   /** Trigger label on clamped long-text cells. Defaults to "Read more". */
   readMore?: string;
+  /** Pager: rows-per-page select label. Defaults to "Rows per page". */
+  rowsPerPage?: string;
+  /** Pager: previous-page button label. Defaults to "Previous page". */
+  previousPage?: string;
+  /** Pager: next-page button label. Defaults to "Next page". */
+  nextPage?: string;
+  /** Pager: range summary. Defaults to "{from}–{to} of {total}". */
+  pageSummary?: (from: number, to: number, total: number) => string;
 }
 
 export interface TableWidgetProps {
@@ -118,6 +128,143 @@ function formatCell(
 const LONG_TEXT_LIMIT = 140;
 /** Text cells up to this length render on one line (dates, outcomes, stage names). */
 const SHORT_TEXT_LIMIT = 24;
+
+/** Rows per page when the config sets none. */
+const DEFAULT_PAGE_SIZE = 25;
+
+/** Page-size choices offered in the pager. */
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
+
+function normalizePageSize(size: number | undefined): number {
+  if (typeof size !== "number" || !Number.isFinite(size) || size < 1) return DEFAULT_PAGE_SIZE;
+  return Math.floor(size);
+}
+
+/**
+ * Horizontal scrollbar mirrored above a wide table. Wide codebook-style tables
+ * otherwise only expose a scrollbar below the last row, which is off-screen
+ * for any table taller than the viewport. The bar renders only while the
+ * table overflows, and scroll position is kept in sync in both directions.
+ */
+function useMirroredScrollbar(tableRef: RefObject<HTMLTableElement | null>, revision: unknown) {
+  const topRef = useRef<HTMLDivElement | null>(null);
+  const [scrollWidth, setScrollWidth] = useState(0);
+  const [overflows, setOverflows] = useState(false);
+  const syncing = useRef(false);
+
+  const scrollContainer = useCallback(
+    () => tableRef.current?.parentElement ?? null,
+    [tableRef],
+  );
+
+  useEffect(() => {
+    const table = tableRef.current;
+    const container = scrollContainer();
+    if (!table || !container) return;
+
+    const measure = () => {
+      setScrollWidth(table.scrollWidth);
+      setOverflows(table.scrollWidth > container.clientWidth + 1);
+    };
+    measure();
+
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(table);
+    observer.observe(container);
+    return () => observer.disconnect();
+    // `revision` re-measures once the table mounts after loading and whenever
+    // the rendered rows or columns change.
+  }, [tableRef, scrollContainer, revision]);
+
+  useEffect(() => {
+    const container = scrollContainer();
+    if (!container) return;
+    const onScroll = () => {
+      if (syncing.current || !topRef.current) return;
+      syncing.current = true;
+      topRef.current.scrollLeft = container.scrollLeft;
+      syncing.current = false;
+    };
+    container.addEventListener("scroll", onScroll, { passive: true });
+    return () => container.removeEventListener("scroll", onScroll);
+  }, [scrollContainer, overflows]);
+
+  const onTopScroll = useCallback(() => {
+    const container = scrollContainer();
+    if (syncing.current || !container || !topRef.current) return;
+    syncing.current = true;
+    container.scrollLeft = topRef.current.scrollLeft;
+    syncing.current = false;
+  }, [scrollContainer]);
+
+  return { topRef, scrollWidth, overflows, onTopScroll };
+}
+
+interface TablePagerProps {
+  page: number;
+  pageSize: number;
+  total: number;
+  labels: TableWidgetLabels;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (size: number) => void;
+}
+
+function TablePager({ page, pageSize, total, labels, onPageChange, onPageSizeChange }: TablePagerProps) {
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
+  const from = total === 0 ? 0 : page * pageSize + 1;
+  const to = Math.min(total, (page + 1) * pageSize);
+  const summary = labels.pageSummary
+    ? labels.pageSummary(from, to, total)
+    : `${from}\u2013${to} of ${total}`;
+  const buttonClass =
+    "h-8 rounded-md border border-border bg-background px-2.5 text-xs font-medium text-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring";
+  const sizeOptions = PAGE_SIZE_OPTIONS.includes(pageSize as (typeof PAGE_SIZE_OPTIONS)[number])
+    ? [...PAGE_SIZE_OPTIONS]
+    : [...PAGE_SIZE_OPTIONS, pageSize].sort((a, b) => a - b);
+
+  return (
+    // Left-aligned on purpose: shared dashboards float a chat button in the
+    // bottom-right corner, which would sit on top of right-aligned controls.
+    <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
+      <label className="flex items-center gap-2">
+        <span>{labels.rowsPerPage ?? "Rows per page"}</span>
+        <select
+          value={pageSize}
+          onChange={(e) => onPageSizeChange(Number(e.target.value))}
+          className="h-8 rounded-md border border-border bg-background px-2 text-xs text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          {sizeOptions.map((size) => (
+            <option key={size} value={size}>
+              {size}
+            </option>
+          ))}
+        </select>
+      </label>
+      <div className="flex items-center gap-2">
+        <span aria-live="polite">{summary}</span>
+        <button
+          type="button"
+          className={buttonClass}
+          onClick={() => onPageChange(page - 1)}
+          disabled={page <= 0}
+          aria-label={labels.previousPage ?? "Previous page"}
+        >
+          {"\u2039"}
+        </button>
+        <button
+          type="button"
+          className={buttonClass}
+          onClick={() => onPageChange(page + 1)}
+          disabled={page >= pageCount - 1}
+          aria-label={labels.nextPage ?? "Next page"}
+        >
+          {"\u203a"}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 /**
  * Clamped preview of a long text cell with the full text in a popover, so
@@ -180,6 +327,10 @@ export function TableWidget({
     dir: SortDirection;
   } | null>(null);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(() => normalizePageSize(config.pageSize));
+  const tableRef = useRef<HTMLTableElement | null>(null);
+  const { topRef, scrollWidth, overflows, onTopScroll } = useMirroredScrollbar(tableRef, data);
 
   const sortKey = userSort ? userSort.key : initialSort?.key ?? null;
   const sortDir = userSort ? userSort.dir : initialSort?.dir ?? null;
@@ -216,6 +367,20 @@ export function TableWidget({
 
     return result;
   }, [rows, config.searchable, search, sortKey, sortDir]);
+
+  // A new search, sort, page size or data set restarts from the first page so
+  // the viewer never lands on a page that no longer exists.
+  useEffect(() => {
+    setPage(0);
+  }, [search, sortKey, sortDir, pageSize, data?.rows]);
+
+  const pageCount = Math.max(1, Math.ceil(visibleRows.length / pageSize));
+  const currentPage = Math.min(page, pageCount - 1);
+  const pagedRows = useMemo(
+    () => visibleRows.slice(currentPage * pageSize, (currentPage + 1) * pageSize),
+    [visibleRows, currentPage, pageSize],
+  );
+  const showPager = visibleRows.length > Math.min(pageSize, PAGE_SIZE_OPTIONS[0]);
 
   if (isLoading) {
     return <div className="h-80 w-full animate-pulse rounded-xl bg-muted" aria-hidden="true" />;
@@ -258,7 +423,18 @@ export function TableWidget({
           className="h-9 w-full max-w-xs rounded-lg border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
         />
       )}
-      <Table aria-label={labels.title}>
+      {overflows && (
+        <div
+          ref={topRef}
+          onScroll={onTopScroll}
+          className="scrollbar-visible w-full overflow-x-auto overflow-y-hidden"
+          aria-hidden="true"
+          data-testid="table-top-scrollbar"
+        >
+          <div style={{ width: scrollWidth, height: 1 }} />
+        </div>
+      )}
+      <Table ref={tableRef} aria-label={labels.title}>
         <TableHeader>
           <TableRow>
             {hasNameColumn && (
@@ -288,7 +464,7 @@ export function TableWidget({
           {visibleRows.length === 0 ? (
             <TableEmpty colSpan={columnCount} title={labels.empty} />
           ) : (
-            visibleRows.map((row, rowIndex) => {
+            pagedRows.map((row, rowIndex) => {
               const groupClickable =
                 !row.mediaId && row.name != null && !!onGroupRowClick;
               const rowClickable = (clickable && !!row.mediaId) || groupClickable;
@@ -357,6 +533,16 @@ export function TableWidget({
           )}
         </TableBody>
       </Table>
+      {showPager && (
+        <TablePager
+          page={currentPage}
+          pageSize={pageSize}
+          total={visibleRows.length}
+          labels={labels}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
+      )}
       {labels.totalCaption && (
         <p className="text-xs text-muted-foreground">{labels.totalCaption}</p>
       )}
