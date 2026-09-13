@@ -116,6 +116,8 @@ function formatCell(
 
 /** Text cells longer than this clamp to a preview with a read-more popover. */
 const LONG_TEXT_LIMIT = 140;
+/** Text cells up to this length render on one line (dates, outcomes, stage names). */
+const SHORT_TEXT_LIMIT = 24;
 
 /**
  * Clamped preview of a long text cell with the full text in a popover, so
@@ -125,8 +127,8 @@ const LONG_TEXT_LIMIT = 140;
  */
 function LongTextCell({ text, readMoreLabel }: { text: string; readMoreLabel: string }) {
   return (
-    <div className="max-w-md">
-      <span className="line-clamp-3 whitespace-pre-line">{text}</span>
+    <div className="min-w-[16rem] max-w-md">
+      <span className="line-clamp-2 whitespace-pre-line">{text}</span>
       <span onClick={(e) => e.stopPropagation()}>
         <Popover
           side="bottom"
@@ -277,7 +279,7 @@ export function TableWidget({
                 direction={sortDir}
                 onSort={handleSort}
               >
-                {column.header}
+                <span className="whitespace-nowrap">{column.header}</span>
               </TableSortHead>
             ))}
           </TableRow>
@@ -307,7 +309,7 @@ export function TableWidget({
                   }
                 >
                   {hasNameColumn && (
-                    <TableCell className="font-medium text-foreground">
+                    <TableCell className="whitespace-nowrap align-top font-medium text-foreground">
                       {row.name ?? "—"}
                     </TableCell>
                   )}
@@ -320,10 +322,18 @@ export function TableWidget({
                     const formatted = formatCell(cell, column.format);
                     const isLongText =
                       typeof cell === "string" && cell.length > LONG_TEXT_LIMIT;
+                    // Numbers, dates and short labels never wrap; medium text keeps a
+                    // readable width so a two-word objection is not stacked three high.
+                    const sizing =
+                      typeof cell === "number" || (typeof cell === "string" && cell.length <= SHORT_TEXT_LIMIT)
+                        ? "whitespace-nowrap"
+                        : isLongText
+                          ? undefined
+                          : "min-w-[12rem]";
                     return (
                       <TableCell
                         key={colIndex}
-                        className={cn(match && THRESHOLD_TEXT_CLASS[match.status])}
+                        className={cn("align-top", sizing, match && THRESHOLD_TEXT_CLASS[match.status])}
                       >
                         {isLongText ? (
                           <LongTextCell
