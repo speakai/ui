@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.29.1 (2026-09-13)
+
+- Merge pull request #57 from speakai/fix/bar-chart-label-headroom;fix(charts): headroom for the value label above the tallest bar
+
 ## v0.29.0 (2026-09-13)
 
 - Merge pull request #55 from speakai/feat/table-widget-pagination-top-scroll;feat(dashboards): table widget pagination and mirrored top scrollbar
