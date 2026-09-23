@@ -102,6 +102,35 @@ function cellText(cell: string | number | null): string {
   return cell == null ? "" : String(cell);
 }
 
+/**
+ * Digit forms a phone-number search should match. Returns null when the query is not phone-like (fewer than six
+ * digits, or letters mixed in), so ordinary text searches are untouched. A UK national number typed with its
+ * leading 0 ("07799 036722") also matches the international form stored in the table ("+447799036722").
+ */
+export function phoneSearchForms(query: string): string[] | null {
+  if (/[a-z]/i.test(query)) return null;
+  const digits = query.replace(/\D/g, "");
+  if (digits.length < 6) return null;
+  const forms = [digits];
+  if (digits.startsWith("0")) forms.push(`44${digits.slice(1)}`);
+  if (digits.startsWith("44")) forms.push(`0${digits.slice(2)}`);
+  return forms;
+}
+
+/** A row matches a search when any cell (or the row name) contains the text, or, for a phone-like query, its digits. */
+export function rowMatchesSearch(name: string | null | undefined, cells: (string | number | null)[], rawQuery: string): boolean {
+  const query = rawQuery.trim().toLowerCase();
+  if (query === "") return true;
+  const texts = [name ?? "", ...cells.map(cellText)];
+  if (texts.some((t) => t.toLowerCase().includes(query))) return true;
+  const forms = phoneSearchForms(query);
+  if (!forms) return false;
+  return texts.some((t) => {
+    const d = t.replace(/\D/g, "");
+    return d.length >= 6 && forms.some((f) => d.includes(f));
+  });
+}
+
 function compareCells(
   a: string | number | null,
   b: string | number | null,
@@ -343,12 +372,7 @@ export function TableWidget({
     let result = rows;
 
     if (config.searchable && search.trim() !== "") {
-      const query = search.trim().toLowerCase();
-      result = result.filter(
-        (row) =>
-          (row.name ?? "").toLowerCase().includes(query) ||
-          row.cells.some((cell) => cellText(cell).toLowerCase().includes(query)),
-      );
+      result = result.filter((row) => rowMatchesSearch(row.name, row.cells, search));
     }
 
     if (sortKey && sortDir) {

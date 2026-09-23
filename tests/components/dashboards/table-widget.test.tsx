@@ -3,6 +3,8 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import {
   TableWidget,
+  phoneSearchForms,
+  rowMatchesSearch,
   type TableWidgetData,
 } from "../../../src/components/dashboards/table-widget";
 
@@ -408,5 +410,38 @@ describe("TableWidget top scrollbar", () => {
     const bar = screen.getByTestId("table-top-scrollbar");
     expect(bar).toBeInTheDocument();
     expect((bar.firstElementChild as HTMLElement).style.width).toBe("1600px");
+  });
+});
+
+
+describe("TableWidget phone-number search", () => {
+  const PHONES: TableWidgetData = {
+    columns: [{ header: "Agent" }, { header: "Client number" }],
+    rows: [
+      { name: "Call one", mediaId: "m1", cells: ["Rahil Hanid", "+447799036722"] },
+      { name: "Call two", mediaId: "m2", cells: ["Sara Shlian", "+442086136251"] },
+    ],
+  };
+  const renderSearch = () =>
+    render(<TableWidget data={PHONES} isLoading={false} isError={false} config={{ searchable: true }} labels={LABELS} />);
+
+  it.each([["07799036722"], ["07799 036722"], ["+44 7799 036722"], ["447799036722"], ["7799036722"], ["036722"]])(
+    "finds the stored +44 number when typed as %s",
+    async (typed) => {
+      const user = userEvent.setup();
+      const { container } = renderSearch();
+      await user.type(screen.getByLabelText("Search rows"), typed);
+      const rows = dataRows(container);
+      expect(rows).toHaveLength(1);
+      expect(rows[0].textContent).toContain("Rahil Hanid");
+    },
+  );
+
+  it("leaves text searches unchanged and never matches short digit runs by phone logic", () => {
+    expect(phoneSearchForms("Rahil")).toBeNull();
+    expect(phoneSearchForms("12345")).toBeNull();
+    expect(phoneSearchForms("07799 036722")).toEqual(["07799036722", "447799036722"]);
+    expect(rowMatchesSearch("Call one", ["Rahil Hanid", "+447799036722"], "hanid")).toBe(true);
+    expect(rowMatchesSearch("Call two", ["Sara Shlian", "+442086136251"], "07799036722")).toBe(false);
   });
 });
