@@ -2,9 +2,11 @@
 
 [![npm version](https://img.shields.io/npm/v/@speakai/ui.svg)](https://www.npmjs.com/package/@speakai/ui)
 [![npm downloads](https://img.shields.io/npm/dm/@speakai/ui.svg)](https://www.npmjs.com/package/@speakai/ui)
-[![license](https://img.shields.io/npm/l/@speakai/ui.svg)](https://github.com/speakai/ui/blob/main/LICENSE)
+[![license](https://img.shields.io/npm/l/@speakai/ui.svg)](https://www.npmjs.com/package/@speakai/ui)
 
 Speak AI's design system — 45+ React + Tailwind components with dark/light mode, WCAG AA accessibility, and full CSS variable customization.
+
+Live demo: [speakai.github.io/ui](https://speakai.github.io/ui)
 
 > **LLM NOTE:** This README is the authoritative reference for every component, prop, type, and theming rule. When generating code with `@speakai/ui`, consult the prop tables below — do not guess props. All color styling **must** use CSS variable tokens (e.g. `text-foreground`, `bg-background`). Never use hardcoded Tailwind color classes (`text-gray-500`, `bg-white`, `bg-zinc-900`, etc.) — these break dark mode.
 
@@ -13,13 +15,12 @@ Speak AI's design system — 45+ React + Tailwind components with dark/light mod
 ## Table of Contents
 
 - [Install](#install)
-- [Setup](#setup)
+- [Setup](#setup) (including [sub-path imports](#4-sub-path-imports-recommended))
 - [Theming Rules](#theming-rules)
   - [CSS Variables — Full Reference](#css-variables--full-reference)
   - [Tailwind Token → Class Mapping](#tailwind-token--class-mapping)
   - [Correct vs Incorrect Color Usage](#correct-vs-incorrect-color-usage)
   - [Override Your Brand](#override-your-brand)
-- [Sub-path Imports](#sub-path-imports)
 - [Quick Reference — All Exports](#quick-reference--all-exports)
 - [Component Reference](#component-reference)
   - [Auth: AuthCard, SSOButton, SSOButtons, PasswordInput, OTPInput, AuthDivider](#auth-components)
@@ -30,9 +31,13 @@ Speak AI's design system — 45+ React + Tailwind components with dark/light mod
   - [Skeleton: PageSkeleton, GridSkeleton, FormSkeleton, TableSkeleton, Skeleton](#skeleton-components)
   - [Selectors: LanguageSelector, PhoneInput, DatePicker, TimePicker](#selector-components)
   - [Utilities: Tooltip, Popover, DropdownMenu, Avatar, Progress, ThemeToggle, ThemeSelector](#utility-components)
-  - [Media: MediaPlayer, useMediaSync](#media-components)
+  - [Media: MediaPlayer, useMediaSync, TranscriptView](#media-components)
+- [Charts and Dashboard Widgets](#charts-and-dashboard-widgets)
 - [Z-Index Layering](#z-index-layering)
 - [Accessibility](#accessibility)
+- [Development](#development)
+- [Releases](#releases)
+- [Contributing](#contributing)
 
 ---
 
@@ -42,26 +47,31 @@ Speak AI's design system — 45+ React + Tailwind components with dark/light mod
 npm install @speakai/ui
 ```
 
+Peer dependencies: `react` and `react-dom` 18 or newer and `tailwindcss` 4. Some entry points need optional peers, which you install only if you import them:
+
+| You import | Also install |
+|---|---|
+| Chart entries (`@speakai/ui/analytics-bar-chart`, `analytics-line-chart`, `sentiment-pie-chart`, `sentiment-comparison-bar-chart`) or `@speakai/ui/dashboard-widgets` | `recharts` (2.15 or newer) |
+| `@speakai/ui/analytics-word-cloud` | `@isoterik/react-word-cloud` |
+| `@speakai/ui/transcript` | `prosemirror-commands`, `prosemirror-history`, `prosemirror-keymap`, `prosemirror-model`, `prosemirror-state`, `prosemirror-view` |
+
 ## Setup
 
 ### 1. Import styles
 
+The library targets Tailwind CSS v4, which is configured in CSS (there is no `tailwind.config.ts`). Import Tailwind, then the library styles:
+
 ```css
 /* globals.css */
+@import "tailwindcss";
 @import "@speakai/ui/styles.css";
 ```
 
-### 2. Configure Tailwind
+`styles.css` defines every theme token (light and dark), the `dark` variant, the animations and a few utilities.
 
-```ts
-// tailwind.config.ts
-export default {
-  content: [
-    "./src/**/*.{ts,tsx}",
-    "./node_modules/@speakai/ui/dist/**/*.{js,mjs}",
-  ],
-};
-```
+### 2. Tailwind class detection
+
+You do not need to point Tailwind at `node_modules`. Every build of the library scans its compiled output and writes the classes its components use into an `@source inline(...)` block at the top of `styles.css`, so Tailwind generates them even though it never scans the package. Your own `@source` rules only need to cover your app code.
 
 ### 3. Dark mode
 
@@ -70,6 +80,7 @@ The library uses class-based dark mode (`.dark` on `<html>`). Works with `next-t
 ```tsx
 // app/layout.tsx
 import { ThemeProvider } from "next-themes";
+import { ToastProvider } from "@speakai/ui/toast";
 
 export default function RootLayout({ children }) {
   return (
@@ -104,6 +115,9 @@ The barrel import (`from "@speakai/ui"`) still works for backward compatibility.
 | Sub-path | Components |
 |---|---|
 | `@speakai/ui/accordion` | Accordion, AccordionItem |
+| `@speakai/ui/analytics-bar-chart` | AnalyticsBarChart (needs `recharts`) |
+| `@speakai/ui/analytics-line-chart` | AnalyticsLineChart (needs `recharts`) |
+| `@speakai/ui/analytics-word-cloud` | AnalyticsWordCloud, hasWordCloudExport (needs `@isoterik/react-word-cloud`) |
 | `@speakai/ui/auth-card` | AuthCard |
 | `@speakai/ui/auth-divider` | AuthDivider |
 | `@speakai/ui/avatar` | Avatar |
@@ -117,6 +131,7 @@ The barrel import (`from "@speakai/ui"`) still works for backward compatibility.
 | `@speakai/ui/cn` | cn (utility) |
 | `@speakai/ui/color-picker` | ColorPicker |
 | `@speakai/ui/confirm-dialog` | ConfirmDialog |
+| `@speakai/ui/dashboard-widgets` | DashboardWidgetView, every dashboard widget, metric registries and format helpers (needs `recharts`) |
 | `@speakai/ui/date-picker` | DatePicker |
 | `@speakai/ui/dialog` | Dialog, DialogHeader, DialogBody, DialogFooter, DialogCloseButton |
 | `@speakai/ui/dropdown-menu` | DropdownMenu, DropdownMenuItem, DropdownMenuHeader, DropdownMenuDivider, MoreButton |
@@ -127,7 +142,7 @@ The barrel import (`from "@speakai/ui"`) still works for backward compatibility.
 | `@speakai/ui/info-card` | InfoCard |
 | `@speakai/ui/input` | Input, SearchInput, Select, Textarea |
 | `@speakai/ui/language-selector` | LanguageSelector |
-| `@speakai/ui/media` | MediaPlayer, useMediaSync |
+| `@speakai/ui/media` | MediaPlayer, useMediaSync, TranscriptView |
 | `@speakai/ui/otp-input` | OTPInput |
 | `@speakai/ui/page-header` | PageHeader, SectionHeader |
 | `@speakai/ui/password-input` | PasswordInput |
@@ -135,6 +150,8 @@ The barrel import (`from "@speakai/ui"`) still works for backward compatibility.
 | `@speakai/ui/popover` | Popover |
 | `@speakai/ui/progress` | Progress |
 | `@speakai/ui/radio-group` | RadioGroup |
+| `@speakai/ui/sentiment-comparison-bar-chart` | SentimentComparisonBarChart (needs `recharts`) |
+| `@speakai/ui/sentiment-pie-chart` | SentimentPieChart (needs `recharts`) |
 | `@speakai/ui/side-panel` | SidePanel |
 | `@speakai/ui/sidebar` | Sidebar, SidebarProvider, SidebarLayout, SidebarUser, useSidebar |
 | `@speakai/ui/skeleton` | Skeleton, SkeletonText, PageHeaderSkeleton, StatCardSkeleton, StatCardsSkeletonGrid, PageSkeleton, CardSkeleton, GridSkeleton, FormSkeleton |
@@ -149,7 +166,7 @@ The barrel import (`from "@speakai/ui"`) still works for backward compatibility.
 | `@speakai/ui/time-picker` | TimePicker |
 | `@speakai/ui/toast` | ToastContainer, ToastProvider, useToast |
 | `@speakai/ui/tooltip` | Tooltip |
-| `@speakai/ui/transcript` | TranscriptView |
+| `@speakai/ui/transcript` | ProseMirror transcript schema, plugins and helpers (needs the `prosemirror-*` peers) |
 
 </details>
 
@@ -161,82 +178,83 @@ The barrel import (`from "@speakai/ui"`) still works for backward compatibility.
 
 ### CSS Variables — Full Reference
 
-All color and shape tokens are CSS variables. They flip automatically between light and dark mode.
+All color tokens are CSS variables named `--color-*`, holding full color values (`hsl(...)`). `styles.css` sets them in `:root` for light mode and again in `.dark`, and registers them with Tailwind through `@theme inline`, so the utilities read them at runtime and flip with the theme. The light-mode defaults are a neutral zinc palette:
 
 ```css
 :root {
-  /* Brand */
-  --primary: 271 91% 65%;              /* purple */
-  --primary-foreground: 0 0% 100%;
+  /* Surfaces and text */
+  --color-background: hsl(0 0% 100%);            /* page background */
+  --color-foreground: hsl(240 10% 3.9%);         /* default text */
+  --color-card: hsl(0 0% 100%);
+  --color-card-foreground: hsl(240 10% 3.9%);
+  --color-popover: hsl(0 0% 100%);               /* dropdown / tooltip background */
+  --color-popover-foreground: hsl(240 10% 3.9%);
+  --color-secondary: hsl(240 4.8% 95.9%);
+  --color-secondary-foreground: hsl(240 5.9% 10%);
+  --color-muted: hsl(240 4.8% 95.9%);            /* subtle backgrounds */
+  --color-muted-foreground: hsl(240 3.8% 46.1%); /* placeholder / help text */
+  --color-accent: hsl(240 4.8% 95.9%);           /* hover highlight */
+  --color-accent-foreground: hsl(240 5.9% 10%);
+  --color-border: hsl(240 5.9% 90%);
+  --color-input: hsl(240 5.9% 90%);              /* input borders */
 
-  /* Gradient */
-  --gradient-from: 271 91% 65%;        /* purple */
-  --gradient-to: 330 81% 60%;          /* pink */
-  --gradient-accent: 24 95% 53%;       /* orange */
+  /* Brand (override these per product) */
+  --color-primary: hsl(240 5.9% 10%);
+  --color-primary-foreground: hsl(0 0% 98%);
+  --color-ring: hsl(240 5.9% 10%);               /* focus ring */
+  --color-gradient-from: hsl(240 5.9% 10%);
+  --color-gradient-to: hsl(240 4% 35%);
+  --color-gradient-accent: hsl(240 4% 25%);
 
   /* Status */
-  --danger: 0 84% 60%;
-  --danger-foreground: 0 0% 100%;
-  --success: 160 84% 39%;
-  --success-foreground: 0 0% 100%;
-  --warning: 38 92% 50%;
-  --warning-foreground: 0 0% 0%;
-  --info: 217 91% 60%;
-  --info-foreground: 0 0% 100%;
-
-  /* Surfaces */
-  --background: 0 0% 100%;             /* page background */
-  --foreground: 222 84% 5%;            /* default text */
-  --card: 0 0% 100%;                   /* card surface */
-  --card-foreground: 222 84% 5%;
-  --popover: 0 0% 100%;                /* dropdown/tooltip bg */
-  --popover-foreground: 222 84% 5%;
-  --secondary: 210 40% 96%;
-  --secondary-foreground: 222 47% 11%;
-  --muted: 210 40% 96%;                /* subtle backgrounds */
-  --muted-foreground: 215 16% 47%;     /* placeholder / help text */
-  --accent: 210 40% 96%;               /* hover highlight */
-  --accent-foreground: 222 47% 11%;
-  --border: 214 32% 91%;               /* borders */
-  --input: 214 32% 91%;                /* input borders */
-  --ring: 271 91% 65%;                 /* focus ring */
+  --color-danger: hsl(0 84.2% 60.2%);            /* --color-destructive has the same value */
+  --color-danger-foreground: hsl(0 0% 100%);
+  --color-success: hsl(160 84% 39%);
+  --color-success-foreground: hsl(0 0% 100%);
+  --color-warning: hsl(38 92% 50%);
+  --color-warning-foreground: hsl(0 0% 0%);
+  --color-info: hsl(217 91% 60%);
+  --color-info-foreground: hsl(0 0% 100%);
 
   /* Skeleton */
-  --skeleton-bg: 220 14% 91%;
-  --skeleton-highlight: 220 14% 96%;
+  --skeleton-bg: hsl(240 5% 91%);
+  --skeleton-highlight: hsl(240 5% 96%);
 
-  /* Typography */
-  --font-sans: "Inter", sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
-
-  /* Shape */
-  --radius: 0.75rem;                   /* border-radius base */
+  /* Charts: --color-chart-1 … --color-chart-5, plus
+     --color-chart-sentiment-{very-positive, positive, slightly-positive, neutral,
+     slightly-negative, negative, very-negative} */
 }
 ```
+
+Typography tokens live in `@theme`: `--font-sans` (Inter, then system fonts) and `--font-mono` (JetBrains Mono, then system monospace). Border radius uses Tailwind's default scale. The `.dark` block in [`src/styles/globals.css`](src/styles/globals.css) has the dark-mode values.
 
 ### Tailwind Token → Class Mapping
 
 | Token | Tailwind class |
 |-------|---------------|
-| `--background` | `bg-background` / `text-background` |
-| `--foreground` | `text-foreground` |
-| `--primary` | `bg-primary` / `text-primary` / `border-primary` |
-| `--primary-foreground` | `text-primary-foreground` |
-| `--card` | `bg-card` |
-| `--card-foreground` | `text-card-foreground` |
-| `--popover` | `bg-popover` |
-| `--popover-foreground` | `text-popover-foreground` |
-| `--muted` | `bg-muted` |
-| `--muted-foreground` | `text-muted-foreground` |
-| `--accent` | `bg-accent` |
-| `--accent-foreground` | `text-accent-foreground` |
-| `--border` | `border-border` |
-| `--input` | `border-input` |
-| `--ring` | `ring-ring` |
-| `--danger` | `text-danger` / `bg-danger` / `border-danger` |
-| `--success` | `text-success` / `bg-success` |
-| `--warning` | `text-warning` / `bg-warning` |
-| `--info` | `text-info` / `bg-info` |
+| `--color-background` | `bg-background` / `text-background` |
+| `--color-foreground` | `text-foreground` / `bg-foreground` |
+| `--color-primary` | `bg-primary` / `text-primary` / `border-primary` |
+| `--color-primary-foreground` | `text-primary-foreground` |
+| `--color-secondary` | `bg-secondary` |
+| `--color-secondary-foreground` | `text-secondary-foreground` |
+| `--color-card` | `bg-card` |
+| `--color-card-foreground` | `text-card-foreground` |
+| `--color-popover` | `bg-popover` |
+| `--color-popover-foreground` | `text-popover-foreground` |
+| `--color-muted` | `bg-muted` |
+| `--color-muted-foreground` | `text-muted-foreground` |
+| `--color-accent` | `bg-accent` |
+| `--color-accent-foreground` | `text-accent-foreground` |
+| `--color-border` | `border-border` |
+| `--color-input` | `border-input` |
+| `--color-ring` | `ring-ring` |
+| `--color-danger` / `--color-destructive` | `text-danger` / `bg-danger` / `border-danger` (or `-destructive`) |
+| `--color-success` | `text-success` / `bg-success` |
+| `--color-warning` | `text-warning` / `bg-warning` |
+| `--color-info` | `text-info` / `bg-info` |
+| `--color-gradient-from` / `-to` / `-accent` | `from-gradient-from`, `to-gradient-to`, and the `gradient-text` utility |
+| `--color-chart-1` … `--color-chart-5` | `fill-chart-1`, `bg-chart-1`, and so on |
 
 ### Correct vs Incorrect Color Usage
 
@@ -254,13 +272,25 @@ All color and shape tokens are CSS variables. They flip automatically between li
 
 ### Override Your Brand
 
+Redefine the tokens after importing `@speakai/ui/styles.css`. Set the dark-mode values in `.dark` as well, because `styles.css` sets them there too:
+
 ```css
+@import "tailwindcss";
+@import "@speakai/ui/styles.css";
+
 :root {
-  --primary: 210 80% 50%;        /* your brand color (HSL) */
-  --gradient-from: 210 80% 50%;
-  --gradient-to: 170 80% 50%;
-  --radius: 0.5rem;              /* sharper corners */
+  --color-primary: hsl(263 70% 50%);          /* your brand color */
+  --color-primary-foreground: hsl(0 0% 100%);
+  --color-ring: hsl(263 70% 50%);
+  --color-gradient-from: hsl(263 70% 50%);
+  --color-gradient-to: hsl(330 81% 60%);
   --font-sans: "Geist", sans-serif;
+}
+
+.dark {
+  --color-primary: hsl(263 70% 65%);
+  --color-primary-foreground: hsl(0 0% 100%);
+  --color-ring: hsl(263 70% 65%);
 }
 ```
 
@@ -332,8 +362,19 @@ import { Progress } from "@speakai/ui/progress";
 import { ThemeToggle, ThemeSelector } from "@speakai/ui/theme-toggle";
 import { cn } from "@speakai/ui/cn";
 
-// Media (separate entry — avoids prosemirror dependency)
-import { MediaPlayer, useMediaSync } from "@speakai/ui/media";
+// Media (separate entry, not in the barrel)
+import { MediaPlayer, useMediaSync, TranscriptView } from "@speakai/ui/media";
+
+// Charts and dashboard widgets (need the optional recharts peer; the word cloud needs @isoterik/react-word-cloud)
+import { AnalyticsBarChart } from "@speakai/ui/analytics-bar-chart";
+import { AnalyticsLineChart } from "@speakai/ui/analytics-line-chart";
+import { AnalyticsWordCloud } from "@speakai/ui/analytics-word-cloud";
+import { SentimentPieChart } from "@speakai/ui/sentiment-pie-chart";
+import { SentimentComparisonBarChart } from "@speakai/ui/sentiment-comparison-bar-chart";
+import { DashboardWidgetView } from "@speakai/ui/dashboard-widgets";
+
+// Transcript editing (ProseMirror; needs the prosemirror-* peers)
+import { transcriptSchema, createHighlightPlugin } from "@speakai/ui/transcript";
 ```
 
 <details>
@@ -1932,12 +1973,14 @@ Segmented 3-option theme control (light / dark / system).
 
 ## Media Components
 
+These live in their own entry, `@speakai/ui/media`. They are not exported from the root `@speakai/ui` barrel.
+
 ### MediaPlayer
 
 HTML5 audio/video player with playback controls, seek bar, volume, captions, keyboard shortcuts. No Video.js dependency — uses native `<audio>` and `<video>` elements.
 
 ```tsx
-import { MediaPlayer, useMediaSync } from "@speakai/ui";
+import { MediaPlayer, useMediaSync } from "@speakai/ui/media";
 
 function PlayerExample() {
   const { currentTime, setCurrentTime, seekTarget, seekTo, clearSeekTarget } = useMediaSync();
@@ -2011,7 +2054,10 @@ const {
 
 **Usage pattern — connect player and transcript:**
 ```tsx
-function MediaView() {
+import { MediaPlayer, TranscriptView, useMediaSync } from "@speakai/ui/media";
+import type { TranscriptSegment } from "@speakai/ui/media";
+
+function MediaView({ mediaUrl, segments }: { mediaUrl: string; segments: TranscriptSegment[] }) {
   const sync = useMediaSync();
 
   return (
@@ -2025,15 +2071,47 @@ function MediaView() {
         onDurationChange={sync.setDuration}
         onPlayStateChange={sync.setIsPlaying}
       />
-      <TranscriptViewer
-        sentences={transcript}
+      <TranscriptView
+        segments={segments}
         currentTime={sync.currentTime}
-        onSeek={sync.seekTo}
+        onWordClick={sync.seekTo}
       />
     </>
   );
 }
 ```
+
+### TranscriptView
+
+Read-only transcript with speaker labels, timestamps and a highlight on the word being played. Clicking a word calls `onWordClick` with its start time.
+
+| Prop | Type | Default | Required |
+|------|------|---------|----------|
+| `segments` | `TranscriptSegment[]` (`id`, `speakerId`, `speakerName`, `speakerColor?`, `startTime`, `endTime`, `words`) | — | Yes |
+| `currentTime` | `number` | — | No |
+| `onWordClick` | `(time: number) => void` | — | No |
+| `showTimestamps` | `boolean` | `true` | No |
+| `highlightCurrent` | `boolean` | `true` | No |
+| `className` | `string` | — | No |
+
+For an editable transcript, `@speakai/ui/transcript` exports the ProseMirror schema (`transcriptSchema`) and plugins (highlight, find and replace, speaker filter, context menu, media keymap, edit commands, clip selection). It needs the `prosemirror-*` peer dependencies.
+
+---
+
+## Charts and Dashboard Widgets
+
+Recharts-based charts and the dashboard widget set. Each chart has its own entry, and the widgets share one grouped entry. Install the optional `recharts` peer to use them, and `@isoterik/react-word-cloud` for the word cloud. Chart colors come from the `--color-chart-1` … `--color-chart-5` and `--color-chart-sentiment-*` tokens, so they follow your theme and dark mode.
+
+| Entry | Exports |
+|---|---|
+| `@speakai/ui/analytics-bar-chart` | `AnalyticsBarChart`, type `ChartInsight` |
+| `@speakai/ui/analytics-line-chart` | `AnalyticsLineChart` |
+| `@speakai/ui/analytics-word-cloud` | `AnalyticsWordCloud`, `hasWordCloudExport`, type `ChartInsight` |
+| `@speakai/ui/sentiment-pie-chart` | `SentimentPieChart`, types `SentimentValue`, `SentimentOverallEntry` |
+| `@speakai/ui/sentiment-comparison-bar-chart` | `SentimentComparisonBarChart`, types `SentimentValue`, `SentimentOverallEntry` |
+| `@speakai/ui/dashboard-widgets` | `DashboardWidgetView` (renders a widget by type), the widget bodies (`StatCardsWidget`, `SentimentTrendWidget`, `FieldDistributionWidget`, `ThemesWidget`, `ComparisonWidget`, `MetricChartWidget`, `TableWidget`, `NarrativeWidget`, `InsightBarWidget`, `NotesWidget`, `PublicUnavailableWidget`), `AnalyticsDonutChart`, metric registries, threshold helpers and format and brand-color helpers |
+
+The prop types are exported next to each component; the source for each is in `src/components/charts/` and `src/components/dashboards/`.
 
 ---
 
@@ -2069,11 +2147,57 @@ WCAG 2.1 AA compliant:
 
 ## Development
 
+Requirements: Node 22 (what CI uses) and npm.
+
 ```bash
-npm install
-npm run build   # compile to dist/
-npm run dev     # demo at localhost:5555
+npm ci                          # install dependencies
+npm run build                   # tsup build into dist/, then regenerate the class safelist
+cd demo && npm install && cd .. # the demo is its own package and installs this one from ../
+npm run dev                     # demo dev server at http://localhost:5555/ui
 ```
+
+The demo reads the built library from `dist/`, so rebuild after a change, or keep `npm run dev:lib` (tsup in watch mode) running in a second terminal.
+
+| Script | What it does |
+|---|---|
+| `npm run build` | tsup build into `dist/` (CJS, ESM and `.d.ts` for every entry point). `postbuild` runs `scripts/generate-safelist.mjs`, which rewrites the `@source inline(...)` block in `src/styles/globals.css` and `dist/styles.css`. Commit the updated `globals.css`. |
+| `npm run dev:lib` | tsup in watch mode. |
+| `npm run dev` | Demo site (Next.js) in dev mode on port 5555, under `/ui`. |
+| `npm run demo:build` | Static export of the demo into `demo/out/`. |
+| `npm run typecheck` | `tsc --noEmit -p tsconfig.build.json` over `src/`. |
+| `npm test` | Vitest with jsdom, single run. Suites live in `tests/`. |
+| `npm run test:watch` | Vitest in watch mode. |
+| `npm run test:coverage` | Vitest with a coverage report. |
+| `npm run test:e2e` | Playwright on desktop and mobile Chromium against the demo. |
+| `npm run clean` | Delete `dist/`. |
+
+### Testing
+
+- Unit and component tests: `npm test`. `tests/safelist.test.ts` checks the generated safelist and skips itself until `dist/` exists, so run `npm run build` first to include it.
+- End-to-end tests: run `npx playwright install chromium` once, then `npm run test:e2e`. Locally it builds the library and the demo, serves the static demo on `http://localhost:5555/ui` and runs the specs in `e2e/`. If a server is already running on that port, Playwright reuses it.
+- CI (`.github/workflows/ci.yml`) runs the type check, Vitest and the Playwright suite on every pull request to `main`.
+
+### Demo site
+
+The demo in `demo/` is a Next.js app exported as static files with the base path `/ui`. `.github/workflows/deploy-demo.yml` builds the library and the demo and deploys `demo/out/` to GitHub Pages at [speakai.github.io/ui](https://speakai.github.io/ui) on every push to `main`. It can also be run by hand from the Actions tab.
+
+## Releases
+
+Every merge to `main` runs `.github/workflows/publish.yml`. After the type check, unit tests and end-to-end tests pass, the release job reads the commit subjects since the last `v*` tag and picks a version bump:
+
+- `fix:` gives a patch release, `feat:` a minor one, and `BREAKING CHANGE` or a removed or renamed export a major one.
+- A merge made only of `chore:`, `docs:`, `ci:`, `refactor:` or `test:` commits normally makes no release.
+- The bump is chosen by a model call. If that call is unavailable, a fallback reads the prefixes directly: `BREAKING CHANGE` or `!:` gives a major release, `feat` a minor one, and anything else a patch, including docs-only merges.
+
+The job then updates `package.json` and `CHANGELOG.md`, commits `chore: release vX.Y.Z [skip ci]`, tags `vX.Y.Z` and publishes the package to npm and to GitHub Packages. Do not bump the version or edit `CHANGELOG.md` by hand.
+
+## Contributing
+
+- Instructions for coding agents (and a good summary for people) are in [`AGENTS.md`](AGENTS.md): the layout, the checklist for adding a component, the theming rules and the release rules. `CLAUDE.md` only imports it.
+- Use conventional commit subjects (`fix:`, `feat:`, `chore:`, `docs:`), because they decide the release.
+- Open pull requests as drafts (`gh pr create --draft`) and mark them Ready for review when they are ready to preview. `.github/workflows/draft-pr-guard.yml` converts a pull request that was opened as ready back into a draft.
+- Before asking for review, run `npm run typecheck && npm test`, and check visual changes in the demo in light and dark mode and at mobile width.
+- AI coding agents: Claude Code and Codex both work in this repo and run the same guardrail hooks, which keep agent-opened pull requests in draft, leave merging to a maintainer, block file writes that contain a credential, flag new multi-line code comments and flag weak new tests. AGENTS.md also holds the shared team rules; to propose a new one, run `/add-rule` in Claude Code or `$add-rule` in Codex. In Codex (0.142 or newer), trust the project once and approve its hooks in `/hooks`.
 
 ## License
 
