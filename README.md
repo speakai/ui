@@ -2197,6 +2197,7 @@ The job then updates `package.json` and `CHANGELOG.md`, commits `chore: release 
 - Use conventional commit subjects (`fix:`, `feat:`, `chore:`, `docs:`), because they decide the release.
 - Open pull requests as drafts (`gh pr create --draft`) and mark them Ready for review when they are ready to preview. `.github/workflows/draft-pr-guard.yml` converts a pull request that was opened as ready back into a draft.
 - Before asking for review, run `npm run typecheck && npm test`, and check visual changes in the demo in light and dark mode and at mobile width.
+- AI coding agents: Claude Code and Codex both work in this repo and run the same guardrail hooks, which keep agent-opened pull requests in draft, leave merging to a maintainer, block file writes that contain a credential, flag new multi-line code comments and flag weak new tests. AGENTS.md also holds the shared team rules; to propose a new one, run `/add-rule` in Claude Code or `$add-rule` in Codex. In Codex (0.142 or newer), trust the project once and approve its hooks in `/hooks`.
 
 ## License
 
