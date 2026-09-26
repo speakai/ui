@@ -251,4 +251,52 @@ describe("MetricChartWidget", () => {
     expect(fills).toContain("var(--color-destructive)");
     expect(fills).toContain("var(--color-chart-1)");
   });
+
+  // Isolates y-axis tick text (numeric) from x-axis group labels ("W1", "W2"), which never match.
+  const numericTickTexts = (container: HTMLElement) =>
+    Array.from(container.querySelectorAll("text.recharts-cartesian-axis-tick-value"))
+      .map((t) => t.textContent ?? "")
+      .filter((t) => /^-?\d+(\.\d+)?$/.test(t));
+
+  it("keeps the default auto y-axis domain when yMin/yMax are absent", () => {
+    const { container } = render(
+      <MetricChartWidget
+        data={{ rows: [{ group: "W1", value: 1 }, { group: "W2", value: 999 }] }}
+        isLoading={false}
+        isError={false}
+        config={{ mark: "bar" }}
+        labels={LABELS}
+      />,
+    );
+    const ticks = numericTickTexts(container);
+    expect(ticks.length).toBeGreaterThan(0);
+    // A forced yMin=0/yMax=999 5-tick split lands on "249.75"; real auto domains never do.
+    expect(ticks.some((t) => t.includes("."))).toBe(false);
+  });
+
+  it("sets evenly-spaced y-axis ticks and the domain when yMin/yMax are set", () => {
+    const { container } = render(
+      <MetricChartWidget
+        data={TWO_SERIES_DATA}
+        isLoading={false}
+        isError={false}
+        config={{ mark: "bar", yMin: 0, yMax: 20 }}
+        labels={LABELS}
+      />,
+    );
+    expect(numericTickTexts(container)).toEqual(["0", "5", "10", "15", "20"]);
+  });
+
+  it("defaults yMin to 0 when only yMax is set", () => {
+    const { container } = render(
+      <MetricChartWidget
+        data={TWO_SERIES_DATA}
+        isLoading={false}
+        isError={false}
+        config={{ mark: "line", yMax: 40 }}
+        labels={LABELS}
+      />,
+    );
+    expect(numericTickTexts(container)).toEqual(["0", "10", "20", "30", "40"]);
+  });
 });
