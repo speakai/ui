@@ -265,6 +265,7 @@ export function MetricChartWidget({
   // Both absent: omit domain/ticks entirely so the axis keeps its pre-existing auto-fit default.
   const yDomain: [number | string, number | string] | undefined =
     yMin != null || yMax != null ? [yMin ?? "auto", yMax ?? "auto"] : undefined;
+  // yMin-only defers ticks to recharts: no real upper bound means evenly-spaced ticks would be uneven/misleading.
   const yTicks = yMax != null ? computeYAxisTicks(yMin ?? 0, yMax) : undefined;
 
   const axes = (

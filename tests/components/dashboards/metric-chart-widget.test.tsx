@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render } from "@testing-library/react";
 import { cloneElement, type ReactElement } from "react";
 import {
@@ -12,6 +12,9 @@ vi.mock("../../../src/components/charts/use-reduced-motion", () => ({
   useReducedMotion: () => true,
 }));
 
+// Captures the widget's <YAxis> props so tests assert domain/ticks/allowDataOverflow directly, not via rendered tick text.
+let lastYAxisProps: Record<string, unknown> | null = null;
+
 // ResponsiveContainer measures the DOM, which is 0×0 in jsdom, so the chart
 // never renders. Give the wrapped chart fixed dimensions instead.
 vi.mock("recharts", async (importOriginal) => {
@@ -23,6 +26,10 @@ vi.mock("recharts", async (importOriginal) => {
         {cloneElement(children, { width: 800, height: 400 } as object)}
       </div>
     ),
+    YAxis: (props: Record<string, unknown>) => {
+      lastYAxisProps = props;
+      return <actual.YAxis {...props} />;
+    },
   };
 });
 
@@ -44,6 +51,10 @@ const TWO_SERIES_DATA: MetricChartData = {
 };
 
 describe("MetricChartWidget", () => {
+  beforeEach(() => {
+    lastYAxisProps = null;
+  });
+
   it("renders one recharts line per distinct series value", () => {
     const { container } = render(
       <MetricChartWidget
@@ -298,5 +309,42 @@ describe("MetricChartWidget", () => {
       />,
     );
     expect(numericTickTexts(container)).toEqual(["0", "10", "20", "30", "40"]);
+  });
+
+  it("uses domain=[yMin, 'auto'] with no custom ticks when only yMin is set", () => {
+    render(
+      <MetricChartWidget
+        data={TWO_SERIES_DATA}
+        isLoading={false}
+        isError={false}
+        config={{ mark: "line", yMin: 2 }}
+        labels={LABELS}
+      />,
+    );
+    expect(lastYAxisProps?.domain).toEqual([2, "auto"]);
+    expect(lastYAxisProps?.ticks).toBeUndefined();
+  });
+
+  it("clips data above yMax at the axis top instead of stretching the domain", () => {
+    // Multi-series data avoids the single-series horizontal-leaderboard layout, which has its own axis and ignores yMin/yMax.
+    render(
+      <MetricChartWidget
+        data={{
+          rows: [
+            { group: "W1", series: "Sales", value: 5 },
+            { group: "W1", series: "Support", value: 3 },
+            { group: "W2", series: "Sales", value: 999 },
+            { group: "W2", series: "Support", value: 2 },
+          ],
+        }}
+        isLoading={false}
+        isError={false}
+        config={{ mark: "bar", yMin: 0, yMax: 20 }}
+        labels={LABELS}
+      />,
+    );
+    expect(lastYAxisProps?.allowDataOverflow).toBe(false);
+    expect(lastYAxisProps?.domain).toEqual([0, 20]);
+    expect(lastYAxisProps?.ticks).toEqual([0, 5, 10, 15, 20]);
   });
 });
