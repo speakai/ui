@@ -59,6 +59,9 @@ export interface MetricChartData {
 export interface MetricChartWidgetConfig {
   mark: "line" | "bar" | "area" | "donut" | "stacked-bar";
   thresholds?: SpecThreshold[];
+  /** Fixed y-axis bounds (line/area/bar/stacked-bar only); absent means recharts' default auto-fit domain, unchanged. */
+  yMin?: number;
+  yMax?: number;
 }
 
 export interface MetricChartWidgetLabels {
@@ -135,6 +138,13 @@ function sumByGroup(
     group,
     total,
   }));
+}
+
+/** Evenly-spaced y-axis ticks from `min` to `max` (used only when `yMax` is set). */
+function computeYAxisTicks(min: number, max: number, count = 5): number[] {
+  if (!Number.isFinite(min) || !Number.isFinite(max) || max <= min) return [min, max];
+  const step = (max - min) / (count - 1);
+  return Array.from({ length: count }, (_, i) => min + step * i);
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -216,7 +226,7 @@ export function MetricChartWidget({
       ? (v: number) => formatDurationHuman(v)
       : formatCount;
 
-  const { thresholds } = config;
+  const { thresholds, yMin, yMax } = config;
 
   if (config.mark === "donut") {
     const slices = sumByGroup(rows).map(({ group, total }, i) => {
@@ -252,6 +262,12 @@ export function MetricChartWidget({
     allowFlat,
   );
 
+  // Both absent: omit domain/ticks entirely so the axis keeps its pre-existing auto-fit default.
+  const yDomain: [number | string, number | string] | undefined =
+    yMin != null || yMax != null ? [yMin ?? "auto", yMax ?? "auto"] : undefined;
+  // yMin-only defers ticks to recharts: no real upper bound means evenly-spaced ticks would be uneven/misleading.
+  const yTicks = yMax != null ? computeYAxisTicks(yMin ?? 0, yMax) : undefined;
+
   const axes = (
     <>
       <CartesianGrid
@@ -281,6 +297,9 @@ export function MetricChartWidget({
         tick={AXIS_TICK}
         width={48}
         allowDecimals={false}
+        domain={yDomain}
+        ticks={yTicks}
+        allowDataOverflow={yMax != null ? false : undefined}
         tickFormatter={(v: number) => formatValue(Number(v))}
       />
       <Tooltip
@@ -334,7 +353,7 @@ export function MetricChartWidget({
             dataKey={`s${i}`}
             name={seriesName(key, i)}
             stroke={chartSeriesVar(i)}
-            fill={chartSeriesVar(i)}
+            fill={`var(--color-chart-area-fill, ${chartSeriesVar(i)})`}
             fillOpacity={0.25}
             strokeWidth={2}
             // Same recharts v3 path-paint bug as Line — render the area statically.
