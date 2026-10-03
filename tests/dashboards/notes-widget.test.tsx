@@ -41,3 +41,66 @@ describe("NotesWidget links", () => {
     );
   });
 });
+
+describe("NotesWidget markdown", () => {
+  it("renders # ## ### as h1 h2 h3", () => {
+    renderNotes("# One\n\n## Two\n\n### Three");
+    expect(screen.getByRole("heading", { level: 1, name: "One" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Two" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 3, name: "Three" })).toBeInTheDocument();
+  });
+
+  it("renders bold, italic and inline code", () => {
+    const { container } = renderNotes("A **bold** and *slanted* and `code` word");
+    expect(container.querySelector("strong")?.textContent).toBe("bold");
+    expect(container.querySelector("em")?.textContent).toBe("slanted");
+    expect(container.querySelector("code")?.textContent).toBe("code");
+    expect(container.textContent).not.toMatch(/[*`]/);
+  });
+
+  it("renders an ordered list with three items", () => {
+    const { container } = renderNotes("1. First\n2. Second\n3. Third");
+    expect(container.querySelectorAll("ol > li")).toHaveLength(3);
+  });
+
+  it("renders unordered lists with one nested level, quotes and rules", () => {
+    const { container } = renderNotes("- a\n  - a1\n- b\n\n> quoted\n\n---");
+    expect(container.querySelectorAll("ul > li")).toHaveLength(3);
+    expect(container.querySelectorAll("ul ul")).toHaveLength(1);
+    expect(container.querySelector("blockquote")?.textContent).toBe("quoted");
+    expect(container.querySelector("hr")).not.toBeNull();
+  });
+
+  it("keeps bare URLs and markdown links as safe anchors", () => {
+    renderNotes("**See** https://example.com/a and [guide](https://example.com/b)");
+    const links = screen.getAllByRole("link");
+    expect(links.map((a) => a.getAttribute("href"))).toEqual(["https://example.com/a", "https://example.com/b"]);
+    links.forEach((a) => expect(a).toHaveAttribute("rel", "noopener noreferrer"));
+  });
+
+  it("renders a simple table", () => {
+    const { container } = renderNotes("| Name | Value |\n| --- | --- |\n| Alpha | 1 |\n| Beta | 2 |");
+    expect(container.querySelectorAll("th")).toHaveLength(2);
+    expect(container.querySelectorAll("tbody tr")).toHaveLength(2);
+    expect(screen.getByText("Beta")).toBeInTheDocument();
+  });
+
+  it("shows script and img tags as text and adds no elements", () => {
+    const html = '<script>alert(1)</script> <img src=x onerror="alert(1)">';
+    const { container } = renderNotes(html);
+    expect(container.querySelector("script")).toBeNull();
+    expect(container.querySelector("img")).toBeNull();
+    expect(container.textContent).toContain(html);
+  });
+
+  it("does not link javascript: markdown links", () => {
+    renderNotes("[click](javascript:alert(1))");
+    expect(screen.queryByRole("link")).toBeNull();
+  });
+
+  it("keeps multi-line plain text as one paragraph with line breaks", () => {
+    const { container } = renderNotes("Line one\nLine two");
+    expect(container.querySelectorAll("p")).toHaveLength(1);
+    expect(container.querySelector("p")?.textContent).toBe("Line one\nLine two");
+  });
+});

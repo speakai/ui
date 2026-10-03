@@ -1,13 +1,14 @@
 /**
  * Notes widget body (presentational) — free-form annotation / section-header
  * text. No data fetch: renders the user's `config.heading` (optional) and
- * `config.content`, or an empty state when both are blank. Plain text with line
- * breaks preserved; http(s) URLs and [text](url) links render as anchors.
+ * `config.content`, or an empty state when both are blank. Content is a safe
+ * markdown subset (headings, emphasis, lists, quotes, rules, tables, links);
+ * raw HTML is shown as text. Line breaks are preserved.
  */
 
 import { EmptyState } from "../EmptyState";
 import { StickyNoteIcon } from "./icons";
-import { linkify } from "./linkify";
+import { renderMarkdown } from "./markdown";
 
 export interface NotesConfig {
   heading?: string;
@@ -45,9 +46,9 @@ export function NotesWidget({ config, labels }: NotesWidgetProps) {
         <h2 className="text-lg font-semibold text-foreground">{trimmedHeading}</h2>
       ) : null}
       {trimmedContent ? (
-        <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
-          {linkify(trimmedContent)}
-        </p>
+        <div className="space-y-2 text-sm leading-relaxed text-muted-foreground">
+          {renderMarkdown(trimmedContent)}
+        </div>
       ) : null}
     </div>
   );
