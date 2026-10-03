@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.30.0 (2026-10-03)
+
+- Merge pull request #65 from speakai/feat/notes-widget-links;feat(dashboards): render links in the notes widget
+
 ## v0.29.1 (2026-09-13)
 
 - Merge pull request #57 from speakai/fix/bar-chart-label-headroom;fix(charts): headroom for the value label above the tallest bar
