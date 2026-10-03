@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.31.0 (2026-10-03)
+
+- Merge pull request #66 from speakai/feat/notes-widget-markdown;feat(dashboards): render safe markdown in the notes widget
+
 ## v0.30.0 (2026-10-03)
 
 - Merge pull request #65 from speakai/feat/notes-widget-links;feat(dashboards): render links in the notes widget
