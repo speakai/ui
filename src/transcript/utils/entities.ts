@@ -8,6 +8,7 @@
 import type { Node as PMNode, Schema } from "prosemirror-model";
 import type { ITranscriptSegment, IWordEntity } from "@speakai/shared";
 import { maxSentenceId, parseNumericId } from "./ids";
+import { collectWordRuns } from "./word-index";
 
 type SentimentScore = NonNullable<ITranscriptSegment["score"]>;
 
@@ -88,31 +89,19 @@ function getBlockText(node: PMNode): string {
 
 /**
  * Extract word-level entities from a transcript_block node's marks.
+ * Uses the same runs as the word index, so saved entities and label word positions agree.
  */
 function extractWordEntities(node: PMNode): IWordEntity[] {
-  const entities: IWordEntity[] = [];
-
-  node.descendants((child) => {
-    if (child.isText && child.marks.length > 0) {
-      for (const mark of child.marks) {
-        if (mark.type.name === "word") {
-          entities.push({
-            id: mark.attrs.entityId || undefined,
-            text: child.text || "",
-            speakerId: mark.attrs.speakerId || "",
-            confidence: parseFloat(mark.attrs.confidence || "1"),
-            instances: {
-              startInSec: parseFloat(mark.attrs.startInSec || "0"),
-              endInSec: parseFloat(mark.attrs.endInSec || "0"),
-            },
-          });
-        }
-      }
-    }
-    return true;
-  });
-
-  return entities;
+  return collectWordRuns(node, 0).map(({ text, mark }) => ({
+    id: mark.attrs.entityId || undefined,
+    text,
+    speakerId: mark.attrs.speakerId || "",
+    confidence: parseFloat(mark.attrs.confidence || "1"),
+    instances: {
+      startInSec: parseFloat(mark.attrs.startInSec || "0"),
+      endInSec: parseFloat(mark.attrs.endInSec || "0"),
+    },
+  }));
 }
 
 /**

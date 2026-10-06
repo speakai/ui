@@ -149,7 +149,7 @@ The barrel import (`from "@speakai/ui"`) still works for backward compatibility.
 | `@speakai/ui/time-picker` | TimePicker |
 | `@speakai/ui/toast` | ToastContainer, ToastProvider, useToast |
 | `@speakai/ui/tooltip` | Tooltip |
-| `@speakai/ui/transcript` | TranscriptView |
+| `@speakai/ui/transcript` | TranscriptView, transcriptSchema, ProseMirror transcript plugins (highlight, find-replace, clip selection, context menu, labels) |
 
 </details>
 
@@ -2064,6 +2064,61 @@ WCAG 2.1 AA compliant:
 - 40px minimum touch targets on all interactive elements
 - 16px minimum input font size (prevents iOS zoom)
 - Decorative SVGs use `aria-hidden="true"`
+
+---
+
+## Transcript labels plugin
+
+`@speakai/ui/transcript` ships the ProseMirror plugin behind Transcript Labels and Comments. It draws labels as decorations in view mode (the doc never changes) and carries them through edit mode as `anchor` marks.
+
+**Word positions.** Anchors are word positions (`IAnchor.startWord` / `endWord`, inclusive) counted exactly like `flattenWords()` in `@speakai/shared`: one transcript_block is one segment; a block with `word` marks counts only marked words; a block without them counts its whole text; tokens are split on whitespace and bare punctuation is skipped. `getWordIndex(doc)` builds this index once per doc.
+
+```ts
+import {
+  createLabelsPlugin, setLabels, addMediaLabel, updateMediaLabel, removeMediaLabel,
+  getMediaLabelsAt, selectionToWordRange, applyAnchorMarks, removeAnchorMarks, mapAnchorsOnSave,
+} from "@speakai/ui/transcript";
+
+const plugins = [/* ... */ createLabelsPlugin()];
+
+// On load and whenever visibility or the label list changes: full rebuild
+setLabels(view, { mediaLabels, labels, hiddenLabelIds, visible: labelsOn && !cleanTranscript });
+// One label at a time: patches only the blocks it touches
+addMediaLabel(view, mediaLabel, [newlyCreatedLabel]);
+updateMediaLabel(view, mediaLabel);
+removeMediaLabel(view, mediaLabelId);
+
+selectionToWordRange(view.state);       // { start, end } snapped to whole words, or null
+getMediaLabelsAt(view.state, pos);      // mediaLabelIds drawn at pos, for the hover card
+
+// Edit mode: labels are hidden and carried, never applied
+view.dispatch(applyAnchorMarks(view.state, mediaLabels));
+const anchors = mapAnchorsOnSave(view.state.doc); // [{ mediaLabelId, start, end }] after edits
+view.dispatch(removeAnchorMarks(view.state));      // on cancel
+```
+
+Not drawn: media labels with status `needs_review`, archived labels (`isActive: false`), groups, labels without a valid `#rrggbb` colour, ids in `hiddenLabelIds`, and everything when `visible` is false or in edit mode. `hiddenLabelIds` must already include the children of hidden groups.
+
+**DOM contract** (also exported as `LABEL_DOM`). Id lists are space separated, so `[data-label-ids~="<labelId>"]` works.
+
+| Element | Class | Attributes and CSS variables |
+| --- | --- | --- |
+| Labelled passage (inline, one per colour block) | `transcript-label` | `data-media-label-ids`, `data-label-ids`; `--transcript-label-color`, `--transcript-label-tint`. Bar thickness follows `--transcript-label-bar` (default `3px`). Bar and tint are background images, so `background-color` stays free for playback and search highlights. |
+| transcript_block touched by a label | `transcript-block--labelled` | `data-media-label-ids`, `data-label-ids`, `data-label-colors` (up to 4), `data-label-count`, `data-label-overflow` (only when more than 4); `--transcript-label-stripes` (a ready gradient of the shown colours), `--transcript-label-stripe-count` |
+| Anchor in edit mode | `transcript-anchor` | `data-media-label-ids` |
+
+Example right-gutter stripes:
+
+```css
+.transcript-block--labelled { position: relative; }
+.transcript-block--labelled::after {
+  content: ""; position: absolute; top: 0; bottom: 0; right: -16px;
+  width: calc(var(--transcript-label-stripe-count) * 4px);
+  background: var(--transcript-label-stripes);
+}
+```
+
+The context menu state (`getContextMenuState`) also has `mediaLabelIds`: labels under the selection, or under the pointer when nothing is selected (the menu then opens only to offer removing them).
 
 ---
 

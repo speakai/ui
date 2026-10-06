@@ -16,6 +16,7 @@ import type { EditorState, Transaction } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 import { validateTimestampPair, splitTextNodesWithMarks } from "../utils/entities";
 import { maxParagraphId, maxSentenceId, parseNumericId } from "../utils/ids";
+import { stripAnchorMarks } from "./labels";
 
 // ── Helpers ───────────────────────────────────────────────────────
 
@@ -141,7 +142,8 @@ function cloneParagraphWithNewIds(
       sentences.push(
         sentence.type.create(
           { ...sentence.attrs, sentenceId: String(mintFor(sentence.attrs.sentenceId)) },
-          sentence.content,
+          // The copy is new text, so it must not carry the original passage's label anchors
+          stripAnchorMarks(sentence.content, sentence.type.schema.marks.anchor),
           sentence.marks
         )
       );

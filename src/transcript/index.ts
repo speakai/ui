@@ -54,5 +54,33 @@ export {
 } from "./plugins/clip-selection";
 export type { ClipSegmentInput } from "./plugins/clip-selection";
 
+export {
+  createLabelsPlugin,
+  labelsPluginKey,
+  setLabels,
+  addMediaLabel,
+  updateMediaLabel,
+  removeMediaLabel,
+  setLabelsEditMode,
+  getMediaLabelsAt,
+  getMediaLabelsInRange,
+  selectionToWordRange,
+  applyAnchorMarks,
+  removeAnchorMarks,
+  mapAnchorsOnSave,
+  LABEL_DOM,
+  MAX_LABEL_STRIPES,
+} from "./plugins/labels";
+export type {
+  LabelsPluginOptions,
+  LabelsPluginState,
+  SetLabelsPayload,
+  WordRange,
+  MappedAnchor,
+} from "./plugins/labels";
+
+export { getWordIndex } from "./utils/word-index";
+export type { WordIndex, WordIndexBlock } from "./utils/word-index";
+
 // Utils
 export { extractSegmentsFromDoc, validateTimestampPair } from "./utils/entities";
