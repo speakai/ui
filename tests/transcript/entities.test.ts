@@ -256,3 +256,36 @@ describe("extractSegmentsFromDoc speaker", () => {
     expect(seg.speaker).toEqual(speaker);
   });
 });
+
+// ── extractSegmentsFromDoc — ids and sentiment ────────────────────
+
+describe("extractSegmentsFromDoc ids and score", () => {
+  const score = { compound: 0.6, neg: 0, neu: 0.4, pos: 0.6 };
+
+  function block(sentenceId: unknown, text: string, extra: Record<string, unknown> = {}) {
+    return schema.node(
+      "transcript_block",
+      { speakerId: "0", sentenceId, startInSec: 0, endInSec: 1, ...extra },
+      [schema.node("sentence", { sentenceId: "" }, [schema.text(text)])]
+    );
+  }
+
+  it("keeps real ids, re-mints missing and repeated ones above the max, and keeps score", () => {
+    const doc = schema.node("doc", {}, [
+      schema.node("paragraph_container", { speakerId: "0" }, [
+        block("", "No id"),
+        block(5, "Five", { score }),
+        block("1700000000000_b", "Legacy split id"),
+        block(5, "Pasted duplicate of five"),
+        block(1, "One"),
+      ]),
+    ]);
+
+    const segments = extractSegmentsFromDoc(doc);
+
+    // Before the fix this was [0, 5, 2, 5, 1]: blank became 0, the legacy id became its position, 5 repeated.
+    expect(segments.map((s) => s.id)).toEqual([6, 5, 7, 8, 1]);
+    expect(segments[1].score).toEqual(score);
+    expect(segments[0]).not.toHaveProperty("score");
+  });
+});

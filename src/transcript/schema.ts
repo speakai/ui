@@ -89,6 +89,8 @@ const transcriptBlockSpec: NodeSpec = {
     isLastSentence: { default: false },
     language: { default: "" },
     entities: { default: [] },
+    // Segment sentiment ({ compound, neg, neu, pos }); carried so saving an edit does not erase it.
+    score: { default: null },
   },
   toDOM(node): DOMOutputSpec {
     const speakerName =

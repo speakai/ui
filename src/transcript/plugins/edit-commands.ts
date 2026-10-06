@@ -15,6 +15,7 @@ import { Plugin, TextSelection } from "prosemirror-state";
 import type { EditorState, Transaction } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 import { validateTimestampPair, splitTextNodesWithMarks } from "../utils/entities";
+import { maxParagraphId, maxSentenceId, parseNumericId } from "../utils/ids";
 
 // ── Helpers ───────────────────────────────────────────────────────
 
@@ -111,8 +112,53 @@ function mergeParagraphsCommand(
   return true;
 }
 
+/**
+ * Copies a paragraph_container with fresh paragraph and segment ids.
+ * A block and its sentence that shared an id in the source share the new id in the copy.
+ */
+function cloneParagraphWithNewIds(
+  paragraph: import("prosemirror-model").Node,
+  doc: import("prosemirror-model").Node
+): import("prosemirror-model").Node {
+  let nextSegmentId = maxSentenceId(doc) + 1;
+  const remapped = new Map<number, number>();
+  const mintFor = (oldValue: unknown): number => {
+    const oldId = parseNumericId(oldValue);
+    if (oldId === null) return nextSegmentId++;
+    const existing = remapped.get(oldId);
+    if (existing !== undefined) return existing;
+    const minted = nextSegmentId++;
+    remapped.set(oldId, minted);
+    return minted;
+  };
+
+  const newParagraphId = maxParagraphId(doc) + 1;
+  const blocks: import("prosemirror-model").Node[] = [];
+  paragraph.forEach((block) => {
+    const blockId = mintFor(block.attrs.sentenceId);
+    const sentences: import("prosemirror-model").Node[] = [];
+    block.forEach((sentence) => {
+      sentences.push(
+        sentence.type.create(
+          { ...sentence.attrs, sentenceId: String(mintFor(sentence.attrs.sentenceId)) },
+          sentence.content,
+          sentence.marks
+        )
+      );
+    });
+    blocks.push(
+      block.type.create(
+        { ...block.attrs, paragraphId: newParagraphId, sentenceId: blockId },
+        sentences,
+        block.marks
+      )
+    );
+  });
+  return paragraph.type.create({ ...paragraph.attrs, paragraphId: newParagraphId }, blocks, paragraph.marks);
+}
+
 /** Duplicate the current paragraph_container and insert it after, moving cursor into the copy. */
-function duplicateParagraphCommand(
+export function duplicateParagraphCommand(
   state: EditorState,
   dispatch?: (tr: Transaction) => void
 ): boolean {
@@ -121,7 +167,8 @@ function duplicateParagraphCommand(
 
   if (!dispatch) return true;
 
-  const copy = current.node.copy(current.node.content);
+  // Copying ids verbatim would give two segments the same id and re-point anything anchored to it.
+  const copy = cloneParagraphWithNewIds(current.node, state.doc);
   const insertAt = current.pos + current.node.nodeSize;
 
   const tr = state.tr.insert(insertAt, copy);
@@ -663,16 +710,15 @@ export function handleEnterKey(
         userId: speakerId || "",
       };
 
-  // Fresh IDs for new paragraph/block/sentence.
-  const newSentenceId = String(Date.now()) + "_s";
-  const newParagraphId = String(Date.now()) + "_p";
-  const newBlockId = String(Date.now()) + "_b";
+  // Ids must stay numeric and unique: a non-numeric id is unreadable on save and collides with real ids.
+  const newSegmentId = maxSentenceId(tr.doc) + 1;
+  const newParagraphId = maxParagraphId(tr.doc) + 1;
 
   // Build the new sentence (textAfter + remainingSentences in the new block).
   const newSentence = schema.node(
     "sentence",
     {
-      sentenceId: newSentenceId,
+      sentenceId: String(newSegmentId),
       speakerId: speakerId,
       startInSec: afterTiming.startInSec,
       endInSec: afterTiming.endInSec,
@@ -684,9 +730,13 @@ export function handleEnterKey(
     "transcript_block",
     {
       paragraphId: newParagraphId,
-      sentenceId: newBlockId,
+      sentenceId: newSegmentId,
       speakerId: speakerId,
       speaker: preservedSpeaker,
+      // Both halves came from one segment, so they share its sentiment until it is re-analysed.
+      score: blockNode.attrs.score ?? null,
+      confidence: blockNode.attrs.confidence,
+      language: blockNode.attrs.language,
       isParagraphStart: true,
       startInSec: afterTiming.startInSec,
       endInSec: afterTiming.endInSec,
