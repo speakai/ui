@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.32.0 (2026-10-07)
+
+- Merge pull request #69 from speakai/feat/transcript-labels-plugin;docs(readme): drop the transcript labels plugin section chore(labels): keep only comments that prevent a bug;chore(deps): bump @speakai/shared to 2.1.36 for label types chore(labels): trim comments to the team comment rule;feat(transcript): labels plugin with word-position anchors, segmented bars and stripes fix(transcript): stable unique sentence ids on split and duplicate, keep sentiment score
+
 ## v0.31.0 (2026-10-03)
 
 - Merge pull request #66 from speakai/feat/notes-widget-markdown;feat(dashboards): render safe markdown in the notes widget
