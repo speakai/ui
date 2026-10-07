@@ -1,4 +1,4 @@
-/** Labels plugin: decorations in view mode, anchor marks in edit mode; anchors are inclusive word positions counted like flattenWords() in @speakai/shared. */
+// Anchors are inclusive word positions counted like flattenWords() in @speakai/shared.
 
 import { Plugin, PluginKey } from "prosemirror-state";
 import type { EditorState, Transaction } from "prosemirror-state";
@@ -11,30 +11,22 @@ import type { ILabel, IMediaLabel } from "@speakai/shared";
 import { firstWordEndingAfter, getWordIndex, wordRangeBetween } from "../utils/word-index";
 import type { WordIndex } from "../utils/word-index";
 
-/** Most stripe colours exposed per block; the rest are reported as an overflow count ("+N"). */
 export const MAX_LABEL_STRIPES = 4;
 
-/** Applied to the first label's colour. */
 const LABEL_TINT_ALPHA = 0.16;
 
 // Colours go into a style attribute, so only plain #rrggbb is accepted
 const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 
-/** DOM contract for the client; id lists are space separated so CSS `~=` selectors work. */
+// DOM contract for the client; id lists are space separated so CSS ~= selectors work.
 export const LABEL_DOM = {
-  /** Inline decoration on a labelled passage (one per colour block). */
   runClass: "transcript-label",
-  /** Node decoration class on a transcript_block that any visible label touches. */
   blockClass: "transcript-block--labelled",
-  /** Mark class on anchor spans in edit mode. */
   anchorClass: "transcript-anchor",
   mediaLabelIdsAttr: "data-media-label-ids",
   labelIdsAttr: "data-label-ids",
-  /** Block only: up to MAX_LABEL_STRIPES colours, space separated, in label order. */
   colorsAttr: "data-label-colors",
-  /** Block only: number of distinct visible labels touching the block. */
   countAttr: "data-label-count",
-  /** Block only: labels beyond MAX_LABEL_STRIPES, present only when above 0. */
   overflowAttr: "data-label-overflow",
 } as const;
 
@@ -44,7 +36,7 @@ const SPEC_KEY = "transcriptLabel";
 export interface SetLabelsPayload {
   mediaLabels: IMediaLabel[];
   labels: ILabel[];
-  /** The caller expands hidden groups into child label ids; the plugin does not walk parentId. */
+  // The caller expands hidden groups into child label ids; the plugin does not walk parentId.
   hiddenLabelIds: string[];
   visible: boolean;
 }
@@ -52,9 +44,7 @@ export interface SetLabelsPayload {
 export type LabelsPluginOptions = Partial<SetLabelsPayload>;
 
 export interface WordRange {
-  /** First word position, inclusive */
   start: number;
-  /** Last word position, inclusive */
   end: number;
 }
 
@@ -67,7 +57,6 @@ interface DrawnLabel {
   color: string;
 }
 
-/** A media label that is drawn: its clamped word range and its visible labels. */
 interface LabelEntry extends WordRange {
   mediaLabelId: string;
   labels: DrawnLabel[];
@@ -79,7 +68,6 @@ export interface LabelsPluginState {
   mediaLabels: ReadonlyMap<string, IMediaLabel>;
   labels: ReadonlyMap<string, ILabel>;
   hiddenLabelIds: ReadonlySet<string>;
-  /** Drawn media labels only (status, archive, hidden and range already filtered) */
   entries: ReadonlyMap<string, LabelEntry>;
   decorations: DecorationSet;
 }
@@ -97,7 +85,6 @@ interface DecoSpec {
 
 export const labelsPluginKey = new PluginKey<LabelsPluginState>("labels");
 
-/** Options seed the first render; later changes go through setLabels() and the single-label helpers. */
 export function createLabelsPlugin(options: LabelsPluginOptions = {}) {
   return new Plugin<LabelsPluginState>({
     key: labelsPluginKey,
@@ -145,12 +132,11 @@ export function createLabelsPlugin(options: LabelsPluginOptions = {}) {
   });
 }
 
-/** Rebuilds every decoration; use on load and on visibility changes. */
 export function setLabels(view: Pick<EditorView, "state" | "dispatch">, payload: SetLabelsPayload) {
   dispatchAction(view, { type: "set", payload });
 }
 
-/** Patches only the blocks it touches; unknown `labels` are added, but recolour or archive through setLabels. */
+// Recolour or archive through setLabels(); this only adds.
 export function addMediaLabel(
   view: Pick<EditorView, "state" | "dispatch">,
   mediaLabel: IMediaLabel,
@@ -159,7 +145,6 @@ export function addMediaLabel(
   dispatchAction(view, { type: "upsert", mediaLabel, labels });
 }
 
-/** Patches only the blocks involved; same `labels` rule as addMediaLabel. */
 export function updateMediaLabel(
   view: Pick<EditorView, "state" | "dispatch">,
   mediaLabel: IMediaLabel,
@@ -168,17 +153,14 @@ export function updateMediaLabel(
   dispatchAction(view, { type: "upsert", mediaLabel, labels });
 }
 
-/** Remove one media label, patching only the blocks it touched. */
 export function removeMediaLabel(view: Pick<EditorView, "state" | "dispatch">, mediaLabelId: string) {
   dispatchAction(view, { type: "remove", mediaLabelId });
 }
 
-/** Hide labels while editing (true) or draw them again (false). applyAnchorMarks() enters edit mode itself. */
 export function setLabelsEditMode(view: Pick<EditorView, "state" | "dispatch">, editMode: boolean) {
   dispatchAction(view, { type: "editMode", editMode });
 }
 
-/** Empty when labels are hidden or in edit mode; a space inside a passage counts as part of it. */
 export function getMediaLabelsAt(state: EditorState, pos: number): string[] {
   const decorations = drawnDecorations(state);
   if (!decorations) return [];
@@ -188,21 +170,19 @@ export function getMediaLabelsAt(state: EditorState, pos: number): string[] {
   return collectIds(inside.length > 0 ? inside : touching);
 }
 
-/** mediaLabelIds drawn anywhere in doc range [from, to), for selections and the context menu. */
 export function getMediaLabelsInRange(state: EditorState, from: number, to: number): string[] {
   const decorations = drawnDecorations(state);
   if (!decorations || to <= from) return [];
   return collectIds(decorations.find(from, to, isRun).filter((deco) => deco.from < to && deco.to > from));
 }
 
-/** A partly selected word counts whole; null when the selection holds no word. */
 export function selectionToWordRange(state: EditorState): WordRange | null {
   const { from, to, empty } = state.selection;
   if (empty) return null;
   return wordRangeBetween(getWordIndex(state.doc), from, to);
 }
 
-/** Skips needs_review labels (untrusted positions) and stays out of undo history since it is not a user edit. */
+// Skips needs_review labels and stays out of undo history.
 export function applyAnchorMarks(state: EditorState, mediaLabels: IMediaLabel[]): Transaction {
   const tr = state.tr;
   const anchorType = state.schema.marks.anchor;
@@ -225,7 +205,6 @@ export function applyAnchorMarks(state: EditorState, mediaLabels: IMediaLabel[])
   return tr.setMeta(labelsPluginKey, { type: "editMode", editMode: true } satisfies LabelsAction).setMeta("addToHistory", false);
 }
 
-/** Transaction that removes every anchor mark and leaves edit mode, e.g. on cancel. */
 export function removeAnchorMarks(state: EditorState): Transaction {
   const tr = state.tr;
   const anchorType = state.schema.marks.anchor;
@@ -233,7 +212,7 @@ export function removeAnchorMarks(state: EditorState): Transaction {
   return tr.setMeta(labelsPluginKey, { type: "editMode", editMode: false } satisfies LabelsAction).setMeta("addToHistory", false);
 }
 
-/** Labels whose words were all deleted are absent, so the caller can send them to review. */
+// Labels whose words were all deleted are absent, so the caller can send them to review.
 export function mapAnchorsOnSave(doc: PMNode): MappedAnchor[] {
   const anchorType = doc.type.schema.marks.anchor;
   if (!anchorType) return [];
@@ -265,7 +244,6 @@ export function mapAnchorsOnSave(doc: PMNode): MappedAnchor[] {
     .sort((a, b) => a.start - b.start || a.end - b.end || a.mediaLabelId.localeCompare(b.mediaLabelId));
 }
 
-/** Copy of `content` without anchor marks; used for duplicated paragraphs and pasted text. */
 export function stripAnchorMarks(content: Fragment, anchorType: MarkType | undefined): Fragment {
   return anchorType ? stripMark(content, anchorType) : content;
 }
@@ -323,7 +301,6 @@ function removeEntry(state: LabelsPluginState, doc: PMNode, mediaLabelId: string
   return { ...state, mediaLabels, entries, decorations };
 }
 
-/** A media label as drawn, or null when it should not be drawn at all. */
 function resolveEntry(
   mediaLabel: IMediaLabel,
   labels: ReadonlyMap<string, ILabel>,
@@ -346,7 +323,6 @@ function resolveEntry(
   return { mediaLabelId: mediaLabel.mediaLabelId, start: range.start, end: range.end, labels: drawn };
 }
 
-/** Anchor word range clamped to the doc's words, or null when it is malformed or outside them. */
 function clampRange(mediaLabel: IMediaLabel, wordCount: number): WordRange | null {
   const start = mediaLabel.anchor?.startWord;
   const end = mediaLabel.anchor?.endWord;
@@ -356,7 +332,6 @@ function clampRange(mediaLabel: IMediaLabel, wordCount: number): WordRange | nul
   return { start, end: Math.min(end, wordCount - 1) };
 }
 
-/** Region grows to whole blocks (stripes are per block) and to every overlapping entry (bars depend on all labels on the same words). */
 function patchDecorations(
   decorations: DecorationSet,
   doc: PMNode,
@@ -381,7 +356,6 @@ function patchDecorations(
   for (const region of merged) {
     const from = index.blocks[index.blockOf[region.start]].pos;
     const to = index.blocks[index.blockOf[region.end]].end;
-    // find() also returns neighbours that only touch the edges; keep those
     const stale = next.find(from, to, isOurs).filter((deco) => deco.from >= from && deco.to <= to);
     const inRegion = all.filter((entry) => entry.start <= region.end && entry.end >= region.start);
     next = next.remove(stale).add(doc, buildDecorations(index, inRegion));
@@ -413,7 +387,6 @@ function buildDecorations(index: WordIndex, entries: LabelEntry[]): Decoration[]
   return [...buildRunDecorations(index, sorted), ...buildBlockDecorations(index, sorted)];
 }
 
-/** Overlapping or touching entries form one passage, cut where the covering labels change and at block edges. */
 function buildRunDecorations(index: WordIndex, sorted: LabelEntry[]): Decoration[] {
   const decorations: Decoration[] = [];
   let i = 0;
@@ -448,7 +421,6 @@ function buildRunDecorations(index: WordIndex, sorted: LabelEntry[]): Decoration
         const block = index.blockOf[word];
         const pieceEnd = Math.min(segEnd, index.blocks[block].lastWord);
         const from = index.starts[word];
-        // Reach the next covered word in the same block so the bar has no gap at the space
         const to =
           pieceEnd + 1 <= clusterEnd && index.blockOf[pieceEnd + 1] === block
             ? index.starts[pieceEnd + 1]
@@ -461,7 +433,6 @@ function buildRunDecorations(index: WordIndex, sorted: LabelEntry[]): Decoration
   return decorations;
 }
 
-/** One inline decoration per label colour, splitting [from, to) evenly in label order. */
 function colourBlocks(from: number, to: number, labels: DrawnLabel[], mediaLabelIds: string[]): Decoration[] {
   const spec: DecoSpec = { [SPEC_KEY]: "run", mediaLabelIds };
   const labelIds = labels.map((label) => label.labelId).join(" ");
@@ -491,7 +462,7 @@ function colourBlocks(from: number, to: number, labels: DrawnLabel[], mediaLabel
   });
 }
 
-/** background-image layers leave background-color free for playback and search highlights from other plugins. */
+// background-image layers leave background-color free for playback and search highlights
 function runStyle(color: string, tint: string, bar: string): string {
   return [
     `--transcript-label-color:${color}`,
@@ -503,7 +474,6 @@ function runStyle(color: string, tint: string, bar: string): string {
   ].join(";");
 }
 
-/** Node decorations exposing label colours per block for the margin stripes. */
 function buildBlockDecorations(index: WordIndex, sorted: LabelEntry[]): Decoration[] {
   const byBlock = new Map<number, LabelEntry[]>();
   for (const entry of sorted) {
@@ -536,7 +506,6 @@ function buildBlockDecorations(index: WordIndex, sorted: LabelEntry[]): Decorati
   return decorations;
 }
 
-/** Labels of `entries` in entry order, each label once. */
 function orderedLabels(entries: LabelEntry[]): DrawnLabel[] {
   const seen = new Set<string>();
   const labels: DrawnLabel[] = [];
@@ -555,7 +524,6 @@ function compareEntries(a: LabelEntry, b: LabelEntry): number {
   return a.start - b.start || a.end - b.end || (a.mediaLabelId < b.mediaLabelId ? -1 : a.mediaLabelId > b.mediaLabelId ? 1 : 0);
 }
 
-/** linear-gradient with hard, equal-width stops, one per colour. */
 function evenStops(colors: string[]): string {
   if (colors.length === 1) return `linear-gradient(${colors[0]}, ${colors[0]})`;
   const stops = colors.map((color, k) => {

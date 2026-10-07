@@ -12,7 +12,6 @@ import { collectWordRuns } from "./word-index";
 
 type SentimentScore = NonNullable<ITranscriptSegment["score"]>;
 
-/** Accepts only a complete sentiment object so a malformed attr is dropped rather than saved. */
 function isSentimentScore(value: unknown): value is SentimentScore {
   if (!value || typeof value !== "object") return false;
   const score = value as Record<string, unknown>;
@@ -89,9 +88,9 @@ function getBlockText(node: PMNode): string {
 
 /**
  * Extract word-level entities from a transcript_block node's marks.
- * Uses the same runs as the word index, so saved entities and label word positions agree.
  */
 function extractWordEntities(node: PMNode): IWordEntity[] {
+  // Same runs as the word index, so saved entities and label word positions agree.
   return collectWordRuns(node, 0).map(({ text, mark }) => ({
     id: mark.attrs.entityId || undefined,
     text,

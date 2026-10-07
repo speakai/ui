@@ -2,11 +2,8 @@
  * ProseMirror plugin for right-click context menu in the transcript editor.
  *
  * Tracks selection state and pointer position so the React layer can render
- * a floating menu (copy, add-to-clip, remove-from-clip, remove label).
- *
- * mediaLabelIds lists the labels drawn under the selection, or under the pointer when
- * nothing is selected, so the menu can offer "Remove <label>". It is always empty
- * unless the labels plugin is installed and drawing labels.
+ * a floating menu (copy, add-to-clip, remove-from-clip).
+ * mediaLabelIds is empty unless the labels plugin is drawing labels.
  */
 
 import { Plugin, PluginKey } from "prosemirror-state";
@@ -20,7 +17,6 @@ export interface ContextMenuState {
   x: number;
   y: number;
   hasSelection: boolean;
-  /** Labels under the selection or pointer; empty without the labels plugin */
   mediaLabelIds: string[];
 }
 
@@ -53,7 +49,6 @@ export function createContextMenuPlugin() {
             ? getMediaLabelsInRange(view.state, selection.from, selection.to)
             : labelsAtPointer(view, mouseEvent);
 
-          // Without a selection the menu opens only to offer removing the labels under the pointer
           if (!hasSelection && mediaLabelIds.length === 0) {
             view.dispatch(
               view.state.tr.setMeta(contextMenuPluginKey, { visible: false, mediaLabelIds: [] })

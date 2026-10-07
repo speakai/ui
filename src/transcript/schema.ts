@@ -226,7 +226,7 @@ const wordMarkSpec: MarkSpec = {
   ],
 };
 
-/** Not inclusive so typing at a label's edge does not grow it; excludes nothing so overlapping labels keep their own mark. */
+// Not inclusive so typing at a label's edge does not grow it.
 const anchorMarkSpec: MarkSpec = {
   attrs: {
     mediaLabelIds: { default: [] },

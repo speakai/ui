@@ -42,13 +42,11 @@ function mediaLabel(mediaLabelId: string, labelIds: string[], startWord: number,
   };
 }
 
-/** One plain (untimed) segment per entry; each becomes its own paragraph and block. */
 function plainState(texts: string[]): EditorState {
   const base = makeEditorState(texts.map((text, i) => ({ text, startInSec: i * 10, endInSec: i * 10 + 9 })));
   return EditorState.create({ doc: base.doc, plugins: [createEditCommandsPlugin(), createLabelsPlugin()] });
 }
 
-/** Minimal view: enough for the dispatching helpers. */
 function fakeView(state: EditorState) {
   const view = {
     state,
@@ -91,7 +89,6 @@ describe("word index", () => {
         ],
       },
       {
-        // Multi-word entity, punctuation-only entity, unmarked text between entities
         text: "We moved to New York — really.", startInSec: 3, endInSec: 6,
         entities: [
           { text: "We", startInSec: 3, endInSec: 3.5 },
@@ -120,7 +117,6 @@ describe("word index", () => {
 
     const index = getWordIndex(state.doc);
     const docWords = Array.from({ length: index.count }, (_, word) => wordText(state, word));
-    // "to" is plain text between entities, so it is not saved as a word
     const expected = flattenWords(segments).map((word) => word.text);
     expect(docWords).toEqual(expected);
     expect(flattenWords(extractSegmentsFromDoc(state.doc)).map((word) => word.text)).toEqual(expected);
@@ -134,11 +130,8 @@ describe("selectionToWordRange", () => {
     const select = (from: number, to: number) =>
       state.apply(state.tr.setSelection(TextSelection.create(state.doc, from, to)));
 
-    // From inside "alpha" to inside "gamma"
     expect(selectionToWordRange(select(index.starts[0] + 2, index.starts[2] + 1))).toEqual({ start: 0, end: 2 });
-    // Across blocks: inside "gamma" to inside "delta"
     expect(selectionToWordRange(select(index.starts[2] + 1, index.starts[3] + 2))).toEqual({ start: 2, end: 3 });
-    // Only the space between "alpha" and "beta"
     expect(selectionToWordRange(select(index.ends[0], index.starts[1]))).toBeNull();
     expect(selectionToWordRange(state)).toBeNull();
   });
@@ -156,18 +149,14 @@ describe("label decorations", () => {
     const index = getWordIndex(view.state.doc);
     const pieces = runs(view.state);
 
-    // red only (one two), red|blue (three four), blue only (five six)
     expect(pieces.map((deco) => attrs(deco)[LABEL_DOM.labelIdsAttr])).toEqual(["red", "red blue", "red blue", "blue"]);
-    // One unbroken bar from the first to the last labelled character
     expect(pieces[0].from).toBe(index.starts[0]);
     expect(pieces[pieces.length - 1].to).toBe(index.ends[5]);
     for (let i = 1; i < pieces.length; i++) expect(pieces[i].from).toBe(pieces[i - 1].to);
-    // The shared passage is split evenly: red block then blue block
     const [, redHalf, blueHalf] = pieces;
     expect(Math.abs((redHalf.to - redHalf.from) - (blueHalf.to - blueHalf.from))).toBeLessThanOrEqual(1);
     expect(attrs(redHalf).style).toContain(`linear-gradient(${RED}, ${RED})`);
     expect(attrs(blueHalf).style).toContain(`linear-gradient(${BLUE}, ${BLUE})`);
-    // Tint comes from the first label on the passage
     expect(attrs(redHalf).style).toContain("rgba(220, 38, 38, 0.16)");
 
     const block = decorations(view.state).find((deco) => attrs(deco).class === LABEL_DOM.blockClass)!;
@@ -231,9 +220,7 @@ describe("label decorations", () => {
     const nodeSpy = vi.spyOn(Decoration, "node");
     const created = () => inlineSpy.mock.calls.length + nodeSpy.mock.calls.length;
 
-    // "green" was just created in the picker, so it comes with the media label
     addMediaLabel(view, mediaLabel("new", ["green"], 6, 7), [label("green", "#16a34a")]);
-    // Only the new label's bar and block stripe are built; "far" in the first block is left alone
     expect(created()).toBe(2);
     expect(runs(view.state).map((deco) => attrs(deco)[LABEL_DOM.mediaLabelIdsAttr])).toEqual(["far", "new"]);
 
@@ -257,10 +244,8 @@ describe("edit-mode anchors", () => {
       { mediaLabelId: "late", start: 4, end: 5 },
     ]);
 
-    // A new word before both labels shifts them by one
     const index = getWordIndex(state.doc);
     state = state.apply(state.tr.insertText("new ", index.starts[0]));
-    // A new word inside "late" (between "two" and "three") grows it by one
     const shifted = getWordIndex(state.doc);
     state = state.apply(state.tr.insertText(" extra", shifted.ends[5]));
 
@@ -268,7 +253,6 @@ describe("edit-mode anchors", () => {
       { mediaLabelId: "early", start: 2, end: 3 },
       { mediaLabelId: "late", start: 5, end: 7 },
     ]);
-    // The positions match what the saved transcript will count
     expect(flattenWords(extractSegmentsFromDoc(state.doc)).slice(5, 8).map((word) => word.text)).toEqual(["two", "extra", "three"]);
   });
 

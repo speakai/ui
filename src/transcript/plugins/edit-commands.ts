@@ -113,7 +113,6 @@ function mergeParagraphsCommand(
   return true;
 }
 
-/** A block and its sentence that shared an id in the source share the new id in the copy. */
 function cloneParagraphWithNewIds(
   paragraph: import("prosemirror-model").Node,
   doc: import("prosemirror-model").Node
@@ -166,7 +165,6 @@ export function duplicateParagraphCommand(
 
   if (!dispatch) return true;
 
-  // Copying ids verbatim would give two segments the same id and re-point anything anchored to it.
   const copy = cloneParagraphWithNewIds(current.node, state.doc);
   const insertAt = current.pos + current.node.nodeSize;
 

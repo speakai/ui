@@ -1,28 +1,19 @@
-/**
- * Word positions must match flattenWords() over the segments extractSegmentsFromDoc() saves: a block with word
- * marks counts only word-marked text, adjacent nodes with the same single word mark are one entity, a block without
- * word marks counts its whole text, and punctuation-only tokens are skipped.
- */
+// Positions must match flattenWords() over the segments extractSegmentsFromDoc() saves.
 
 import type { Mark, Node as PMNode } from "prosemirror-model";
 import { normalizeWord } from "@speakai/shared";
 
 const TOKEN = /\S+/g;
 
-/** A run of text saved as one entity: one `word` mark over contiguous text. */
 export interface WordRun {
   text: string;
-  /** Absolute doc position of the first character */
   from: number;
-  /** Absolute doc position after the last character */
   to: number;
   mark: Mark;
 }
 
 export interface WordIndexBlock {
-  /** Doc position before the transcript_block node */
   pos: number;
-  /** Doc position after the transcript_block node */
   end: number;
   firstWord: number;
   lastWord: number;
@@ -30,13 +21,9 @@ export interface WordIndexBlock {
 
 export interface WordIndex {
   count: number;
-  /** Doc position of each word's first character */
   starts: Int32Array;
-  /** Doc position after each word's last character */
   ends: Int32Array;
-  /** Index into `blocks` for each word */
   blockOf: Int32Array;
-  /** Blocks that contain at least one word, in doc order */
   blocks: WordIndexBlock[];
 }
 
@@ -49,7 +36,6 @@ interface TextPiece {
 // Keyed by the immutable doc node, so the index is built once per doc and dropped on any change
 const indexCache = new WeakMap<PMNode, WordIndex>();
 
-/** Word index for `doc`, built on first use and cached for that doc. */
 export function getWordIndex(doc: PMNode): WordIndex {
   const cached = indexCache.get(doc);
   if (cached) return cached;
@@ -61,7 +47,6 @@ export function getWordIndex(doc: PMNode): WordIndex {
 /** Shared with extractSegmentsFromDoc() so saved entities and word positions cannot drift apart. */
 export function collectWordRuns(block: PMNode, blockPos: number): WordRun[] {
   const runs: WordRun[] = [];
-  // A run can only be extended while it is the latest run and its mark is the node's only word mark
   let open: WordRun | null = null;
 
   for (const piece of textPieces(block, blockPos)) {
@@ -84,7 +69,6 @@ export function collectWordRuns(block: PMNode, blockPos: number): WordRun[] {
   return runs;
 }
 
-/** Index of the first word that ends after `pos`, or `count` when none does. */
 export function firstWordEndingAfter(index: WordIndex, pos: number): number {
   let lo = 0;
   let hi = index.count;
@@ -96,7 +80,6 @@ export function firstWordEndingAfter(index: WordIndex, pos: number): number {
   return lo;
 }
 
-/** Index of the first word that starts at or after `pos`, or `count` when none does. */
 export function firstWordStartingAtOrAfter(index: WordIndex, pos: number): number {
   let lo = 0;
   let hi = index.count;
@@ -108,7 +91,6 @@ export function firstWordStartingAtOrAfter(index: WordIndex, pos: number): numbe
   return lo;
 }
 
-/** Inclusive word range touched by [from, to); a partly covered word counts whole, null when it holds no word. */
 export function wordRangeBetween(
   index: WordIndex,
   from: number,
@@ -168,7 +150,6 @@ function pushPlainBlockWords(pieces: TextPiece[], push: (from: number, to: numbe
     offsets.push(joined.length);
     joined += piece.text;
   }
-  // Offsets only grow, so one forward-moving cursor maps them all
   let cursor = 0;
   const posAt = (offset: number) => {
     while (cursor < pieces.length - 1 && offsets[cursor + 1] <= offset) cursor++;

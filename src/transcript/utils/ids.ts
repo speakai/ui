@@ -10,7 +10,6 @@ export function parseNumericId(value: unknown): number | null {
   return Number.isSafeInteger(parsed) ? parsed : null;
 }
 
-/** Largest numeric value of `attr` on nodes named in `typeNames`, or -1 when none exist. */
 function maxNumericAttr(doc: PMNode, typeNames: string[], attr: string): number {
   let max = -1;
   doc.descendants((node) => {
@@ -23,12 +22,11 @@ function maxNumericAttr(doc: PMNode, typeNames: string[], attr: string): number 
   return max;
 }
 
-/** Highest segment id in the doc, read from both blocks and sentences, or -1 when none. */
 export function maxSentenceId(doc: PMNode): number {
   return maxNumericAttr(doc, ["transcript_block", "sentence"], "sentenceId");
 }
 
-/** Highest paragraph id in the doc, or 0 when none (paragraph ids start at 1). */
+// Paragraph ids start at 1.
 export function maxParagraphId(doc: PMNode): number {
   return Math.max(0, maxNumericAttr(doc, ["paragraph_container", "transcript_block"], "paragraphId"));
 }

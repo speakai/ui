@@ -623,7 +623,6 @@ describe("segment ids after editing", () => {
     expect(extractSegmentsFromDoc(twice.doc).map((s) => s.id)).toEqual([10, 21, 22, 20]);
     const paragraphIds = idsInDoc(twice).filter((n) => n.type === "paragraph").map((n) => n.paragraphId);
     expect(paragraphIds).toEqual([1, 3, 4, 2]);
-    // The new block and its sentence carry the same id, in their existing number / string types.
     const blocks = idsInDoc(twice).filter((n) => n.type === "block").map((n) => n.sentenceId);
     const sentences = idsInDoc(twice).filter((n) => n.type === "sentence").map((n) => n.sentenceId);
     expect(blocks.slice(1, 3)).toEqual([21, 22]);

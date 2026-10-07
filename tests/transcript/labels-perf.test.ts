@@ -1,4 +1,4 @@
-// The bound is generous and best of three is used so CI noise does not fail it; the logged time is the number to watch.
+// Generous bound, best of three, so CI noise does not fail it.
 
 import { describe, it, expect } from "vitest";
 import { EditorState } from "prosemirror-state";
@@ -28,7 +28,6 @@ function longCallSegments(): SegmentFixture[] {
   });
 }
 
-// Deterministic pseudo-random ranges so every run measures the same work
 function seededLabels(wordCount: number): IMediaLabel[] {
   let seed = 42;
   const next = () => (seed = (seed * 1_103_515_245 + 12_345) % 2 ** 31) / 2 ** 31;
@@ -53,7 +52,6 @@ describe("labels plugin performance", () => {
   it(`builds the word index and decorations for ${MEDIA_LABELS} labels in under ${BUILD_BUDGET_MS} ms`, () => {
     const segments = longCallSegments();
     const measure = () => {
-      // A fresh doc each run so the word index is built inside the timed section
       const doc = makeEditorState(segments).doc;
       let state = EditorState.create({ doc, plugins: [createLabelsPlugin()] });
       const view = { state, dispatch: (tr: import("prosemirror-state").Transaction) => { state = state.apply(tr); } };
@@ -64,8 +62,7 @@ describe("labels plugin performance", () => {
       return { elapsed, state };
     };
 
-    measure(); // warm-up for the JIT
-    // Best of three: parallel test files share the CPU, and the slowest run measures them, not us
+    measure();
     const runs = [measure(), measure(), measure()];
     const { elapsed, state } = runs.reduce((best, run) => (run.elapsed < best.elapsed ? run : best));
     const words = getWordIndex(state.doc).count;
