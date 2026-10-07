@@ -7,8 +7,13 @@
 
 import { describe, it, expect, vi } from "vitest";
 import { TextSelection } from "prosemirror-state";
-import type { Transaction } from "prosemirror-state";
-import { handleBackspaceKey, handleEnterKey } from "../../src/transcript/plugins/edit-commands";
+import type { EditorState, Transaction } from "prosemirror-state";
+import {
+  duplicateParagraphCommand,
+  handleBackspaceKey,
+  handleEnterKey,
+} from "../../src/transcript/plugins/edit-commands";
+import { extractSegmentsFromDoc } from "../../src/transcript/utils/entities";
 import { makeEditorState, makeTwoSentenceBlockState, setCursor, getDocShape } from "./helpers";
 
 // ── W1 — handleBackspaceKey ───────────────────────────────────────
@@ -584,5 +589,52 @@ describe("Mod-j — mergeParagraphsCommand (unconditional)", () => {
 
     // After merge, the paragraph's end should reflect the later block's endInSec.
     expect(shape.paragraphs[0].end).toBeGreaterThanOrEqual(5);
+  });
+});
+
+describe("segment ids after editing", () => {
+  function run(state: EditorState, command: (s: EditorState, d: (tr: Transaction) => void) => boolean) {
+    let next: EditorState | null = null;
+    expect(command(state, (tr) => { next = state.apply(tr); })).toBe(true);
+    return next!;
+  }
+
+  function idsInDoc(state: EditorState) {
+    const ids: Array<{ type: string; sentenceId: unknown; paragraphId?: unknown }> = [];
+    state.doc.descendants((node) => {
+      if (node.type.name === "paragraph_container") ids.push({ type: "paragraph", sentenceId: null, paragraphId: node.attrs.paragraphId });
+      if (node.type.name === "transcript_block") ids.push({ type: "block", sentenceId: node.attrs.sentenceId });
+      if (node.type.name === "sentence") ids.push({ type: "sentence", sentenceId: node.attrs.sentenceId });
+      return true;
+    });
+    return ids;
+  }
+
+  const twoSegments = () =>
+    makeEditorState([
+      { text: "Hello world there", speakerId: "spk1", startInSec: 0, endInSec: 6, sentenceId: "10", paragraphId: 1 },
+      { text: "Goodbye", speakerId: "spk1", startInSec: 6, endInSec: 8, sentenceId: "20", paragraphId: 2 },
+    ]);
+
+  it("Enter twice mints the next numeric ids, never Date.now strings or positions", () => {
+    const once = run(setCursor(twoSegments(), 0, 5), handleEnterKey);
+    const twice = run(setCursor(once, 1, 6), handleEnterKey);
+
+    expect(extractSegmentsFromDoc(twice.doc).map((s) => s.id)).toEqual([10, 21, 22, 20]);
+    const paragraphIds = idsInDoc(twice).filter((n) => n.type === "paragraph").map((n) => n.paragraphId);
+    expect(paragraphIds).toEqual([1, 3, 4, 2]);
+    const blocks = idsInDoc(twice).filter((n) => n.type === "block").map((n) => n.sentenceId);
+    const sentences = idsInDoc(twice).filter((n) => n.type === "sentence").map((n) => n.sentenceId);
+    expect(blocks.slice(1, 3)).toEqual([21, 22]);
+    expect(sentences.slice(1, 3)).toEqual(["21", "22"]);
+  });
+
+  it("Mod-Shift-d gives the copy fresh ids and leaves the original untouched", () => {
+    const duplicated = run(setCursor(twoSegments(), 0, 2), duplicateParagraphCommand);
+
+    expect(extractSegmentsFromDoc(duplicated.doc).map((s) => s.id)).toEqual([10, 21, 20]);
+    const paragraphIds = idsInDoc(duplicated).filter((n) => n.type === "paragraph").map((n) => n.paragraphId);
+    expect(paragraphIds).toEqual([1, 3, 2]);
+    expect(idsInDoc(duplicated).filter((n) => n.type === "sentence").map((n) => n.sentenceId)).toEqual(["10", "21", "20"]);
   });
 });

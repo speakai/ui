@@ -7,6 +7,16 @@
 
 import type { Node as PMNode, Schema } from "prosemirror-model";
 import type { ITranscriptSegment, IWordEntity } from "@speakai/shared";
+import { maxSentenceId, parseNumericId } from "./ids";
+import { collectWordRuns } from "./word-index";
+
+type SentimentScore = NonNullable<ITranscriptSegment["score"]>;
+
+function isSentimentScore(value: unknown): value is SentimentScore {
+  if (!value || typeof value !== "object") return false;
+  const score = value as Record<string, unknown>;
+  return (["compound", "neg", "neu", "pos"] as const).every((key) => typeof score[key] === "number");
+}
 
 /**
  * Extract transcript segments from a ProseMirror document.
@@ -14,7 +24,9 @@ import type { ITranscriptSegment, IWordEntity } from "@speakai/shared";
  */
 export function extractSegmentsFromDoc(doc: PMNode): ITranscriptSegment[] {
   const segments: ITranscriptSegment[] = [];
-  let segmentIndex = 0;
+  // Missing or repeated ids are re-minted above the doc's highest id so they never collide.
+  let nextId = maxSentenceId(doc) + 1;
+  const usedIds = new Set<number>();
 
   doc.descendants((node) => {
     if (node.type.name === "transcript_block") {
@@ -26,12 +38,15 @@ export function extractSegmentsFromDoc(doc: PMNode): ITranscriptSegment[] {
       const startInSec = parseFloat(node.attrs.startInSec || node.attrs.startTime || "0");
       const endInSec = parseFloat(node.attrs.endInSec || node.attrs.endTime || "0");
 
-      // sentenceId carries the source segment's id; falling back to position
-      // would re-point clips and insights anchored to it.
-      const sourceId = Number(node.attrs.sentenceId);
+      // sentenceId carries the source segment's id; position would re-point clips and labels anchored to it.
+      const sourceId =
+        parseNumericId(node.attrs.sentenceId) ?? parseNumericId(node.firstChild?.attrs.sentenceId);
+      const id = sourceId !== null && !usedIds.has(sourceId) ? sourceId : nextId++;
+      usedIds.add(id);
+      const score = isSentimentScore(node.attrs.score) ? node.attrs.score : undefined;
 
       segments.push({
-        id: Number.isFinite(sourceId) ? sourceId : segmentIndex,
+        id,
         text: text.trim(),
         speakerId: node.attrs.speakerId || "0",
         confidence: Number(node.attrs.confidence ?? 1),
@@ -46,9 +61,9 @@ export function extractSegmentsFromDoc(doc: PMNode): ITranscriptSegment[] {
         ],
         speaker: node.attrs.speaker?.userId ? node.attrs.speaker : undefined,
         entities: entities.length > 0 ? entities : undefined,
+        ...(score ? { score } : {}),
       });
 
-      segmentIndex++;
       return false; // Don't descend further
     }
     return true;
@@ -75,29 +90,17 @@ function getBlockText(node: PMNode): string {
  * Extract word-level entities from a transcript_block node's marks.
  */
 function extractWordEntities(node: PMNode): IWordEntity[] {
-  const entities: IWordEntity[] = [];
-
-  node.descendants((child) => {
-    if (child.isText && child.marks.length > 0) {
-      for (const mark of child.marks) {
-        if (mark.type.name === "word") {
-          entities.push({
-            id: mark.attrs.entityId || undefined,
-            text: child.text || "",
-            speakerId: mark.attrs.speakerId || "",
-            confidence: parseFloat(mark.attrs.confidence || "1"),
-            instances: {
-              startInSec: parseFloat(mark.attrs.startInSec || "0"),
-              endInSec: parseFloat(mark.attrs.endInSec || "0"),
-            },
-          });
-        }
-      }
-    }
-    return true;
-  });
-
-  return entities;
+  // Same runs as the word index, so saved entities and label word positions agree.
+  return collectWordRuns(node, 0).map(({ text, mark }) => ({
+    id: mark.attrs.entityId || undefined,
+    text,
+    speakerId: mark.attrs.speakerId || "",
+    confidence: parseFloat(mark.attrs.confidence || "1"),
+    instances: {
+      startInSec: parseFloat(mark.attrs.startInSec || "0"),
+      endInSec: parseFloat(mark.attrs.endInSec || "0"),
+    },
+  }));
 }
 
 /**

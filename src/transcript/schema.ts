@@ -2,7 +2,7 @@
  * ProseMirror schema for transcript documents.
  *
  * Structure: doc → paragraph_container+ → transcript_block+ → sentence+ → text*
- * Mark: word (word-level time tracking)
+ * Marks: word (word-level time tracking), anchor (label anchors carried through edit mode)
  *
  * Ported from Angular speak-client transcript.schema.ts.
  * Used by both TranscriptViewer (editable: false) and TranscriptEditor (editable: true).
@@ -89,6 +89,8 @@ const transcriptBlockSpec: NodeSpec = {
     isLastSentence: { default: false },
     language: { default: "" },
     entities: { default: [] },
+    // Segment sentiment ({ compound, neg, neu, pos }); carried so saving an edit does not erase it.
+    score: { default: null },
   },
   toDOM(node): DOMOutputSpec {
     const speakerName =
@@ -224,6 +226,20 @@ const wordMarkSpec: MarkSpec = {
   ],
 };
 
+// Not inclusive so typing at a label's edge does not grow it.
+const anchorMarkSpec: MarkSpec = {
+  attrs: {
+    mediaLabelIds: { default: [] },
+  },
+  inclusive: false,
+  excludes: "",
+  toDOM(mark): DOMOutputSpec {
+    const ids: string[] = Array.isArray(mark.attrs.mediaLabelIds) ? mark.attrs.mediaLabelIds : [];
+    return ["span", { class: "transcript-anchor", "data-media-label-ids": ids.join(" ") }, 0];
+  },
+  // No parseDOM: anchors come only from applyAnchorMarks(), never from pasted HTML.
+};
+
 // ── Schema ────────────────────────────────────────────────────────
 
 export const transcriptSchema = new Schema({
@@ -236,5 +252,6 @@ export const transcriptSchema = new Schema({
   },
   marks: {
     word: wordMarkSpec,
+    anchor: anchorMarkSpec,
   },
 });

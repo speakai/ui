@@ -149,7 +149,7 @@ The barrel import (`from "@speakai/ui"`) still works for backward compatibility.
 | `@speakai/ui/time-picker` | TimePicker |
 | `@speakai/ui/toast` | ToastContainer, ToastProvider, useToast |
 | `@speakai/ui/tooltip` | Tooltip |
-| `@speakai/ui/transcript` | TranscriptView |
+| `@speakai/ui/transcript` | TranscriptView, transcriptSchema, ProseMirror transcript plugins (highlight, find-replace, clip selection, context menu, labels) |
 
 </details>
 
