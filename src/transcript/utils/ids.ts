@@ -1,17 +1,8 @@
-/**
- * Id helpers for transcript documents.
- *
- * Segment ids (transcript_block / sentence `sentenceId`) are numeric in the API
- * and are what clips, insights and labels anchor to, so every id minted in the
- * editor must be a whole number that no other segment in the doc already uses.
- */
+// Clips, insights and labels anchor to segment ids, so every minted id must be a whole number unique in the doc.
 
 import type { Node as PMNode } from "prosemirror-model";
 
-/**
- * Reads an id attr as a whole number, or null when it is missing or not numeric.
- * Number("") is 0, so blank values are rejected explicitly instead of becoming id 0.
- */
+/** Blank is rejected explicitly because Number("") is 0. */
 export function parseNumericId(value: unknown): number | null {
   if (typeof value === "number") return Number.isSafeInteger(value) ? value : null;
   if (typeof value !== "string" || value.trim() === "") return null;

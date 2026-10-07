@@ -1,19 +1,7 @@
 /**
- * Word index for transcript documents: word position N <-> doc range.
- *
- * Word positions are the anchor coordinates labels and comments use. They must
- * agree with `flattenWords()` from @speakai/shared run over the segments that
- * `extractSegmentsFromDoc()` saves for the same doc, so the counting rules
- * mirror that save path exactly:
- *
- * - One transcript_block is one saved segment.
- * - A block with any `word` mark counts only word-marked text (saved as entities);
- *   unmarked text between words (spaces, punctuation, unsaved typing) is not a word.
- * - Adjacent text nodes carrying the same single `word` mark are one entity
- *   (another mark such as `anchor` can split one word into several text nodes).
- * - A block without word marks counts its whole text (saved as segment text).
- * - Text is split on whitespace and tokens that normalizeWord() empties (bare
- *   punctuation) are skipped.
+ * Word positions must match flattenWords() over the segments extractSegmentsFromDoc() saves: a block with word
+ * marks counts only word-marked text, adjacent nodes with the same single word mark are one entity, a block without
+ * word marks counts its whole text, and punctuation-only tokens are skipped.
  */
 
 import type { Mark, Node as PMNode } from "prosemirror-model";
@@ -70,13 +58,7 @@ export function getWordIndex(doc: PMNode): WordIndex {
   return index;
 }
 
-/**
- * Entity runs of a transcript_block, in order. Shared by the word index and
- * extractSegmentsFromDoc() so saved entities and word positions cannot drift apart.
- *
- * @param block - transcript_block node
- * @param blockPos - doc position before the block (0 when only text matters)
- */
+/** Shared with extractSegmentsFromDoc() so saved entities and word positions cannot drift apart. */
 export function collectWordRuns(block: PMNode, blockPos: number): WordRun[] {
   const runs: WordRun[] = [];
   // A run can only be extended while it is the latest run and its mark is the node's only word mark
@@ -126,10 +108,7 @@ export function firstWordStartingAtOrAfter(index: WordIndex, pos: number): numbe
   return lo;
 }
 
-/**
- * Inclusive word range touched by doc range [from, to); a partly covered word counts whole.
- * Returns null when the range holds no word (only spaces or punctuation).
- */
+/** Inclusive word range touched by [from, to); a partly covered word counts whole, null when it holds no word. */
 export function wordRangeBetween(
   index: WordIndex,
   from: number,
@@ -181,10 +160,7 @@ function buildWordIndex(doc: PMNode): WordIndex {
   };
 }
 
-/**
- * Words of a block without word marks. The save path joins the block's text nodes
- * with no separator, so tokens are found in the joined text and mapped back to doc positions.
- */
+/** The save path joins text nodes with no separator, so tokens are found in the joined text. */
 function pushPlainBlockWords(pieces: TextPiece[], push: (from: number, to: number) => void) {
   const offsets: number[] = [];
   let joined = "";

@@ -113,10 +113,7 @@ function mergeParagraphsCommand(
   return true;
 }
 
-/**
- * Copies a paragraph_container with fresh paragraph and segment ids.
- * A block and its sentence that shared an id in the source share the new id in the copy.
- */
+/** A block and its sentence that shared an id in the source share the new id in the copy. */
 function cloneParagraphWithNewIds(
   paragraph: import("prosemirror-model").Node,
   doc: import("prosemirror-model").Node

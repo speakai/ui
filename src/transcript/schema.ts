@@ -226,14 +226,7 @@ const wordMarkSpec: MarkSpec = {
   ],
 };
 
-// ── Anchor Mark ───────────────────────────────────────────────────
-
-/**
- * Carries label anchors (mediaLabelIds) through edit mode so they move with the text;
- * applied by applyAnchorMarks() and read back by mapAnchorsOnSave() in plugins/labels.ts.
- * Not inclusive so typing at a label's edge does not grow it; excludes nothing so
- * overlapping labels each keep their own mark.
- */
+/** Not inclusive so typing at a label's edge does not grow it; excludes nothing so overlapping labels keep their own mark. */
 const anchorMarkSpec: MarkSpec = {
   attrs: {
     mediaLabelIds: { default: [] },

@@ -1,7 +1,3 @@
-/**
- * Labels plugin: word positions, selection snapping, decorations and edit-mode anchors.
- */
-
 import { describe, it, expect, vi } from "vitest";
 import { EditorState, TextSelection } from "prosemirror-state";
 import type { Transaction } from "prosemirror-state";
@@ -25,8 +21,6 @@ import { extractSegmentsFromDoc } from "../../src/transcript/utils/entities";
 import { getWordIndex } from "../../src/transcript/utils/word-index";
 import { makeEditorState, setCursor } from "./helpers";
 import type { SegmentFixture } from "./helpers";
-
-// ── Fixtures ──────────────────────────────────────────────────────
 
 const RED = "#dc2626";
 const BLUE = "#2563eb";
@@ -84,8 +78,6 @@ function wordText(state: EditorState, word: number): string {
   return state.doc.textBetween(index.starts[word], index.ends[word]);
 }
 
-// ── Word index ────────────────────────────────────────────────────
-
 describe("word index", () => {
   it("counts words exactly like flattenWords, before and after the save round trip", () => {
     const fixtures: SegmentFixture[] = [
@@ -135,8 +127,6 @@ describe("word index", () => {
   });
 });
 
-// ── Selection ─────────────────────────────────────────────────────
-
 describe("selectionToWordRange", () => {
   it("snaps partial words to whole words and ignores selections without words", () => {
     const state = plainState(["alpha beta gamma", "delta epsilon"]);
@@ -153,8 +143,6 @@ describe("selectionToWordRange", () => {
     expect(selectionToWordRange(state)).toBeNull();
   });
 });
-
-// ── Rendering ─────────────────────────────────────────────────────
 
 describe("label decorations", () => {
   it("splits overlapping labels into proportional colour blocks with continuous coverage and block stripes", () => {
@@ -258,8 +246,6 @@ describe("label decorations", () => {
     nodeSpy.mockRestore();
   });
 });
-
-// ── Edit mode ─────────────────────────────────────────────────────
 
 describe("edit-mode anchors", () => {
   it("maps anchors to new word positions after inserts before and inside a label", () => {

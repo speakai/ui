@@ -1,8 +1,4 @@
-/**
- * Labels plugin build time on a long call: ~1,900 timed sentences (~13k words) and 1,000 labels.
- * The bound is generous and the best of three runs is used so CI noise does not fail it;
- * the logged time is the number to watch.
- */
+// The bound is generous and best of three is used so CI noise does not fail it; the logged time is the number to watch.
 
 import { describe, it, expect } from "vitest";
 import { EditorState } from "prosemirror-state";

@@ -257,8 +257,6 @@ describe("extractSegmentsFromDoc speaker", () => {
   });
 });
 
-// ── extractSegmentsFromDoc — ids and sentiment ────────────────────
-
 describe("extractSegmentsFromDoc ids and score", () => {
   const score = { compound: 0.6, neg: 0, neu: 0.4, pos: 0.6 };
 
@@ -283,7 +281,6 @@ describe("extractSegmentsFromDoc ids and score", () => {
 
     const segments = extractSegmentsFromDoc(doc);
 
-    // Before the fix this was [0, 5, 2, 5, 1]: blank became 0, the legacy id became its position, 5 repeated.
     expect(segments.map((s) => s.id)).toEqual([6, 5, 7, 8, 1]);
     expect(segments[1].score).toEqual(score);
     expect(segments[0]).not.toHaveProperty("score");

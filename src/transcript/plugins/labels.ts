@@ -1,22 +1,4 @@
-/**
- * ProseMirror plugin for transcript labels (Transcript Labels and Comments).
- *
- * View mode: draws labelled passages as decorations; the doc never changes.
- *   - One continuous bar under each labelled passage. Where several labels cover the
- *     same words the bar splits into solid colour blocks, in label order, across the passage.
- *   - A node decoration on every touched transcript_block exposes the label colours so the
- *     client can draw right-gutter stripes (see LABEL_DOM below for the contract).
- * Edit mode: labels are not drawn or applied. applyAnchorMarks() turns each anchor into an
- *   `anchor` mark so it moves with the text, and mapAnchorsOnSave() reads the new word
- *   positions back from the surviving marks.
- *
- * Anchors are word positions (IAnchor.startWord / endWord, inclusive) counted the same way
- * as flattenWords() in @speakai/shared; see utils/word-index.ts.
- *
- * Data flows in through transactions (setLabels / addMediaLabel / removeMediaLabel /
- * updateMediaLabel). setLabels rebuilds every decoration and is meant for load and
- * visibility changes; the single-label helpers patch only the blocks they touch.
- */
+/** Labels plugin: decorations in view mode, anchor marks in edit mode; anchors are inclusive word positions counted like flattenWords() in @speakai/shared. */
 
 import { Plugin, PluginKey } from "prosemirror-state";
 import type { EditorState, Transaction } from "prosemirror-state";
@@ -29,21 +11,16 @@ import type { ILabel, IMediaLabel } from "@speakai/shared";
 import { firstWordEndingAfter, getWordIndex, wordRangeBetween } from "../utils/word-index";
 import type { WordIndex } from "../utils/word-index";
 
-// ── Constants ─────────────────────────────────────────────────────
-
 /** Most stripe colours exposed per block; the rest are reported as an overflow count ("+N"). */
 export const MAX_LABEL_STRIPES = 4;
 
-/** Alpha of the background tint drawn from the first label's colour. */
+/** Applied to the first label's colour. */
 const LABEL_TINT_ALPHA = 0.16;
 
 // Colours go into a style attribute, so only plain #rrggbb is accepted
 const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 
-/**
- * DOM contract for the client. Ids lists are space separated so CSS `~=` selectors work,
- * e.g. `[data-label-ids~="<labelId>"]`.
- */
+/** DOM contract for the client; id lists are space separated so CSS `~=` selectors work. */
 export const LABEL_DOM = {
   /** Inline decoration on a labelled passage (one per colour block). */
   runClass: "transcript-label",
@@ -64,18 +41,11 @@ export const LABEL_DOM = {
 // Marks our decorations so lookups never pick up other plugins' decorations
 const SPEC_KEY = "transcriptLabel";
 
-// ── Types ─────────────────────────────────────────────────────────
-
 export interface SetLabelsPayload {
   mediaLabels: IMediaLabel[];
-  /** Label list, for colours and archived state */
   labels: ILabel[];
-  /**
-   * Label ids not to draw. The caller expands hidden groups into their child label ids;
-   * the plugin does not walk parentId.
-   */
+  /** The caller expands hidden groups into child label ids; the plugin does not walk parentId. */
   hiddenLabelIds: string[];
-  /** False hides every label (the toolbar Labels switch and Clean transcript). */
   visible: boolean;
 }
 
@@ -127,12 +97,7 @@ interface DecoSpec {
 
 export const labelsPluginKey = new PluginKey<LabelsPluginState>("labels");
 
-// ── Plugin ────────────────────────────────────────────────────────
-
-/**
- * Create the labels plugin. Options seed the first render; later changes go through
- * setLabels() and the single-label helpers.
- */
+/** Options seed the first render; later changes go through setLabels() and the single-label helpers. */
 export function createLabelsPlugin(options: LabelsPluginOptions = {}) {
   return new Plugin<LabelsPluginState>({
     key: labelsPluginKey,
@@ -180,18 +145,12 @@ export function createLabelsPlugin(options: LabelsPluginOptions = {}) {
   });
 }
 
-// ── Public API: data ──────────────────────────────────────────────
-
-/** Replace all label data and rebuild every decoration. Use on load and on visibility changes. */
+/** Rebuilds every decoration; use on load and on visibility changes. */
 export function setLabels(view: Pick<EditorView, "state" | "dispatch">, payload: SetLabelsPayload) {
   dispatchAction(view, { type: "set", payload });
 }
 
-/**
- * Draw one new media label, patching only the blocks it touches.
- * Pass `labels` the plugin may not know yet (e.g. created in the picker); they are added to its
- * list. Recolouring or archiving an existing label affects other passages, so use setLabels for that.
- */
+/** Patches only the blocks it touches; unknown `labels` are added, but recolour or archive through setLabels. */
 export function addMediaLabel(
   view: Pick<EditorView, "state" | "dispatch">,
   mediaLabel: IMediaLabel,
@@ -200,7 +159,7 @@ export function addMediaLabel(
   dispatchAction(view, { type: "upsert", mediaLabel, labels });
 }
 
-/** Replace one media label (new range, labels or status), patching only the blocks involved. Same `labels` rule as addMediaLabel. */
+/** Patches only the blocks involved; same `labels` rule as addMediaLabel. */
 export function updateMediaLabel(
   view: Pick<EditorView, "state" | "dispatch">,
   mediaLabel: IMediaLabel,
@@ -219,12 +178,7 @@ export function setLabelsEditMode(view: Pick<EditorView, "state" | "dispatch">, 
   dispatchAction(view, { type: "editMode", editMode });
 }
 
-// ── Public API: queries ───────────────────────────────────────────
-
-/**
- * mediaLabelIds drawn at a doc position, for the hover card. Empty when labels are hidden
- * or in edit mode. A position on the space inside a passage counts as part of it.
- */
+/** Empty when labels are hidden or in edit mode; a space inside a passage counts as part of it. */
 export function getMediaLabelsAt(state: EditorState, pos: number): string[] {
   const decorations = drawnDecorations(state);
   if (!decorations) return [];
@@ -241,23 +195,14 @@ export function getMediaLabelsInRange(state: EditorState, from: number, to: numb
   return collectIds(decorations.find(from, to, isRun).filter((deco) => deco.from < to && deco.to > from));
 }
 
-/**
- * Word range of the current selection, snapped to whole words: a partly selected word
- * counts whole. Null for an empty selection or one that holds no word.
- */
+/** A partly selected word counts whole; null when the selection holds no word. */
 export function selectionToWordRange(state: EditorState): WordRange | null {
   const { from, to, empty } = state.selection;
   if (empty) return null;
   return wordRangeBetween(getWordIndex(state.doc), from, to);
 }
 
-// ── Public API: edit mode ─────────────────────────────────────────
-
-/**
- * Transaction that marks every anchored passage with an `anchor` mark and enters edit mode.
- * needs_review labels are skipped: their positions are not trusted, so they are not carried.
- * The transaction is kept out of undo history; it is not a user edit.
- */
+/** Skips needs_review labels (untrusted positions) and stays out of undo history since it is not a user edit. */
 export function applyAnchorMarks(state: EditorState, mediaLabels: IMediaLabel[]): Transaction {
   const tr = state.tr;
   const anchorType = state.schema.marks.anchor;
@@ -288,11 +233,7 @@ export function removeAnchorMarks(state: EditorState): Transaction {
   return tr.setMeta(labelsPluginKey, { type: "editMode", editMode: false } satisfies LabelsAction).setMeta("addToHistory", false);
 }
 
-/**
- * New word ranges of anchored labels after edits, read from surviving anchor marks.
- * A label spans from its first to its last marked word. Labels whose words were all
- * deleted are absent, so the caller can send them to review.
- */
+/** Labels whose words were all deleted are absent, so the caller can send them to review. */
 export function mapAnchorsOnSave(doc: PMNode): MappedAnchor[] {
   const anchorType = doc.type.schema.marks.anchor;
   if (!anchorType) return [];
@@ -328,8 +269,6 @@ export function mapAnchorsOnSave(doc: PMNode): MappedAnchor[] {
 export function stripAnchorMarks(content: Fragment, anchorType: MarkType | undefined): Fragment {
   return anchorType ? stripMark(content, anchorType) : content;
 }
-
-// ── State transitions ─────────────────────────────────────────────
 
 function setState(doc: PMNode, editMode: boolean, payload: SetLabelsPayload): LabelsPluginState {
   const index = getWordIndex(doc);
@@ -417,13 +356,7 @@ function clampRange(mediaLabel: IMediaLabel, wordCount: number): WordRange | nul
   return { start, end: Math.min(end, wordCount - 1) };
 }
 
-// ── Decorations ───────────────────────────────────────────────────
-
-/**
- * Replace decorations only in the region the touched entries affect. The region is grown
- * to whole blocks (stripes are per block) and to every entry overlapping it (bar blocks
- * depend on all labels on the same words), so nothing outside it changes.
- */
+/** Region grows to whole blocks (stripes are per block) and to every overlapping entry (bars depend on all labels on the same words). */
 function patchDecorations(
   decorations: DecorationSet,
   doc: PMNode,
@@ -480,11 +413,7 @@ function buildDecorations(index: WordIndex, entries: LabelEntry[]): Decoration[]
   return [...buildRunDecorations(index, sorted), ...buildBlockDecorations(index, sorted)];
 }
 
-/**
- * Bars under labelled words. Entries that overlap or touch form one passage; the passage is
- * cut wherever the set of covering labels changes and at block edges, and each piece is
- * split into one solid block per label colour.
- */
+/** Overlapping or touching entries form one passage, cut where the covering labels change and at block edges. */
 function buildRunDecorations(index: WordIndex, sorted: LabelEntry[]): Decoration[] {
   const decorations: Decoration[] = [];
   let i = 0;
@@ -562,10 +491,7 @@ function colourBlocks(from: number, to: number, labels: DrawnLabel[], mediaLabel
   });
 }
 
-/**
- * Bar and tint are background-image layers, leaving background-color free for the
- * playback and search highlights that other plugins set by class.
- */
+/** background-image layers leave background-color free for playback and search highlights from other plugins. */
 function runStyle(color: string, tint: string, bar: string): string {
   return [
     `--transcript-label-color:${color}`,
@@ -609,8 +535,6 @@ function buildBlockDecorations(index: WordIndex, sorted: LabelEntry[]): Decorati
   }
   return decorations;
 }
-
-// ── Helpers ───────────────────────────────────────────────────────
 
 /** Labels of `entries` in entry order, each label once. */
 function orderedLabels(entries: LabelEntry[]): DrawnLabel[] {

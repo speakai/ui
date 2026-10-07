@@ -592,8 +592,6 @@ describe("Mod-j — mergeParagraphsCommand (unconditional)", () => {
   });
 });
 
-// ── Segment ids stay numeric and unique ───────────────────────────
-
 describe("segment ids after editing", () => {
   function run(state: EditorState, command: (s: EditorState, d: (tr: Transaction) => void) => boolean) {
     let next: EditorState | null = null;
