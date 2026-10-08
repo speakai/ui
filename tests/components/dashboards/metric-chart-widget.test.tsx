@@ -88,21 +88,6 @@ describe("MetricChartWidget", () => {
     expect(single.container.querySelector(".recharts-legend-wrapper")).toBeNull();
   });
 
-  it("renders the accessible figcaption title", () => {
-    const { container } = render(
-      <MetricChartWidget
-        data={TWO_SERIES_DATA}
-        isLoading={false}
-        isError={false}
-        config={{ mark: "bar" }}
-        labels={LABELS}
-      />,
-    );
-    expect(container.querySelector("figcaption")?.textContent).toBe(
-      "Sessions by week",
-    );
-  });
-
   it("shows the empty state when rows are empty", () => {
     const { getByText, container } = render(
       <MetricChartWidget

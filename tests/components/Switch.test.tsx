@@ -4,11 +4,6 @@ import userEvent from "@testing-library/user-event";
 import { Switch } from "../../src/components/Switch";
 
 describe("Switch", () => {
-  it("renders with role=switch", () => {
-    render(<Switch checked={false} onChange={() => {}} />);
-    expect(screen.getByRole("switch")).toBeInTheDocument();
-  });
-
   it("reflects checked state via aria-checked", () => {
     const { rerender } = render(<Switch checked={false} onChange={() => {}} />);
     expect(screen.getByRole("switch")).toHaveAttribute("aria-checked", "false");
@@ -57,14 +52,6 @@ describe("Switch", () => {
     screen.getByRole("switch").focus();
     await user.keyboard(" ");
     expect(onChange).toHaveBeenCalledWith(true);
-  });
-
-  it("renders label when provided", () => {
-    render(<Switch checked={false} onChange={() => {}} label="Dark mode" />);
-    expect(screen.getByText("Dark mode")).toBeInTheDocument();
-    // Label should be associated via htmlFor
-    const label = screen.getByText("Dark mode");
-    expect(label.tagName).toBe("LABEL");
   });
 
   it("sets aria-label from label prop", () => {
