@@ -4,6 +4,7 @@ import {
   forwardRef,
   HTMLAttributes,
   useCallback,
+  useId,
   useRef,
   useState,
 } from "react";
@@ -35,6 +36,9 @@ export interface ColorPickerProps
   /** Label above the picker */
   label?: string;
   disabled?: boolean;
+  pickerAriaLabel?: string;
+  inputAriaLabel?: string;
+  swatchAriaLabel?: (color: string) => string;
 }
 
 export const ColorPicker = forwardRef<HTMLDivElement, ColorPickerProps>(
@@ -47,10 +51,16 @@ export const ColorPicker = forwardRef<HTMLDivElement, ColorPickerProps>(
       showInput = true,
       label,
       disabled = false,
+      pickerAriaLabel = "Pick a color",
+      inputAriaLabel = "Hex color",
+      swatchAriaLabel = (color: string) => `Select color ${color}`,
       ...props
     },
     ref,
   ) => {
+    const inputId = useId();
+    const pickerId = useId();
+    const labelNamesPicker = !!label && !showInput;
     const [inputValue, setInputValue] = useState(value);
     const [inputError, setInputError] = useState(false);
     const nativeRef = useRef<HTMLInputElement>(null);
@@ -118,7 +128,10 @@ export const ColorPicker = forwardRef<HTMLDivElement, ColorPickerProps>(
     return (
       <div ref={ref} className={cn("w-full", className)} {...props}>
         {label && (
-          <label className="mb-1.5 block text-sm font-medium text-foreground">
+          <label
+            htmlFor={showInput ? inputId : pickerId}
+            className="mb-1.5 block text-sm font-medium text-foreground"
+          >
             {label}
           </label>
         )}
@@ -135,7 +148,8 @@ export const ColorPicker = forwardRef<HTMLDivElement, ColorPickerProps>(
               disabled && "cursor-not-allowed opacity-50",
             )}
             style={{ backgroundColor: value }}
-            aria-label="Pick a color"
+            id={pickerId}
+            aria-label={labelNamesPicker ? undefined : pickerAriaLabel}
           >
             <input
               ref={nativeRef}
@@ -152,7 +166,9 @@ export const ColorPicker = forwardRef<HTMLDivElement, ColorPickerProps>(
           {/* Hex text input */}
           {showInput && (
             <input
+              id={inputId}
               type="text"
+              aria-label={label ? undefined : inputAriaLabel}
               value={inputValue}
               onChange={handleTextChange}
               onBlur={handleTextBlur}
@@ -188,7 +204,7 @@ export const ColorPicker = forwardRef<HTMLDivElement, ColorPickerProps>(
                   disabled && "cursor-not-allowed opacity-50",
                 )}
                 style={{ backgroundColor: color }}
-                aria-label={`Select color ${color}`}
+                aria-label={swatchAriaLabel(color)}
               />
             ))}
           </div>

@@ -41,7 +41,7 @@ export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
           "relative inline-flex shrink-0 items-center justify-center overflow-hidden",
           sizeClasses[size],
           variantClasses[variant],
-          !showImage && "bg-gradient-to-br from-gradient-from to-gradient-to text-white font-medium",
+          !showImage && "bg-gradient-to-br from-gradient-from to-gradient-to text-primary-foreground font-medium",
           className
         )}
         title={name}
