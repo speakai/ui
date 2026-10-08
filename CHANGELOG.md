@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.32.1 (2026-10-08)
+
+- Merge pull request #70 from speakai/fix/avatar-dark-contrast;fix(color-picker): visible label names the picker button when there is no hex input fix(color-picker): accessible names for picker, hex input and swatches;fix(avatar): readable initials in dark mode
+
 ## v0.32.0 (2026-10-07)
 
 - Merge pull request #69 from speakai/feat/transcript-labels-plugin;docs(readme): drop the transcript labels plugin section chore(labels): keep only comments that prevent a bug;chore(deps): bump @speakai/shared to 2.1.36 for label types chore(labels): trim comments to the team comment rule;feat(transcript): labels plugin with word-position anchors, segmented bars and stripes fix(transcript): stable unique sentence ids on split and duplicate, keep sentiment score
