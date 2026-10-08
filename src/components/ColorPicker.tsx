@@ -59,6 +59,8 @@ export const ColorPicker = forwardRef<HTMLDivElement, ColorPickerProps>(
     ref,
   ) => {
     const inputId = useId();
+    const pickerId = useId();
+    const labelNamesPicker = !!label && !showInput;
     const [inputValue, setInputValue] = useState(value);
     const [inputError, setInputError] = useState(false);
     const nativeRef = useRef<HTMLInputElement>(null);
@@ -127,7 +129,7 @@ export const ColorPicker = forwardRef<HTMLDivElement, ColorPickerProps>(
       <div ref={ref} className={cn("w-full", className)} {...props}>
         {label && (
           <label
-            htmlFor={showInput ? inputId : undefined}
+            htmlFor={showInput ? inputId : pickerId}
             className="mb-1.5 block text-sm font-medium text-foreground"
           >
             {label}
@@ -146,7 +148,8 @@ export const ColorPicker = forwardRef<HTMLDivElement, ColorPickerProps>(
               disabled && "cursor-not-allowed opacity-50",
             )}
             style={{ backgroundColor: value }}
-            aria-label={pickerAriaLabel}
+            id={pickerId}
+            aria-label={labelNamesPicker ? undefined : pickerAriaLabel}
           >
             <input
               ref={nativeRef}

@@ -30,4 +30,8 @@ describe("ColorPicker", () => {
     expect(screen.getByRole("textbox", { name: "Hex color" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Select color #ff0000" })).toBeInTheDocument();
   });
+  it("names the picker button with the visible label when there is no hex input", () => {
+    render(<ColorPicker label="Label colour" value="#ff0000" onChange={() => {}} showInput={false} />);
+    expect(screen.getByLabelText("Label colour").tagName).toBe("BUTTON");
+  });
 });
