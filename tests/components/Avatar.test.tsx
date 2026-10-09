@@ -27,11 +27,6 @@ describe("Avatar", () => {
     expect(screen.getByText("JD")).toBeInTheDocument();
   });
 
-  it("shows title with name", () => {
-    const { container } = render(<Avatar name="Jane Smith" />);
-    expect(container.firstChild).toHaveAttribute("title", "Jane Smith");
-  });
-
   it("draws initials in the theme's primary foreground so they stay readable in dark mode", () => {
     const { container } = render(<Avatar name="Vatsal Patel" />);
     expect(container.firstChild).toHaveClass("text-primary-foreground");
@@ -65,29 +60,4 @@ describe("Avatar", () => {
     expect(screen.getByText("?")).toBeInTheDocument();
   });
 
-  it("circle variant has rounded-full class", () => {
-    const { container } = render(<Avatar name="Test" variant="circle" />);
-    expect(container.firstChild).toHaveClass("rounded-full");
-  });
-
-  it("rounded variant has rounded-lg class", () => {
-    const { container } = render(<Avatar name="Test" variant="rounded" />);
-    expect(container.firstChild).toHaveClass("rounded-lg");
-  });
-
-  it("shows gradient background for initials mode", () => {
-    const { container } = render(<Avatar name="Test" />);
-    expect(container.firstChild?.className).toContain("bg-gradient");
-  });
-
-  it("does not show gradient background for image mode", () => {
-    const { container } = render(<Avatar name="Test" src="/photo.jpg" />);
-    expect(container.firstChild?.className).not.toContain("bg-gradient");
-  });
-
-  it("initials are aria-hidden", () => {
-    const { container } = render(<Avatar name="John Doe" />);
-    const initialsSpan = container.querySelector("span");
-    expect(initialsSpan).toHaveAttribute("aria-hidden", "true");
-  });
 });

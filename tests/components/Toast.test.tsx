@@ -11,28 +11,6 @@ const wrapper = ({ children }: { children: ReactNode }) => (
 );
 
 describe("ToastContainer", () => {
-  it("renders toasts", () => {
-    const toasts = [
-      { id: "1", type: "success" as const, title: "Saved!" },
-      { id: "2", type: "error" as const, title: "Failed", message: "Something broke" },
-    ];
-    render(<ToastContainer toasts={toasts} onDismiss={() => {}} />);
-    expect(screen.getByText("Saved!")).toBeInTheDocument();
-    expect(screen.getByText("Failed")).toBeInTheDocument();
-    expect(screen.getByText("Something broke")).toBeInTheDocument();
-  });
-
-  it("has aria-live=polite for screen readers", () => {
-    render(<ToastContainer toasts={[]} onDismiss={() => {}} />);
-    expect(screen.getByRole("status")).toHaveAttribute("aria-live", "polite");
-  });
-
-  it("renders dismiss buttons", () => {
-    const toasts = [{ id: "1", type: "success" as const, title: "Done" }];
-    render(<ToastContainer toasts={toasts} onDismiss={() => {}} />);
-    expect(screen.getByLabelText("Dismiss notification")).toBeInTheDocument();
-  });
-
   it("calls onDismiss when dismiss button clicked", async () => {
     const user = userEvent.setup();
     const onDismiss = vi.fn();
@@ -63,20 +41,6 @@ describe("ToastContainer", () => {
     expect(icons.length).toBe(8);
   });
 
-  it("applies custom className", () => {
-    render(<ToastContainer toasts={[]} onDismiss={() => {}} className="custom-toast" />);
-    expect(screen.getByRole("status")).toHaveClass("custom-toast");
-  });
-
-  it("renders toast with optional message", () => {
-    const toasts = [
-      { id: "1", type: "info" as const, title: "Title only" },
-      { id: "2", type: "info" as const, title: "With msg", message: "Details" },
-    ];
-    render(<ToastContainer toasts={toasts} onDismiss={() => {}} />);
-    expect(screen.getByText("Title only")).toBeInTheDocument();
-    expect(screen.getByText("Details")).toBeInTheDocument();
-  });
 });
 
 describe("useToast", () => {

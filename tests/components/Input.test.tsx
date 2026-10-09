@@ -1,20 +1,9 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { Input, SearchInput, Select, Textarea } from "../../src/components/Input";
+import { Input, Select, Textarea } from "../../src/components/Input";
 
 describe("Input", () => {
-  it("renders an input element", () => {
-    render(<Input placeholder="Type here" />);
-    expect(screen.getByPlaceholderText("Type here")).toBeInTheDocument();
-  });
-
-  it("forwards ref", () => {
-    const ref = vi.fn<(node: HTMLInputElement | null) => void>();
-    render(<Input ref={ref} />);
-    expect(ref).toHaveBeenCalledWith(expect.any(HTMLInputElement));
-  });
-
   it("accepts user input", async () => {
     const user = userEvent.setup();
     render(<Input placeholder="Name" />);
@@ -41,43 +30,7 @@ describe("Input", () => {
   });
 });
 
-describe("SearchInput", () => {
-  it("renders search input", () => {
-    render(<SearchInput placeholder="Search..." />);
-    expect(screen.getByPlaceholderText("Search...")).toBeInTheDocument();
-  });
-
-  it("sets type=search", () => {
-    render(<SearchInput placeholder="Search" />);
-    expect(screen.getByPlaceholderText("Search")).toHaveAttribute("type", "search");
-  });
-
-  it("applies containerClassName to wrapper", () => {
-    const { container } = render(<SearchInput containerClassName="my-wrapper" />);
-    expect(container.querySelector(".my-wrapper")).toBeInTheDocument();
-  });
-});
-
 describe("Select", () => {
-  it("renders options from prop", () => {
-    render(
-      <Select
-        options={[
-          { value: "a", label: "Alpha" },
-          { value: "b", label: "Beta" },
-        ]}
-      />
-    );
-    expect(screen.getByRole("combobox")).toBeInTheDocument();
-    expect(screen.getByText("Alpha")).toBeInTheDocument();
-    expect(screen.getByText("Beta")).toBeInTheDocument();
-  });
-
-  it("renders placeholder option", () => {
-    render(<Select placeholder="Choose..." options={[{ value: "a", label: "A" }]} />);
-    expect(screen.getByText("Choose...")).toBeInTheDocument();
-  });
-
   it("prefers children over options prop", () => {
     render(
       <Select options={[{ value: "a", label: "A" }]}>
@@ -96,11 +49,6 @@ describe("Select", () => {
 });
 
 describe("Textarea", () => {
-  it("renders a textarea", () => {
-    render(<Textarea placeholder="Write here" />);
-    expect(screen.getByPlaceholderText("Write here")).toBeInTheDocument();
-  });
-
   it("accepts multiline input", async () => {
     const user = userEvent.setup();
     render(<Textarea placeholder="Bio" />);

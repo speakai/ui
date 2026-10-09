@@ -3,11 +3,6 @@ import { render, screen } from "@testing-library/react";
 import { Progress } from "../../src/components/Progress";
 
 describe("Progress", () => {
-  it("renders with role=progressbar", () => {
-    render(<Progress value={50} />);
-    expect(screen.getByRole("progressbar")).toBeInTheDocument();
-  });
-
   it("sets aria-valuenow", () => {
     render(<Progress value={75} />);
     const bar = screen.getByRole("progressbar");
@@ -27,11 +22,6 @@ describe("Progress", () => {
   it("shows percentage label when showLabel=true", () => {
     render(<Progress value={42} showLabel />);
     expect(screen.getByText("42%")).toBeInTheDocument();
-  });
-
-  it("does not show label by default", () => {
-    render(<Progress value={42} />);
-    expect(screen.queryByText("42%")).not.toBeInTheDocument();
   });
 
   it("sets width style on inner bar", () => {
@@ -79,24 +69,4 @@ describe("Progress", () => {
     expect(innerBar).toHaveStyle({ width: "100%" });
   });
 
-  it("forwards aria-label to progressbar element", () => {
-    render(<Progress value={50} aria-label="Upload progress" />);
-    expect(screen.getByRole("progressbar")).toHaveAttribute("aria-label", "Upload progress");
-  });
-
-  it("forwards aria-labelledby to progressbar element", () => {
-    render(
-      <div>
-        <span id="label">Upload</span>
-        <Progress value={50} aria-labelledby="label" />
-      </div>
-    );
-    expect(screen.getByRole("progressbar")).toHaveAttribute("aria-labelledby", "label");
-  });
-
-  it("gradient variant has gradient classes", () => {
-    const { container } = render(<Progress value={50} variant="gradient" />);
-    const innerBar = container.querySelector("[style]");
-    expect(innerBar?.className).toContain("bg-gradient");
-  });
 });

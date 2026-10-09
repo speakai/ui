@@ -1,4 +1,5 @@
 import { describe, it, expect, afterEach } from "vitest";
+import type { ReactElement } from "react";
 import { render, cleanup, screen } from "@testing-library/react";
 import { axe, toHaveNoViolations } from "jest-axe";
 import { Button } from "../src/components/Button";
@@ -7,7 +8,7 @@ import { Badge, StatusBadge } from "../src/components/Badge";
 import { Input, SearchInput, Select, Textarea } from "../src/components/Input";
 import { EmptyState } from "../src/components/EmptyState";
 import { ErrorState } from "../src/components/ErrorState";
-import { StatCard, StatCardGrid } from "../src/components/StatCard";
+import { StatCard } from "../src/components/StatCard";
 import { PageHeader, SectionHeader } from "../src/components/PageHeader";
 import { InfoCard } from "../src/components/InfoCard";
 import { Progress } from "../src/components/Progress";
@@ -20,335 +21,116 @@ import { SidePanel } from "../src/components/SidePanel";
 import { ThemeToggle, ThemeSelector } from "../src/components/ThemeToggle";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../src/components/Tabs";
 import { ToastContainer } from "../src/components/Toast";
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-  TablePagination,
-} from "../src/components/Table";
-import {
-  DropdownMenu,
-  DropdownMenuItem,
-  DropdownMenuHeader,
-  DropdownMenuDivider,
-  MoreButton,
-} from "../src/components/DropdownMenu";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TablePagination } from "../src/components/Table";
+import { MoreButton } from "../src/components/DropdownMenu";
 
 expect.extend(toHaveNoViolations);
 
 afterEach(cleanup);
 
-// Helper to render a component inside a theme wrapper
-function renderWithTheme(ui: React.ReactElement, theme: "light" | "dark") {
-  return render(
-    <div className={theme === "dark" ? "dark" : ""}>
-      {ui}
-    </div>
-  );
-}
+const noop = () => {};
 
-// ── Accessibility Tests (axe) ─────────────────────────────────────────────
-// Each component tested in both light and dark mode to ensure
-// no accessibility violations in either theme.
+const IN_PLACE: Array<[string, ReactElement]> = [
+  ["Button", <Button>Click me</Button>],
+  ["Button (loading)", <Button isLoading>Save</Button>],
+  ["Button (disabled)", <Button disabled>Disabled</Button>],
+  ["Card", <Card>Content</Card>],
+  ["Badge", <Badge>Active</Badge>],
+  ["StatusBadge", <StatusBadge status="active" />],
+  ["Input", <div><label htmlFor="name">Name</label><Input id="name" placeholder="Enter name" /></div>],
+  ["Input (error)", <div><label htmlFor="email">Email</label><Input id="email" error="Invalid email" /></div>],
+  ["SearchInput", <SearchInput aria-label="Search" placeholder="Search..." />],
+  ["Select", <div><label htmlFor="color">Color</label><Select id="color" options={[{ value: "red", label: "Red" }]} /></div>],
+  ["Textarea", <div><label htmlFor="bio">Bio</label><Textarea id="bio" placeholder="Tell us about yourself" /></div>],
+  ["EmptyState", <EmptyState title="No items" description="Add some items to get started" />],
+  ["ErrorState", <ErrorState onRetry={noop} />],
+  ["StatCard", <StatCard label="Users" value={42} />],
+  ["PageHeader", <PageHeader title="Dashboard" description="Overview" />],
+  ["SectionHeader", <SectionHeader title="Settings" />],
+  ["InfoCard", <InfoCard title="Note" description="Important info" />],
+  ["Progress", <Progress value={50} showLabel aria-label="Upload progress" />],
+  ["Avatar", <Avatar name="John Doe" />],
+  ["Switch", <Switch checked={false} onChange={noop} label="Notifications" />],
+  ["Checkbox", <Checkbox label="Accept terms" />],
+  ["SidePanel", <SidePanel open onClose={noop} title="Details">Panel content</SidePanel>],
+  ["ThemeToggle", <ThemeToggle theme="light" onChange={noop} />],
+  ["ThemeSelector", <ThemeSelector theme="light" onChange={noop} />],
+  [
+    "Tabs",
+    <Tabs defaultTab="t1">
+      <TabsList>
+        <TabsTrigger value="t1">Tab 1</TabsTrigger>
+        <TabsTrigger value="t2">Tab 2</TabsTrigger>
+      </TabsList>
+      <TabsContent value="t1">Content 1</TabsContent>
+      <TabsContent value="t2">Content 2</TabsContent>
+    </Tabs>,
+  ],
+  [
+    "Table",
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Name</TableHead>
+          <TableHead>Email</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        <TableRow>
+          <TableCell>Alice</TableCell>
+          <TableCell>alice@test.com</TableCell>
+        </TableRow>
+      </TableBody>
+    </Table>,
+  ],
+  ["TablePagination", <TablePagination page={1} pageSize={10} total={50} onPageChange={noop} />],
+  [
+    "ToastContainer",
+    <ToastContainer
+      toasts={[
+        { id: "1", type: "success", title: "Saved!" },
+        { id: "2", type: "error", title: "Failed", message: "Oops" },
+      ]}
+      onDismiss={noop}
+    />,
+  ],
+  ["MoreButton", <MoreButton />],
+];
 
-const themes = ["light", "dark"] as const;
+const PORTALED: Array<[string, ReactElement]> = [
+  [
+    "Dialog",
+    <Dialog open onClose={noop} aria-label="Example dialog">
+      <DialogHeader>
+        <h2>Title</h2>
+        <DialogCloseButton onClose={noop} />
+      </DialogHeader>
+      <DialogBody>Content</DialogBody>
+      <DialogFooter>
+        <Button>Close</Button>
+      </DialogFooter>
+    </Dialog>,
+  ],
+  [
+    "ConfirmDialog",
+    <ConfirmDialog open onClose={noop} onConfirm={noop} title="Delete?" description="This cannot be undone." aria-label="Confirm deletion" />,
+  ],
+];
 
-describe.each(themes)("Accessibility — %s mode", (theme) => {
-  it("Button has no a11y violations", async () => {
-    const { container } = renderWithTheme(<Button>Click me</Button>, theme);
+describe.each(["light", "dark"] as const)("accessibility in %s mode", (theme) => {
+  it.each(IN_PLACE)("%s has no axe violations", async (_name, ui) => {
+    const { container } = render(<div className={theme === "dark" ? "dark" : ""}>{ui}</div>);
     expect(await axe(container)).toHaveNoViolations();
   });
 
-  it("Button (loading) has no a11y violations", async () => {
-    const { container } = renderWithTheme(<Button isLoading>Save</Button>, theme);
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it("Button (disabled) has no a11y violations", async () => {
-    const { container } = renderWithTheme(<Button disabled>Disabled</Button>, theme);
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it("Card has no a11y violations", async () => {
-    const { container } = renderWithTheme(<Card>Content</Card>, theme);
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it("Badge has no a11y violations", async () => {
-    const { container } = renderWithTheme(<Badge>Active</Badge>, theme);
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it("StatusBadge has no a11y violations", async () => {
-    const { container } = renderWithTheme(<StatusBadge status="active" />, theme);
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it("Input has no a11y violations", async () => {
-    const { container } = renderWithTheme(
-      <div>
-        <label htmlFor="name">Name</label>
-        <Input id="name" placeholder="Enter name" />
-      </div>,
-      theme
-    );
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it("Input (error) has no a11y violations", async () => {
-    const { container } = renderWithTheme(
-      <div>
-        <label htmlFor="email">Email</label>
-        <Input id="email" error="Invalid email" />
-      </div>,
-      theme
-    );
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it("SearchInput has no a11y violations", async () => {
-    const { container } = renderWithTheme(
-      <SearchInput aria-label="Search" placeholder="Search..." />,
-      theme
-    );
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it("Select has no a11y violations", async () => {
-    const { container } = renderWithTheme(
-      <div>
-        <label htmlFor="color">Color</label>
-        <Select id="color" options={[{ value: "red", label: "Red" }]} />
-      </div>,
-      theme
-    );
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it("Textarea has no a11y violations", async () => {
-    const { container } = renderWithTheme(
-      <div>
-        <label htmlFor="bio">Bio</label>
-        <Textarea id="bio" placeholder="Tell us about yourself" />
-      </div>,
-      theme
-    );
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it("EmptyState has no a11y violations", async () => {
-    const { container } = renderWithTheme(
-      <EmptyState title="No items" description="Add some items to get started" />,
-      theme
-    );
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it("ErrorState has no a11y violations", async () => {
-    const { container } = renderWithTheme(
-      <ErrorState onRetry={() => {}} />,
-      theme
-    );
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it("StatCard has no a11y violations", async () => {
-    const { container } = renderWithTheme(
-      <StatCard label="Users" value={42} />,
-      theme
-    );
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it("PageHeader has no a11y violations", async () => {
-    const { container } = renderWithTheme(
-      <PageHeader title="Dashboard" description="Overview" />,
-      theme
-    );
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it("SectionHeader has no a11y violations", async () => {
-    const { container } = renderWithTheme(
-      <SectionHeader title="Settings" />,
-      theme
-    );
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it("InfoCard has no a11y violations", async () => {
-    const { container } = renderWithTheme(
-      <InfoCard title="Note" description="Important info" />,
-      theme
-    );
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it("Progress has no a11y violations", async () => {
-    const { container } = renderWithTheme(
-      <Progress value={50} showLabel aria-label="Upload progress" />,
-      theme
-    );
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it("Avatar has no a11y violations", async () => {
-    const { container } = renderWithTheme(
-      <Avatar name="John Doe" />,
-      theme
-    );
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it("Switch has no a11y violations", async () => {
-    const { container } = renderWithTheme(
-      <Switch checked={false} onChange={() => {}} label="Notifications" />,
-      theme
-    );
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it("Checkbox has no a11y violations", async () => {
-    const { container } = renderWithTheme(
-      <Checkbox label="Accept terms" />,
-      theme
-    );
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  // Dialog portals its content to document.body (to escape transformed
-  // ancestors), so the RTL `container` div stays empty and `axe(container)`
-  // would trivially pass with nothing to check. Query the portaled dialog via
-  // `screen` and run axe against it directly. The `dark` class must also be
-  // applied at `document.body` (not the now-bypassed wrapper div) so the
-  // dark-theme iteration actually exercises dark-mode styles.
-  it("Dialog has no a11y violations", async () => {
-    if (theme === "dark") document.body.classList.add("dark");
+  // Dialogs portal to document.body, so the theme class and the axe target both live there.
+  it.each(PORTALED)("%s has no axe violations", async (_name, ui) => {
+    document.body.classList.toggle("dark", theme === "dark");
     try {
-      render(
-        <Dialog open onClose={() => {}} aria-label="Example dialog">
-          <DialogHeader>
-            <h2>Title</h2>
-            <DialogCloseButton onClose={() => {}} />
-          </DialogHeader>
-          <DialogBody>Content</DialogBody>
-          <DialogFooter>
-            <Button>Close</Button>
-          </DialogFooter>
-        </Dialog>
-      );
-      const dialog = screen.getByRole("dialog");
-      expect(await axe(dialog)).toHaveNoViolations();
+      render(ui);
+      expect(await axe(screen.getByRole("dialog"))).toHaveNoViolations();
     } finally {
       document.body.classList.remove("dark");
     }
-  });
-
-  it("ConfirmDialog has no a11y violations", async () => {
-    if (theme === "dark") document.body.classList.add("dark");
-    try {
-      render(
-        <ConfirmDialog
-          open
-          onClose={() => {}}
-          onConfirm={() => {}}
-          title="Delete?"
-          description="This cannot be undone."
-          aria-label="Confirm deletion"
-        />
-      );
-      const dialog = screen.getByRole("dialog");
-      expect(await axe(dialog)).toHaveNoViolations();
-    } finally {
-      document.body.classList.remove("dark");
-    }
-  });
-
-  it("SidePanel has no a11y violations", async () => {
-    const { container } = renderWithTheme(
-      <SidePanel open onClose={() => {}} title="Details">Panel content</SidePanel>,
-      theme
-    );
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it("ThemeToggle has no a11y violations", async () => {
-    const { container } = renderWithTheme(
-      <ThemeToggle theme="light" onChange={() => {}} />,
-      theme
-    );
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it("ThemeSelector has no a11y violations", async () => {
-    const { container } = renderWithTheme(
-      <ThemeSelector theme="light" onChange={() => {}} />,
-      theme
-    );
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it("Tabs has no a11y violations", async () => {
-    const { container } = renderWithTheme(
-      <Tabs defaultTab="t1">
-        <TabsList>
-          <TabsTrigger value="t1">Tab 1</TabsTrigger>
-          <TabsTrigger value="t2">Tab 2</TabsTrigger>
-        </TabsList>
-        <TabsContent value="t1">Content 1</TabsContent>
-        <TabsContent value="t2">Content 2</TabsContent>
-      </Tabs>,
-      theme
-    );
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it("Table has no a11y violations", async () => {
-    const { container } = renderWithTheme(
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          <TableRow>
-            <TableCell>Alice</TableCell>
-            <TableCell>alice@test.com</TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>,
-      theme
-    );
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it("TablePagination has no a11y violations", async () => {
-    const { container } = renderWithTheme(
-      <TablePagination page={1} pageSize={10} total={50} onPageChange={() => {}} />,
-      theme
-    );
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it("ToastContainer has no a11y violations", async () => {
-    const toasts = [
-      { id: "1", type: "success" as const, title: "Saved!" },
-      { id: "2", type: "error" as const, title: "Failed", message: "Oops" },
-    ];
-    const { container } = renderWithTheme(
-      <ToastContainer toasts={toasts} onDismiss={() => {}} />,
-      theme
-    );
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it("MoreButton has no a11y violations", async () => {
-    const { container } = renderWithTheme(<MoreButton />, theme);
-    expect(await axe(container)).toHaveNoViolations();
   });
 });

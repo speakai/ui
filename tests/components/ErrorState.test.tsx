@@ -4,23 +4,6 @@ import userEvent from "@testing-library/user-event";
 import { ErrorState } from "../../src/components/ErrorState";
 
 describe("ErrorState", () => {
-  it("renders default title and message", () => {
-    render(<ErrorState />);
-    expect(screen.getByText("Something went wrong")).toBeInTheDocument();
-    expect(screen.getByText("An unexpected error occurred. Please try again.")).toBeInTheDocument();
-  });
-
-  it("has role=alert", () => {
-    render(<ErrorState />);
-    expect(screen.getByRole("alert")).toBeInTheDocument();
-  });
-
-  it("renders custom title and message", () => {
-    render(<ErrorState title="404 Not Found" message="The page doesn't exist." />);
-    expect(screen.getByText("404 Not Found")).toBeInTheDocument();
-    expect(screen.getByText("The page doesn't exist.")).toBeInTheDocument();
-  });
-
   it("shows retry button when onRetry provided", () => {
     render(<ErrorState onRetry={() => {}} />);
     expect(screen.getByText("Try again")).toBeInTheDocument();

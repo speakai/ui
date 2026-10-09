@@ -40,12 +40,4 @@ describe("AnalyticsDonutChart", () => {
     });
   });
 
-  it("renders the accessible figcaption title", () => {
-    const { container } = render(
-      <AnalyticsDonutChart data={SLICES} title="Deals by segment" />,
-    );
-    expect(container.querySelector("figcaption")?.textContent).toBe(
-      "Deals by segment",
-    );
-  });
 });

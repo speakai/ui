@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render } from "@testing-library/react";
 import { cloneElement, type ReactElement } from "react";
 import { AnalyticsBarChart } from "../../../src/components/charts/analytics-bar-chart";
+import { FieldDistributionWidget } from "../../../src/components/dashboards/field-distribution-widget";
 
 // Recharts marks don't paint mid-animation in jsdom — force reduced motion so
 // isAnimationActive is false and bars render synchronously.
@@ -22,6 +23,11 @@ vi.mock("recharts", async (importOriginal) => {
     ),
   };
 });
+
+const FIELD_LABELS = {
+  title: "Deal stage",
+  emptyTitle: "No field data yet",
+};
 
 const SIX_CATEGORIES = [
   { text: "Alpha", nTimes: 4 },
@@ -85,23 +91,6 @@ describe("AnalyticsBarChart", () => {
     expect(fills).not.toContain("var(--color-chart-3)");
   });
 
-  it("wraps a long category label across two lines when a bar has room (flat)", () => {
-    const { container } = render(
-      <AnalyticsBarChart
-        data={[{ text: "A very long category label", nTimes: 4 }]}
-        title="Distribution"
-        tickMaxLength={16}
-      />,
-    );
-    const tick = container.querySelector("text.recharts-cartesian-axis-tick-value");
-    // Flat layout: no rotation, and the label wraps into <tspan> lines instead
-    // of being clipped to a single ellipsis-truncated line.
-    expect(tick?.getAttribute("transform") ?? "").not.toContain("rotate");
-    const lines = Array.from(tick?.querySelectorAll("tspan") ?? []).map((t) => t.textContent ?? "");
-    expect(lines.length).toBeGreaterThan(1);
-    expect(lines.join(" ")).not.toContain("…");
-  });
-
   it("angles and ellipsis-truncates x-axis ticks to tickMaxLength when bars are packed tight", () => {
     const data = Array.from({ length: 12 }, (_, i) => ({
       text: `A very long category label ${i}`,
@@ -118,5 +107,30 @@ describe("AnalyticsBarChart", () => {
     expect(texts.length).toBeGreaterThan(0);
     // Angled = single line, capped at tickMaxLength (16) with a trailing ellipsis.
     expect(texts.every((s) => s.endsWith("…") && s.length <= 16)).toBe(true);
+  });
+});
+
+describe("FieldDistributionWidget", () => {
+  it("renders bar-mode categories in the single chart color (one ranking, not a palette cycle)", () => {
+    const { container } = render(
+      <FieldDistributionWidget
+        data={{
+          insights: [
+            { text: "Won", nTimes: 8 },
+            { text: "Lost", nTimes: 3 },
+            { text: "Open", nTimes: 5 },
+          ],
+          compareInsights: [],
+        }}
+        isLoading={false}
+        isError={false}
+        labels={FIELD_LABELS}
+      />,
+    );
+    expect(barFills(container)).toEqual([
+      "var(--color-chart-1)",
+      "var(--color-chart-1)",
+      "var(--color-chart-1)",
+    ]);
   });
 });

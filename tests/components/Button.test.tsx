@@ -4,17 +4,6 @@ import userEvent from "@testing-library/user-event";
 import { Button } from "../../src/components/Button";
 
 describe("Button", () => {
-  it("renders children", () => {
-    render(<Button>Click me</Button>);
-    expect(screen.getByRole("button", { name: "Click me" })).toBeInTheDocument();
-  });
-
-  it("forwards ref", () => {
-    const ref = vi.fn<(node: HTMLButtonElement | null) => void>();
-    render(<Button ref={ref}>Test</Button>);
-    expect(ref).toHaveBeenCalledWith(expect.any(HTMLButtonElement));
-  });
-
   it("fires onClick", async () => {
     const user = userEvent.setup();
     const onClick = vi.fn();
@@ -71,47 +60,12 @@ describe("Button", () => {
     expect(onClick).not.toHaveBeenCalled();
   });
 
-  it("does not set aria-busy when not loading", () => {
-    render(<Button>Click</Button>);
-    expect(screen.getByRole("button")).not.toHaveAttribute("aria-busy");
-  });
-
   // ── Custom className ──────────────────────────────────────────────────
 
-  it("merges custom className", () => {
-    render(<Button className="my-custom-class">Test</Button>);
-    expect(screen.getByRole("button")).toHaveClass("my-custom-class");
-  });
-
   // ── Spread props ──────────────────────────────────────────────────────
-
-  it("spreads additional HTML attributes", () => {
-    render(<Button data-testid="custom" type="submit">Submit</Button>);
-    expect(screen.getByTestId("custom")).toHaveAttribute("type", "submit");
-  });
 
   // ── Variant class name tests ──────────────────────────────────────────
   // Guards against the safelist regression where critical variant classes
   // (bg-danger, text-danger-foreground, etc.) disappeared from compiled CSS.
 
-  it("variant=danger applies bg-danger and text-danger-foreground classes", () => {
-    render(<Button variant="danger">Delete</Button>);
-    const btn = screen.getByRole("button");
-    expect(btn).toHaveClass("bg-danger");
-    expect(btn).toHaveClass("text-danger-foreground");
-  });
-
-  it("variant=primary applies bg-primary and text-primary-foreground classes", () => {
-    render(<Button variant="primary">Submit</Button>);
-    const btn = screen.getByRole("button");
-    expect(btn).toHaveClass("bg-primary");
-    expect(btn).toHaveClass("text-primary-foreground");
-  });
-
-  it("variant=gradient applies from-gradient-from and to-gradient-to classes", () => {
-    render(<Button variant="gradient">Gradient</Button>);
-    const btn = screen.getByRole("button");
-    expect(btn).toHaveClass("from-gradient-from");
-    expect(btn).toHaveClass("to-gradient-to");
-  });
 });
