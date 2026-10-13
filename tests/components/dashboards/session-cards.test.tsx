@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TableWidget, type TableWidgetData } from "../../../src/components/dashboards/table-widget";
-import { NotesWidget } from "../../../src/components/dashboards/notes-widget";
+import { NotesWidget, type NotesAction } from "../../../src/components/dashboards/notes-widget";
 import { formatClockDuration } from "../../../src/components/dashboards/session-cards";
 
 const LABELS = {
@@ -208,6 +208,16 @@ describe("NotesWidget actions", () => {
     await userEvent.click(screen.getByRole("button", { name: "Watch sessions" }));
     expect(onAction).toHaveBeenCalledWith({ label: "Watch sessions", action: "goToSection", sectionId: "sessions" });
     expect(screen.getByRole("button", { name: "Ask a question" })).toBeInTheDocument();
+  });
+
+  it("shows actions without heading or content and skips actions with no label", () => {
+    const actionsOnly = {
+      actions: [{ action: "openChat" } as NotesAction, { label: "Ask a question", action: "openChat" as const }],
+    };
+    render(<NotesWidget config={actionsOnly} labels={{ emptyTitle: "Empty" }} onAction={vi.fn()} />);
+    expect(screen.getAllByRole("button")).toHaveLength(1);
+    expect(screen.getByRole("button", { name: "Ask a question" })).toBeInTheDocument();
+    expect(screen.queryByText("Empty")).toBeNull();
   });
 
   it("renders no buttons when the host does not handle actions", () => {

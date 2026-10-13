@@ -40,9 +40,9 @@ export function NotesWidget({ config, labels, onAction }: NotesWidgetProps) {
   const trimmedHeading = config?.heading?.trim() ?? "";
   const trimmedContent = config?.content?.trim() ?? "";
 
-  const actions = onAction ? (config?.actions ?? []).filter((a) => a.label.trim() !== "") : [];
+  const actions = onAction ? (config?.actions ?? []).filter((a) => (a.label ?? "").trim() !== "") : [];
 
-  if (!trimmedHeading && !trimmedContent) {
+  if (!trimmedHeading && !trimmedContent && actions.length === 0) {
     return (
       <EmptyState
         icon={<StickyNoteIcon className="h-10 w-10" />}

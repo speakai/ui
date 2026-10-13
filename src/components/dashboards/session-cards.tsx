@@ -177,8 +177,14 @@ interface SessionCardProps {
 }
 
 function SessionCard({ card, showDuration, clickable, resolvePosterUrl, labels, onOpen }: SessionCardProps) {
-  const body = (
-    <>
+  const mediaId = clickable ? card.mediaId : undefined;
+  return (
+    <article
+      className={cn(
+        "relative flex w-full flex-col overflow-hidden rounded-xl border border-border bg-card text-card-foreground",
+        mediaId && "transition-shadow hover:shadow-md",
+      )}
+    >
       <SessionPoster
         mediaId={card.mediaId}
         mediaType={card.mediaType}
@@ -200,27 +206,16 @@ function SessionCard({ card, showDuration, clickable, resolvePosterUrl, labels, 
           </p>
         ))}
       </div>
-    </>
+      {mediaId ? (
+        <button
+          type="button"
+          aria-label={card.title}
+          onClick={() => onOpen?.(mediaId)}
+          className="absolute inset-0 cursor-pointer rounded-xl focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+        />
+      ) : null}
+    </article>
   );
-
-  const base = "flex w-full flex-col overflow-hidden rounded-xl border border-border bg-card text-card-foreground";
-
-  if (clickable && card.mediaId) {
-    const mediaId = card.mediaId;
-    return (
-      <button
-        type="button"
-        onClick={() => onOpen?.(mediaId)}
-        className={cn(
-          base,
-          "cursor-pointer transition-shadow hover:shadow-md focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
-        )}
-      >
-        {body}
-      </button>
-    );
-  }
-  return <div className={base}>{body}</div>;
 }
 
 export interface SessionCardGridProps {
