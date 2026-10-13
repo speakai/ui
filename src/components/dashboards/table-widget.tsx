@@ -31,7 +31,6 @@ import {
   type ResolvePosterUrl,
   type SessionCardConfig,
   type SessionCardData,
-  type SessionCardLabels,
 } from "./session-cards";
 
 // ── Data contract ────────────────────────────────────────────────────────────
@@ -45,7 +44,6 @@ export interface TableWidgetColumn {
 export interface TableWidgetRow {
   name?: string;
   mediaId?: string;
-  /** Media length in seconds; sent for cards only. */
   durationSec?: number;
   mediaType?: "video" | "audio";
   cells: (string | number | null)[];
@@ -65,7 +63,6 @@ export interface TableWidgetConfig {
   rowClick?: "openMedia" | "none";
   /** Rows shown per page before the pager appears. Defaults to 25. */
   pageSize?: number;
-  /** "cards" renders each record as a session card. Defaults to "table". */
   display?: "table" | "cards";
   card?: SessionCardConfig;
 }
@@ -89,8 +86,7 @@ export interface TableWidgetLabels {
   nextPage?: string;
   /** Pager: range summary. Defaults to "{from}–{to} of {total}". */
   pageSummary?: (from: number, to: number, total: number) => string;
-  /** Session cards: badge text for audio-only media. */
-  audioOnly?: SessionCardLabels["audioOnly"];
+  audioOnly?: string;
 }
 
 export interface TableWidgetProps {
@@ -103,7 +99,6 @@ export interface TableWidgetProps {
   /** Group rows (rowsAre: "groups") become clickable and report the group's value, e.g. an Account ID. */
   onGroupRowClick?: (groupName: string) => void;
   onRetry?: () => void;
-  /** Cards only: resolves a playable URL used to draw the poster frame. */
   resolvePosterUrl?: ResolvePosterUrl;
 }
 
@@ -141,26 +136,25 @@ function formatCell(
   return formatCount(cell);
 }
 
-/** Cell text for a card line, or null when the cell is empty. */
 function cardLine(cell: string | number | null | undefined, format: TableWidgetColumn["format"]): string | null {
   if (cell == null || cell === "") return null;
   return formatCell(cell, format);
 }
 
-/** Maps a table row to a card, reading only the columns the card config names. */
-function toCard(row: TableWidgetRow, index: number, columns: TableWidgetColumn[], card: SessionCardConfig | undefined): SessionCardData {
-  const lines = (headers: string[] | undefined): string[] =>
-    (headers ?? []).flatMap((header) => {
-      const col = columns.findIndex((c) => c.header === header);
-      if (col < 0) return [];
-      const line = cardLine(row.cells[col], columns[col]?.format);
-      return line ? [line] : [];
-    });
+function toCard(
+  row: TableWidgetRow,
+  index: number,
+  columns: TableWidgetColumn[],
+  card: SessionCardConfig | undefined,
+): SessionCardData {
+  const lineFor = (header: string): string | null => {
+    const col = columns.findIndex((c) => c.header === header);
+    return col < 0 ? null : cardLine(row.cells[col], columns[col].format);
+  };
+  const linesFor = (headers: string[] = []): string[] =>
+    headers.map(lineFor).filter((line): line is string => !!line);
 
-  const titleCol = card?.titleColumn ? columns.findIndex((c) => c.header === card.titleColumn) : -1;
-  const configuredTitle = titleCol >= 0 ? cardLine(row.cells[titleCol], columns[titleCol]?.format) : null;
-  const title = configuredTitle ?? row.name ?? cardLine(row.cells[0], columns[0]?.format) ?? "—";
-
+  const configuredTitle = card?.titleColumn ? lineFor(card.titleColumn) : null;
   // Without a card config the first two columns become the detail lines.
   const detailHeaders = card ? card.detailColumns : columns.slice(0, 2).map((c) => c.header);
 
@@ -169,9 +163,9 @@ function toCard(row: TableWidgetRow, index: number, columns: TableWidgetColumn[]
     mediaId: row.mediaId,
     mediaType: row.mediaType,
     durationSec: row.durationSec,
-    title,
-    subtitles: lines(card?.subtitleColumns),
-    details: lines(detailHeaders),
+    title: configuredTitle ?? row.name ?? cardLine(row.cells[0], columns[0]?.format) ?? "—",
+    subtitles: linesFor(card?.subtitleColumns),
+    details: linesFor(detailHeaders),
   };
 }
 
@@ -485,7 +479,7 @@ export function TableWidget({
           config={config.card}
           clickable={clickable}
           resolvePosterUrl={resolvePosterUrl}
-          labels={{ audioOnly: labels.audioOnly }}
+          audioOnlyLabel={labels.audioOnly}
           onOpen={onRowClick}
         />
       )}

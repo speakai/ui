@@ -64,7 +64,6 @@ export {
   type TableWidgetColumn,
 } from "../components/dashboards/table-widget";
 export {
-  formatClockDuration,
   type ResolvePosterUrl,
   type SessionCardConfig,
 } from "../components/dashboards/session-cards";

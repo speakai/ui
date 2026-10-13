@@ -1,21 +1,18 @@
-/** Session cards: the card layout of the records table, with a poster frame loaded lazily from the media itself. */
-
 import { useEffect, useRef, useState } from "react";
 import { cn } from "../../utils/cn";
+import { formatClockDuration } from "./format";
 import { FileAudioIcon, PlayIcon } from "./icons";
 
-// ── Contract ─────────────────────────────────────────────────────────────────
+const POSTER_SEEK_SECONDS = 3;
+const POSTER_ROOT_MARGIN = "200px";
 
-/** Which table columns feed a card. Every value is a column header. */
 export interface SessionCardConfig {
   titleColumn?: string;
   subtitleColumns?: string[];
   detailColumns?: string[];
-  /** Show the duration badge on the poster. Defaults to true. */
   showDuration?: boolean;
 }
 
-/** Resolves a playable URL for a media id, or null when there is none. */
 export type ResolvePosterUrl = (mediaId: string) => Promise<string | null | undefined>;
 
 export interface SessionCardData {
@@ -28,31 +25,6 @@ export interface SessionCardData {
   details: string[];
 }
 
-export interface SessionCardLabels {
-  /** Badge on the placeholder of audio-only media. Defaults to "Audio". */
-  audioOnly?: string;
-}
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-/** Seconds into the video the poster frame is taken from. */
-export const POSTER_SEEK_SECONDS = 3;
-
-/** Distance past the viewport edge at which a card starts loading its poster. */
-const POSTER_ROOT_MARGIN = "200px";
-
-/** Clock-style duration: 4:05 or 1:02:03. */
-export function formatClockDuration(totalSeconds: number): string {
-  const safe = Math.max(0, Math.floor(totalSeconds));
-  const hours = Math.floor(safe / 3600);
-  const minutes = Math.floor((safe % 3600) / 60);
-  const seconds = safe % 60;
-  const ss = String(seconds).padStart(2, "0");
-  if (hours > 0) return `${hours}:${String(minutes).padStart(2, "0")}:${ss}`;
-  return `${minutes}:${ss}`;
-}
-
-/** True once the element is near the viewport. Treats a missing observer as visible. */
 function useNearViewport() {
   const ref = useRef<HTMLDivElement | null>(null);
   const [near, setNear] = useState(() => typeof IntersectionObserver === "undefined");
@@ -77,34 +49,23 @@ function useNearViewport() {
   return { ref, near };
 }
 
-// ── Poster ───────────────────────────────────────────────────────────────────
-
 interface SessionPosterProps {
-  mediaId?: string;
-  mediaType?: "video" | "audio";
-  durationSec?: number;
+  card: SessionCardData;
   showDuration: boolean;
   resolvePosterUrl?: ResolvePosterUrl;
-  labels?: SessionCardLabels;
+  audioOnlyLabel?: string;
 }
 
-function SessionPoster({
-  mediaId,
-  mediaType,
-  durationSec,
-  showDuration,
-  resolvePosterUrl,
-  labels,
-}: SessionPosterProps) {
+function SessionPoster({ card, showDuration, resolvePosterUrl, audioOnlyLabel }: SessionPosterProps) {
   const { ref, near } = useNearViewport();
   const [url, setUrl] = useState<string | null>(null);
   const [frameReady, setFrameReady] = useState(false);
   const [failed, setFailed] = useState(false);
-  const isAudio = mediaType === "audio";
-  const wantsFrame = !!mediaId && !!resolvePosterUrl && !isAudio;
+  const { mediaId, durationSec } = card;
+  const isAudio = card.mediaType === "audio";
 
   useEffect(() => {
-    if (!near || !wantsFrame || !mediaId || !resolvePosterUrl) return;
+    if (!near || isAudio || !mediaId || !resolvePosterUrl) return;
     let cancelled = false;
     resolvePosterUrl(mediaId)
       .then((resolved) => {
@@ -118,16 +79,10 @@ function SessionPoster({
     return () => {
       cancelled = true;
     };
-  }, [near, wantsFrame, mediaId, resolvePosterUrl]);
-
-  const showDurationBadge = showDuration && typeof durationSec === "number" && durationSec > 0;
+  }, [near, isAudio, mediaId, resolvePosterUrl]);
 
   return (
-    <div
-      ref={ref}
-      className="relative aspect-video w-full overflow-hidden rounded-t-xl bg-muted"
-      data-testid="session-card-poster"
-    >
+    <div ref={ref} className="relative aspect-video w-full overflow-hidden rounded-t-xl bg-muted">
       {url && !failed ? (
         <video
           src={`${url}#t=${POSTER_SEEK_SECONDS}`}
@@ -149,34 +104,32 @@ function SessionPoster({
           {isAudio ? (
             <span className="flex flex-col items-center gap-1 text-xs font-medium">
               <FileAudioIcon className="h-8 w-8" />
-              {labels?.audioOnly ?? "Audio"}
+              {audioOnlyLabel ?? "Audio"}
             </span>
           ) : (
             <PlayIcon className="h-8 w-8 opacity-60" />
           )}
         </div>
       ) : null}
-      {showDurationBadge ? (
+      {showDuration && typeof durationSec === "number" && durationSec > 0 ? (
         <span className="absolute bottom-2 right-2 rounded-md bg-foreground/80 px-1.5 py-0.5 text-xs font-medium tabular-nums text-background">
-          {formatClockDuration(durationSec as number)}
+          {formatClockDuration(durationSec)}
         </span>
       ) : null}
     </div>
   );
 }
 
-// ── Card + grid ──────────────────────────────────────────────────────────────
-
 interface SessionCardProps {
   card: SessionCardData;
   showDuration: boolean;
   clickable: boolean;
   resolvePosterUrl?: ResolvePosterUrl;
-  labels?: SessionCardLabels;
+  audioOnlyLabel?: string;
   onOpen?: (mediaId: string) => void;
 }
 
-function SessionCard({ card, showDuration, clickable, resolvePosterUrl, labels, onOpen }: SessionCardProps) {
+function SessionCard({ card, showDuration, clickable, resolvePosterUrl, audioOnlyLabel, onOpen }: SessionCardProps) {
   const mediaId = clickable ? card.mediaId : undefined;
   return (
     <article
@@ -186,12 +139,10 @@ function SessionCard({ card, showDuration, clickable, resolvePosterUrl, labels, 
       )}
     >
       <SessionPoster
-        mediaId={card.mediaId}
-        mediaType={card.mediaType}
-        durationSec={card.durationSec}
+        card={card}
         showDuration={showDuration}
         resolvePosterUrl={resolvePosterUrl}
-        labels={labels}
+        audioOnlyLabel={audioOnlyLabel}
       />
       <div className="flex flex-1 flex-col gap-1 p-3 text-left">
         <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">{card.title}</h3>
@@ -218,16 +169,23 @@ function SessionCard({ card, showDuration, clickable, resolvePosterUrl, labels, 
   );
 }
 
-export interface SessionCardGridProps {
+interface SessionCardGridProps {
   cards: SessionCardData[];
   config?: SessionCardConfig;
   clickable: boolean;
   resolvePosterUrl?: ResolvePosterUrl;
-  labels?: SessionCardLabels;
+  audioOnlyLabel?: string;
   onOpen?: (mediaId: string) => void;
 }
 
-export function SessionCardGrid({ cards, config, clickable, resolvePosterUrl, labels, onOpen }: SessionCardGridProps) {
+export function SessionCardGrid({
+  cards,
+  config,
+  clickable,
+  resolvePosterUrl,
+  audioOnlyLabel,
+  onOpen,
+}: SessionCardGridProps) {
   const showDuration = config?.showDuration !== false;
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -238,7 +196,7 @@ export function SessionCardGrid({ cards, config, clickable, resolvePosterUrl, la
           showDuration={showDuration}
           clickable={clickable}
           resolvePosterUrl={resolvePosterUrl}
-          labels={labels}
+          audioOnlyLabel={audioOnlyLabel}
           onOpen={onOpen}
         />
       ))}

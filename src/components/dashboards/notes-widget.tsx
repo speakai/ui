@@ -11,7 +11,6 @@ import { EmptyState } from "../EmptyState";
 import { StickyNoteIcon } from "./icons";
 import { renderMarkdown } from "./markdown";
 
-/** A call-to-action button: open the dashboard chat, or jump to a section. */
 export interface NotesAction {
   label: string;
   action: "openChat" | "goToSection";
@@ -32,7 +31,6 @@ export interface NotesLabels {
 export interface NotesWidgetProps {
   config?: NotesConfig;
   labels: NotesLabels;
-  /** Called when a call-to-action button is pressed; buttons render only when set. */
   onAction?: (action: NotesAction) => void;
 }
 
