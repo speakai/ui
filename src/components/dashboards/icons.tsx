@@ -206,3 +206,11 @@ export function SmileIcon(props: IconProps) {
     </svg>
   );
 }
+
+export function PlayIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <polygon points="6 3 20 12 6 21 6 3" />
+    </svg>
+  );
+}

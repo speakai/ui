@@ -64,6 +64,11 @@ export {
   type TableWidgetColumn,
 } from "../components/dashboards/table-widget";
 export {
+  formatClockDuration,
+  type ResolvePosterUrl,
+  type SessionCardConfig,
+} from "../components/dashboards/session-cards";
+export {
   NarrativeWidget,
   type NarrativeWidgetProps,
   type NarrativeWidgetLabels,
@@ -77,6 +82,7 @@ export {
   NotesWidget,
   type NotesWidgetProps,
   type NotesConfig,
+  type NotesAction,
   type NotesLabels,
 } from "../components/dashboards/notes-widget";
 export {
