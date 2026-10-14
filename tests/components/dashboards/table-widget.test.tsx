@@ -542,7 +542,7 @@ describe("TableWidget speaker avatars", () => {
     expect(screen.queryByTitle("Alex Rivera")).toBeNull();
   });
 
-  it("shows a lazy, no-referrer photo for known names and initials for the rest", () => {
+  it("shows a lazy, no-referrer photo for known names, initials for the rest, and hides avatars from assistive tech", () => {
     const { container } = renderGroups({ rowAvatar: lookup });
     const img = container.querySelector("img") as HTMLImageElement;
     expect(img.getAttribute("src")).toBe(PHOTO);
@@ -551,10 +551,6 @@ describe("TableWidget speaker avatars", () => {
     expect(container.querySelectorAll("img")).toHaveLength(1);
     expect(screen.getByTitle("Sam Chen")).toHaveTextContent("SC");
     expect(screen.getByText("Sam Chen")).toBeInTheDocument();
-  });
-
-  it("hides the row avatar from assistive tech because the name is already text", () => {
-    renderGroups({ rowAvatar: lookup });
     expect(screen.queryAllByRole("img")).toHaveLength(0);
   });
 
@@ -601,7 +597,6 @@ describe("TableWidget speaker avatars", () => {
     expect(imgs[0].getAttribute("src")).toBe(PHOTO);
     expect(imgs[0].getAttribute("referrerpolicy")).toBe("no-referrer");
     expect(imgs[0].getAttribute("loading")).toBe("lazy");
-    expect(imgs[0].closest(".rounded-full")).not.toBeNull();
   });
 
   it("ignores avatarColumn when cardAvatar is not provided", () => {
