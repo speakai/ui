@@ -1,7 +1,6 @@
 import { forwardRef, HTMLAttributes, useState } from "react";
 import type { DashboardProfileImageShape } from "@speakai/shared";
 import { cn } from "../utils/cn";
-import { getInitials } from "../utils/initials";
 
 export type AvatarSize = "sm" | "default" | "lg";
 export type AvatarVariant = "circle" | "rounded";
@@ -38,6 +37,13 @@ export const AVATAR_SHAPE_PROPS = {
   square: { variant: "rounded", fit: "contain" },
 } as const satisfies Record<DashboardProfileImageShape, Pick<AvatarProps, "variant" | "fit">>;
 
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? "?";
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
 export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
   ({ name, src, size = "default", variant = "circle", fit = "cover", imgReferrerPolicy, imgLoading, className, ...props }, ref) => {
     const [imgError, setImgError] = useState(false);
@@ -66,7 +72,7 @@ export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
             onError={() => setImgError(true)}
           />
         ) : (
-          <span aria-hidden="true">{getInitials(name) || "?"}</span>
+          <span aria-hidden="true">{getInitials(name)}</span>
         )}
       </div>
     );
