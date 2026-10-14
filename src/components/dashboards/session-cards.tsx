@@ -9,6 +9,38 @@ const POSTER_SEEK_SECONDS = 3;
 const POSTER_ROOT_MARGIN = "200px";
 const CARD_GRID_CLASS = "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3";
 const SKELETON_CARD_COUNT = 3;
+const MAX_CONCURRENT_FRAME_LOADS = 2;
+
+// Source videos are huge; loading every card's frame at once stalls phones.
+let activeFrameLoads = 0;
+const frameLoadWaiters: Array<() => void> = [];
+
+function acquireFrameSlot(onGranted: () => void): () => void {
+  let held = false;
+  let waiting = false;
+  const grant = () => {
+    waiting = false;
+    held = true;
+    activeFrameLoads += 1;
+    onGranted();
+  };
+  if (activeFrameLoads < MAX_CONCURRENT_FRAME_LOADS) grant();
+  else {
+    waiting = true;
+    frameLoadWaiters.push(grant);
+  }
+  return () => {
+    if (waiting) {
+      const i = frameLoadWaiters.indexOf(grant);
+      if (i >= 0) frameLoadWaiters.splice(i, 1);
+      waiting = false;
+    }
+    if (!held) return;
+    held = false;
+    activeFrameLoads -= 1;
+    frameLoadWaiters.shift()?.();
+  };
+}
 
 export interface SessionCardConfig {
   titleColumn?: string;
@@ -22,6 +54,7 @@ export interface SessionCardData {
   mediaId?: string;
   mediaType?: "video" | "audio";
   mediaUrl?: string;
+  thumbnailUrl?: string;
   durationSec?: number;
   title: string;
   subtitles: string[];
@@ -67,14 +100,44 @@ function SessionPoster({ card, showDuration, clickable, audioOnlyLabel }: Sessio
   const { ref, near } = useNearViewport();
   const [frameReady, setFrameReady] = useState(false);
   const [failed, setFailed] = useState(false);
-  const { mediaUrl, durationSec } = card;
+  const [thumbFailed, setThumbFailed] = useState(false);
+  const [slotGranted, setSlotGranted] = useState(false);
+  const { mediaUrl, thumbnailUrl, durationSec } = card;
   const isAudio = card.mediaType === "audio";
   const isVideo = !isAudio && !!mediaUrl;
-  const showVideo = near && isVideo && !failed;
+  const showThumb = near && !isAudio && !!thumbnailUrl && !thumbFailed;
+  const wantsFrame = near && isVideo && !failed && !showThumb;
+  const showVideo = wantsFrame && slotGranted;
   const showPlayButton = clickable && isVideo;
+
+  const releaseSlot = useRef<(() => void) | null>(null);
+  const freeSlot = () => {
+    releaseSlot.current?.();
+    releaseSlot.current = null;
+  };
+
+  useEffect(() => {
+    if (!wantsFrame) return;
+    releaseSlot.current = acquireFrameSlot(() => setSlotGranted(true));
+    return freeSlot;
+  }, [wantsFrame]);
 
   return (
     <div ref={ref} className="relative aspect-video w-full overflow-hidden rounded-t-xl bg-muted">
+      {showThumb ? (
+        <img
+          src={thumbnailUrl}
+          loading="lazy"
+          decoding="async"
+          alt=""
+          onLoad={() => setFrameReady(true)}
+          onError={() => setThumbFailed(true)}
+          className={cn(
+            "absolute inset-0 h-full w-full object-cover transition-opacity duration-300",
+            frameReady ? "opacity-100" : "opacity-0",
+          )}
+        />
+      ) : null}
       {showVideo ? (
         <video
           src={`${mediaUrl}#t=${POSTER_SEEK_SECONDS}`}
@@ -83,8 +146,14 @@ function SessionPoster({ card, showDuration, clickable, audioOnlyLabel }: Sessio
           playsInline
           tabIndex={-1}
           aria-hidden="true"
-          onLoadedData={() => setFrameReady(true)}
-          onError={() => setFailed(true)}
+          onLoadedData={() => {
+            setFrameReady(true);
+            freeSlot();
+          }}
+          onError={() => {
+            setFailed(true);
+            freeSlot();
+          }}
           className={cn(
             "absolute inset-0 h-full w-full object-cover transition-opacity duration-300",
             frameReady ? "opacity-100" : "opacity-0",
