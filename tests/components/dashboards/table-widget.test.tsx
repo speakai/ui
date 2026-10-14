@@ -62,6 +62,20 @@ describe("TableWidget", () => {
     expect(screen.getByText("3 items total")).toBeInTheDocument();
   });
 
+  it("keeps long names whole in the cell and exposes the full name on hover", () => {
+    const longName = "A very long media name ".repeat(8).trim();
+    render(
+      <TableWidget
+        data={{ ...DATA, rows: [{ name: longName, mediaId: "m9", cells: [10, 20] }], total: 1 }}
+        isLoading={false}
+        isError={false}
+        config={{}}
+        labels={LABELS}
+      />,
+    );
+    expect(screen.getByTitle(longName)).toHaveTextContent(longName);
+  });
+
   it("omits the name column when no row carries a name", () => {
     render(
       <TableWidget
