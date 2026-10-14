@@ -424,6 +424,7 @@ interface SessionCardGridProps {
   cards: SessionCardData[];
   config?: SessionCardConfig;
   clickable: boolean;
+  audioOnlyLabel?: string;
   labels?: SessionCardLabels;
   /** Rendered as a hero banner above the cards; pass it only when `config.hero` is on. */
   hero?: SessionCardData;
@@ -434,14 +435,16 @@ export function SessionCardGrid({
   cards,
   config,
   clickable,
-  labels,
+  audioOnlyLabel,
+  labels: labelsProp,
   hero,
   onOpen,
 }: SessionCardGridProps) {
   const showDuration = config?.showDuration !== false;
+  const labels: SessionCardLabels = { ...labelsProp, audioOnly: labelsProp?.audioOnly ?? audioOnlyLabel };
   // Without a resolvable row column the rows layout would be one "Other" row, so fall back to the grid.
   const asRows = config?.layout === "rows" && cards.some((card) => card.group?.trim());
-  const rows = asRows ? groupSessionCards(cards, config?.rowOrder, labels?.otherRow) : [];
+  const rows = asRows ? groupSessionCards(cards, config?.rowOrder, labels.otherRow) : [];
   return (
     <div className="flex min-w-0 flex-col gap-6">
       {hero ? (
