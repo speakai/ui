@@ -54,6 +54,7 @@ export interface SessionCardData {
   mediaId?: string;
   mediaType?: "video" | "audio";
   mediaUrl?: string;
+  thumbnailUrl?: string;
   durationSec?: number;
   title: string;
   subtitles: string[];
@@ -99,11 +100,13 @@ function SessionPoster({ card, showDuration, clickable, audioOnlyLabel }: Sessio
   const { ref, near } = useNearViewport();
   const [frameReady, setFrameReady] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [thumbFailed, setThumbFailed] = useState(false);
   const [slotGranted, setSlotGranted] = useState(false);
-  const { mediaUrl, durationSec } = card;
+  const { mediaUrl, thumbnailUrl, durationSec } = card;
   const isAudio = card.mediaType === "audio";
   const isVideo = !isAudio && !!mediaUrl;
-  const wantsFrame = near && isVideo && !failed;
+  const showThumb = near && !isAudio && !!thumbnailUrl && !thumbFailed;
+  const wantsFrame = near && isVideo && !failed && !showThumb;
   const showVideo = wantsFrame && slotGranted;
   const showPlayButton = clickable && isVideo;
 
@@ -121,6 +124,20 @@ function SessionPoster({ card, showDuration, clickable, audioOnlyLabel }: Sessio
 
   return (
     <div ref={ref} className="relative aspect-video w-full overflow-hidden rounded-t-xl bg-muted">
+      {showThumb ? (
+        <img
+          src={thumbnailUrl}
+          loading="lazy"
+          decoding="async"
+          alt=""
+          onLoad={() => setFrameReady(true)}
+          onError={() => setThumbFailed(true)}
+          className={cn(
+            "absolute inset-0 h-full w-full object-cover transition-opacity duration-300",
+            frameReady ? "opacity-100" : "opacity-0",
+          )}
+        />
+      ) : null}
       {showVideo ? (
         <video
           src={`${mediaUrl}#t=${POSTER_SEEK_SECONDS}`}
