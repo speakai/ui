@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { cn } from "../../utils/cn";
 import { Badge } from "../Badge";
 import { Skeleton } from "../Skeleton";
-import { formatClockDuration } from "./format";
+import { formatClockDuration, getTitleInitials } from "./format";
 import { FileAudioIcon, PlayIcon } from "./icons";
 
 const POSTER_SEEK_SECONDS = 3;
@@ -26,16 +26,6 @@ export interface SessionCardData {
   title: string;
   subtitles: string[];
   details: string[];
-}
-
-/** Up to two leading letters or digits of the title, uppercased; empty when there are none. */
-export function getTitleInitials(title: string): string {
-  const words = title.split(/\s+/).map((word) => Array.from(word).find((ch) => /[\p{L}\p{N}]/u.test(ch)));
-  return words
-    .filter((ch): ch is string => !!ch)
-    .slice(0, 2)
-    .join("")
-    .toLocaleUpperCase();
 }
 
 function useNearViewport() {
@@ -132,9 +122,9 @@ function SessionPoster({ card, showDuration, clickable, audioOnlyLabel }: Sessio
         </div>
       ) : null}
       {showPlayButton ? (
-        <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
+        <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true" data-testid="session-card-play">
           <span className="rounded-full bg-primary p-3 text-primary-foreground shadow-lg ring-2 ring-white/70 transition-transform group-hover:scale-110 group-focus-within:scale-110 motion-reduce:transition-none motion-reduce:group-hover:scale-100 motion-reduce:group-focus-within:scale-100">
-            <PlayIcon className="ml-0.5 h-6 w-6 fill-current" />
+            <PlayIcon className="ms-0.5 h-6 w-6 fill-current" />
           </span>
         </div>
       ) : null}

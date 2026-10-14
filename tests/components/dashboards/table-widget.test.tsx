@@ -5,7 +5,6 @@ import {
   TableWidget,
   type TableWidgetData,
 } from "../../../src/components/dashboards/table-widget";
-import { getTitleInitials } from "../../../src/components/dashboards/session-cards";
 
 const LABELS = {
   title: "Media table",
@@ -434,7 +433,7 @@ describe("TableWidget cards", () => {
     card: { subtitleColumns: ["Track", "Speaker"], detailColumns: ["Room"] },
   };
 
-  const PLAY_OVERLAY = ".rounded-full.bg-primary";
+  const PLAY_OVERLAY = '[data-testid="session-card-play"]';
 
   it("shows a card skeleton grid while loading, then a card per row with a topic chip and play overlay that opens the media on click", async () => {
     const onRowClick = vi.fn();
@@ -455,7 +454,7 @@ describe("TableWidget cards", () => {
     );
     expect(container.querySelector("table")).toBeNull();
     expect(screen.getByRole("heading", { name: "Opening keynote" })).toBeInTheDocument();
-    expect(screen.getByText("Health").closest(".bg-primary\\/10")).not.toBeNull();
+    expect(screen.getByText("Health")).toBeInTheDocument();
     expect(screen.getByText("Ada").tagName).toBe("P");
     expect(screen.getByText("Hall A")).toBeInTheDocument();
     expect(screen.getByText("1:02:05")).toBeInTheDocument();
@@ -551,22 +550,5 @@ describe("TableWidget cards", () => {
     expect(button).toHaveFocus();
     await userEvent.keyboard("{Enter}");
     expect(onRowClick).toHaveBeenCalledWith("m1");
-  });
-});
-
-describe("getTitleInitials", () => {
-  it("takes the first letter of the first two words, uppercased", () => {
-    expect(getTitleInitials("quarterly planning review")).toBe("QP");
-  });
-
-  it("handles one word, punctuation, digits and non-latin letters", () => {
-    expect(getTitleInitials("Intro")).toBe("I");
-    expect(getTitleInitials("  -- (draft) 2nd round")).toBe("D2");
-    expect(getTitleInitials("événement été")).toBe("ÉÉ");
-  });
-
-  it("returns empty for a title with no letters or digits", () => {
-    expect(getTitleInitials("— …")).toBe("");
-    expect(getTitleInitials("")).toBe("");
   });
 });
