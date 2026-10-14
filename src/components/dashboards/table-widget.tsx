@@ -529,7 +529,7 @@ export function TableWidget({
                 const rowClickable = (clickable && !!row.mediaId) || groupClickable;
                 return (
                   <TableRow
-                    key={`${row.mediaId ?? row.name ?? ""}-${rowIndex}`}
+                    key={row.mediaId ?? `${row.name ?? ""}-${rowIndex}`}
                     clickable={rowClickable}
                     // Non-clickable rows keep a lighter hover so every dashboard
                     // table reads consistently, matching the app's media table.
