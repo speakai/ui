@@ -88,6 +88,8 @@ function isLikelyTailwindClass(token) {
     "sr-only", "not-sr-only", "truncate", "line-clamp-", "whitespace-",
     "font-", "leading-", "tracking-", "align-",
     "underline-", "tabular-nums",
+    "snap-", "scroll-", "aspect-", "object-", "transition-", "duration-", "inline-",
+    "after:", "rtl:", "motion-reduce:",
     // Modifiers
     "dark:", "sm:", "md:", "lg:", "xl:", "2xl:",
     "hover:", "focus:", "focus-visible:", "focus-within:",
@@ -107,6 +109,8 @@ const alwaysInclude = [
   "sm:w-80", "sm:w-[420px]", "sm:w-[500px]", "sm:w-[640px]", "w-full",
   "sm:max-w-sm", "sm:items-end", "sm:p-6",
   "border-l-4",
+  "-mx-1", "[scrollbar-width:thin]", "after:content-['']", "w-[85%]",
+  "sm:w-[calc((100%-1rem)/2.3)]", "lg:w-[calc((100%-3rem)/3.4)]",
 ];
 
 for (const c of alwaysInclude) classes.add(c);

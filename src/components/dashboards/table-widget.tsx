@@ -90,7 +90,7 @@ export interface TableWidgetLabels {
   pageSummary?: (from: number, to: number, total: number) => string;
   audioOnly?: string;
   /** Session cards: hero call-to-action, row scroll buttons, row count and the leftover row title. */
-  cardLabels?: Omit<SessionCardLabels, "audioOnly">;
+  cardLabels?: SessionCardLabels;
 }
 
 export interface TableWidgetProps {
@@ -495,7 +495,8 @@ export function TableWidget({
           hero={heroRow ? toCard(heroRow.row, heroRow.index, columns, config.card) : undefined}
           config={config.card}
           clickable={clickable}
-          labels={{ ...labels.cardLabels, audioOnly: labels.audioOnly }}
+          audioOnlyLabel={labels.audioOnly}
+          labels={labels.cardLabels}
           onOpen={onRowClick}
         />
       )}

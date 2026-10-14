@@ -9,6 +9,11 @@ const POSTER_SEEK_SECONDS = 3;
 const POSTER_ROOT_MARGIN = "200px";
 const CARD_GRID_CLASS = "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3";
 const SKELETON_CARD_COUNT = 3;
+const OTHER_ROW_KEY = "\u0000other";
+const ROW_CARD_CLASS =
+  "w-[85%] shrink-0 snap-start sm:w-[calc((100%-1rem)/2.3)] lg:w-[calc((100%-3rem)/3.4)]";
+const ROW_BUTTON_CLASS =
+  "inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-muted focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40";
 
 export interface SessionCardConfig {
   titleColumn?: string;
@@ -35,7 +40,6 @@ export interface SessionCardLabels {
   otherRow?: string;
   /** Count shown beside a row title. Defaults to the bare number. */
   rowCount?: (count: number) => string;
-  audioOnly?: string;
 }
 
 export interface SessionCardData {
@@ -216,8 +220,6 @@ interface SessionCardRow {
   cards: SessionCardData[];
 }
 
-const OTHER_ROW_KEY = "\u0000other";
-
 /** Splits cards into rows by `group`: `order` values first, then by count (ties keep first appearance), blanks last. */
 function groupSessionCards(
   cards: SessionCardData[],
@@ -259,20 +261,16 @@ function prefersReducedMotion(): boolean {
   return typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 }
 
-const ROW_CARD_CLASS =
-  "w-[85%] shrink-0 snap-start sm:w-[calc((100%-1rem)/2.3)] lg:w-[calc((100%-3rem)/3.4)]";
-const ROW_BUTTON_CLASS =
-  "inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-muted focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40";
-
 interface SessionCardRowViewProps {
   row: SessionCardRow;
   showDuration: boolean;
   clickable: boolean;
   labels?: SessionCardLabels;
+  audioOnlyLabel?: string;
   onOpen?: (mediaId: string) => void;
 }
 
-function SessionCardRowView({ row, showDuration, clickable, labels, onOpen }: SessionCardRowViewProps) {
+function SessionCardRowView({ row, showDuration, clickable, labels, audioOnlyLabel, onOpen }: SessionCardRowViewProps) {
   const titleId = useId();
   const scroller = useRef<HTMLDivElement | null>(null);
   const [canPrev, setCanPrev] = useState(false);
@@ -350,7 +348,7 @@ function SessionCardRowView({ row, showDuration, clickable, labels, onOpen }: Se
               card={card}
               showDuration={showDuration}
               clickable={clickable}
-              audioOnlyLabel={labels?.audioOnly}
+              audioOnlyLabel={audioOnlyLabel}
               onOpen={onOpen}
             />
           </div>
@@ -365,10 +363,11 @@ interface SessionHeroProps {
   showDuration: boolean;
   clickable: boolean;
   labels?: SessionCardLabels;
+  audioOnlyLabel?: string;
   onOpen?: (mediaId: string) => void;
 }
 
-function SessionHero({ card, showDuration, clickable, labels, onOpen }: SessionHeroProps) {
+function SessionHero({ card, showDuration, clickable, labels, audioOnlyLabel, onOpen }: SessionHeroProps) {
   const mediaId = clickable ? card.mediaId : undefined;
   const [kicker, ...subtitles] = card.subtitles;
   const [detail] = card.details;
@@ -381,7 +380,7 @@ function SessionHero({ card, showDuration, clickable, labels, onOpen }: SessionH
         card={card}
         showDuration={showDuration}
         clickable={!!mediaId}
-        audioOnlyLabel={labels?.audioOnly}
+        audioOnlyLabel={audioOnlyLabel}
         hidePlayGlyph
         className="aspect-video md:aspect-[21/9]"
       />
@@ -436,15 +435,14 @@ export function SessionCardGrid({
   config,
   clickable,
   audioOnlyLabel,
-  labels: labelsProp,
+  labels,
   hero,
   onOpen,
 }: SessionCardGridProps) {
   const showDuration = config?.showDuration !== false;
-  const labels: SessionCardLabels = { ...labelsProp, audioOnly: labelsProp?.audioOnly ?? audioOnlyLabel };
   // Without a resolvable row column the rows layout would be one "Other" row, so fall back to the grid.
   const asRows = config?.layout === "rows" && cards.some((card) => card.group?.trim());
-  const rows = asRows ? groupSessionCards(cards, config?.rowOrder, labels.otherRow) : [];
+  const rows = asRows ? groupSessionCards(cards, config?.rowOrder, labels?.otherRow) : [];
   return (
     <div className="flex min-w-0 flex-col gap-6">
       {hero ? (
@@ -453,6 +451,7 @@ export function SessionCardGrid({
           showDuration={showDuration}
           clickable={clickable}
           labels={labels}
+          audioOnlyLabel={audioOnlyLabel}
           onOpen={onOpen}
         />
       ) : null}
@@ -464,6 +463,7 @@ export function SessionCardGrid({
             showDuration={showDuration}
             clickable={clickable}
             labels={labels}
+            audioOnlyLabel={audioOnlyLabel}
             onOpen={onOpen}
           />
         ))
@@ -475,7 +475,7 @@ export function SessionCardGrid({
               card={card}
               showDuration={showDuration}
               clickable={clickable}
-              audioOnlyLabel={labels?.audioOnly}
+              audioOnlyLabel={audioOnlyLabel}
               onOpen={onOpen}
             />
           ))}

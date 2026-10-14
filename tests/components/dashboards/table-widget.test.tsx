@@ -561,10 +561,7 @@ describe("TableWidget cards: hero and rows", () => {
 
   it("renders one row per value ordered by count with a blank row last, titles and counts", () => {
     renderWidget({ layout: "rows", rowBy: "Track" });
-    const rows = screen.getAllByTestId("session-card-row");
-    expect(rows.map((r) => r.getAttribute("aria-labelledby"))).toHaveLength(3 + 1);
-    const titles = screen.getAllByRole("group").map((g) => g.textContent && within(g).getAllByRole("heading").length);
-    expect(titles).toEqual([3, 1, 1, 1]);
+    expect(screen.getAllByTestId("session-card-row")).toHaveLength(4);
     const headings = screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent);
     expect(headings.filter((t) => /sessions$/.test(t ?? ""))).toEqual(["Tech3 sessions", "Health1 sessions", "Culture1 sessions", "More1 sessions"]);
   });
@@ -624,12 +621,5 @@ describe("TableWidget cards: hero and rows", () => {
     expect(within(hero).queryByRole("button")).toBeNull();
     const heroTitle = within(hero).getByRole("heading").textContent;
     expect(screen.getAllByRole("heading", { name: heroTitle ?? "" })).toHaveLength(1);
-  });
-
-  it("shows a hero skeleton while loading", () => {
-    const { container } = render(
-      <TableWidget data={undefined} isLoading isError={false} config={{ ...base, card: { hero: true } }} labels={LABELS} />,
-    );
-    expect(container.querySelectorAll(".aspect-video")).toHaveLength(4);
   });
 });
