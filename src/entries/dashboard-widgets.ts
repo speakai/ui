@@ -63,7 +63,7 @@ export {
   type TableWidgetRow,
   type TableWidgetColumn,
 } from "../components/dashboards/table-widget";
-export { type SessionCardConfig } from "../components/dashboards/session-cards";
+export { type SessionCardConfig, type SessionCardLabels } from "../components/dashboards/session-cards";
 export {
   NarrativeWidget,
   type NarrativeWidgetProps,

@@ -511,3 +511,118 @@ describe("TableWidget cards", () => {
     vi.unstubAllGlobals();
   });
 });
+
+describe("TableWidget cards: hero and rows", () => {
+  const ROW_DATA: TableWidgetData = {
+    columns: [{ header: "Track" }, { header: "Speaker" }, { header: "Room" }],
+    rows: [
+      { name: "Session A", mediaId: "a", mediaType: "video", mediaUrl: "https://media.example/a.mp4", durationSec: 60, cells: ["Health", "Ada", "Hall 1"] },
+      { name: "Session B", mediaId: "b", mediaType: "video", cells: ["Tech", "Grace", "Hall 2"] },
+      { name: "Session C", mediaId: "c", mediaType: "video", cells: ["Tech", "Linus", "Hall 2"] },
+      { name: "Session D", mediaId: "d", mediaType: "video", cells: ["Tech", "Ada", "Hall 3"] },
+      { name: "Session E", mediaId: "e", mediaType: "video", cells: ["Culture", "Grace", "Hall 3"] },
+      { name: "Session F", mediaId: "f", mediaType: "video", cells: [null, "Ada", "Hall 3"] },
+    ],
+    total: 6,
+  };
+  const LABELS_X = {
+    ...LABELS,
+    cardLabels: { play: "Watch", otherRow: "More", rowCount: (n: number) => `${n} sessions` },
+  };
+  const base = {
+    display: "cards" as const,
+    rowClick: "openMedia" as const,
+    card: { subtitleColumns: ["Track", "Speaker"], detailColumns: ["Room"] },
+  };
+  const renderWidget = (card: Record<string, unknown>, extra: Record<string, unknown> = {}, onRowClick = vi.fn()) =>
+    render(
+      <TableWidget
+        data={ROW_DATA}
+        isLoading={false}
+        isError={false}
+        config={{ ...base, ...extra, card: { ...base.card, ...card } }}
+        labels={LABELS_X}
+        onRowClick={onRowClick}
+      />,
+    );
+
+  it("keeps the plain grid when layout is grid or unset and no row column is given", () => {
+    renderWidget({ layout: "rows" });
+    expect(screen.queryAllByTestId("session-card-row")).toHaveLength(0);
+    expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(6);
+  });
+
+  it("renders one row per value ordered by count with a blank row last, titles and counts", () => {
+    renderWidget({ layout: "rows", rowBy: "Track" });
+    const rows = screen.getAllByTestId("session-card-row");
+    expect(rows.map((r) => r.getAttribute("aria-labelledby"))).toHaveLength(3 + 1);
+    const titles = screen.getAllByRole("group").map((g) => g.textContent && within(g).getAllByRole("heading").length);
+    expect(titles).toEqual([3, 1, 1, 1]);
+    const headings = screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent);
+    expect(headings.filter((t) => /sessions$/.test(t ?? ""))).toEqual(["Tech3 sessions", "Health1 sessions", "Culture1 sessions", "More1 sessions"]);
+  });
+
+  it("puts rowOrder values first, then the rest by count", () => {
+    renderWidget({ layout: "rows", rowBy: "Track", rowOrder: ["Culture", "Missing", "Health"] });
+    const headings = screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent);
+    expect(headings.filter((t) => /sessions$/.test(t ?? ""))).toEqual(["Culture1 sessions", "Health1 sessions", "Tech3 sessions", "More1 sessions"]);
+  });
+
+  it("shows every record in rows without a pager and opens the media on click", async () => {
+    const onRowClick = vi.fn();
+    renderWidget({ layout: "rows", rowBy: "Track" }, { pageSize: 2 }, onRowClick);
+    expect(screen.queryByLabelText("Next page")).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: "Session E" }));
+    expect(onRowClick).toHaveBeenCalledWith("e");
+  });
+
+  it("scrolls a row with the prev and next buttons", async () => {
+    const scrollBy = vi.fn();
+    Object.defineProperty(HTMLElement.prototype, "scrollBy", { configurable: true, value: scrollBy });
+    Object.defineProperty(HTMLElement.prototype, "clientWidth", { configurable: true, value: 400 });
+    Object.defineProperty(HTMLElement.prototype, "scrollWidth", { configurable: true, value: 1600 });
+    try {
+      renderWidget({ layout: "rows", rowBy: "Track" });
+      const next = screen.getByRole("button", { name: "Scroll right: Tech" });
+      const prev = screen.getByRole("button", { name: "Scroll left: Tech" });
+      expect(prev).toBeDisabled();
+      expect(next).toBeEnabled();
+      await userEvent.click(next);
+      expect(scrollBy).toHaveBeenCalledWith(expect.objectContaining({ left: 360 }));
+    } finally {
+      delete (HTMLElement.prototype as unknown as Record<string, unknown>).scrollBy;
+      delete (HTMLElement.prototype as unknown as Record<string, unknown>).clientWidth;
+      delete (HTMLElement.prototype as unknown as Record<string, unknown>).scrollWidth;
+    }
+  });
+
+  it("renders the first record as a hero with a Play button that opens it, and leaves it out of the grid", async () => {
+    const onRowClick = vi.fn();
+    renderWidget({ hero: true }, {}, onRowClick);
+    const hero = screen.getByTestId("session-card-hero");
+    expect(within(hero).getByRole("heading", { name: "Session A" })).toBeInTheDocument();
+    expect(within(hero).getByText("Health")).toBeInTheDocument();
+    expect(screen.getAllByRole("heading", { name: "Session A" })).toHaveLength(1);
+    expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(6);
+    await userEvent.click(within(hero).getByRole("button", { name: /Watch/ }));
+    expect(onRowClick).toHaveBeenCalledWith("a");
+  });
+
+  it("follows the sort for the hero, drops it from rows, and has no Play button when row click is off", () => {
+    renderWidget(
+      { hero: true, layout: "rows", rowBy: "Track" },
+      { rowClick: "none", sort: { column: "Room", dir: "desc" } },
+    );
+    const hero = screen.getByTestId("session-card-hero");
+    expect(within(hero).queryByRole("button")).toBeNull();
+    const heroTitle = within(hero).getByRole("heading").textContent;
+    expect(screen.getAllByRole("heading", { name: heroTitle ?? "" })).toHaveLength(1);
+  });
+
+  it("shows a hero skeleton while loading", () => {
+    const { container } = render(
+      <TableWidget data={undefined} isLoading isError={false} config={{ ...base, card: { hero: true } }} labels={LABELS} />,
+    );
+    expect(container.querySelectorAll(".aspect-video")).toHaveLength(4);
+  });
+});

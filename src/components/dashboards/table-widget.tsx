@@ -31,6 +31,7 @@ import {
   SessionCardGridSkeleton,
   type SessionCardConfig,
   type SessionCardData,
+  type SessionCardLabels,
 } from "./session-cards";
 
 // ── Data contract ────────────────────────────────────────────────────────────
@@ -88,6 +89,8 @@ export interface TableWidgetLabels {
   /** Pager: range summary. Defaults to "{from}–{to} of {total}". */
   pageSummary?: (from: number, to: number, total: number) => string;
   audioOnly?: string;
+  /** Session cards: hero call-to-action, row scroll buttons, row count and the leftover row title. */
+  cardLabels?: Omit<SessionCardLabels, "audioOnly">;
 }
 
 export interface TableWidgetProps {
@@ -160,6 +163,7 @@ function toCard(
 
   return {
     key: row.mediaId ?? `${row.name ?? ""}-${index}`,
+    group: card?.rowBy ? (lineFor(card.rowBy) ?? undefined) : undefined,
     mediaId: row.mediaId,
     mediaType: row.mediaType,
     mediaUrl: row.mediaUrl,
@@ -426,10 +430,12 @@ export function TableWidget({
     () => visibleRows.slice(currentPage * pageSize, (currentPage + 1) * pageSize),
     [visibleRows, currentPage, pageSize],
   );
-  const showPager = visibleRows.length > Math.min(pageSize, PAGE_SIZE_OPTIONS[0]);
+  // Rows show every record in a scroller, so paging only applies to the grid.
+  const asRows = config.display === "cards" && config.card?.layout === "rows";
+  const showPager = !asRows && visibleRows.length > Math.min(pageSize, PAGE_SIZE_OPTIONS[0]);
 
   if (isLoading) {
-    if (config.display === "cards") return <SessionCardGridSkeleton />;
+    if (config.display === "cards") return <SessionCardGridSkeleton hero={config.card?.hero} />;
     return <div className="h-80 w-full animate-pulse rounded-xl bg-muted" aria-hidden="true" />;
   }
 
@@ -458,6 +464,12 @@ export function TableWidget({
 
   const columnCount = columns.length + (hasNameColumn ? 1 : 0);
   const asCards = config.display === "cards";
+  // The hero is the first record after sort and search; later pages of the grid have none.
+  const cardSource = asRows
+    ? visibleRows.map((row, index) => ({ row, index }))
+    : pagedRows.map((row, i) => ({ row, index: currentPage * pageSize + i }));
+  const heroRow = asCards && config.card?.hero && cardSource[0]?.index === 0 ? cardSource[0] : undefined;
+  const cardRows = heroRow ? cardSource.slice(1) : cardSource;
 
   return (
     <div className="flex w-full flex-col gap-3">
@@ -474,10 +486,11 @@ export function TableWidget({
       {asCards && visibleRows.length === 0 && emptyState}
       {asCards && visibleRows.length > 0 && (
         <SessionCardGrid
-          cards={pagedRows.map((row, i) => toCard(row, currentPage * pageSize + i, columns, config.card))}
+          cards={cardRows.map(({ row, index }) => toCard(row, index, columns, config.card))}
+          hero={heroRow ? toCard(heroRow.row, heroRow.index, columns, config.card) : undefined}
           config={config.card}
           clickable={clickable}
-          audioOnlyLabel={labels.audioOnly}
+          labels={{ ...labels.cardLabels, audioOnly: labels.audioOnly }}
           onOpen={onRowClick}
         />
       )}
