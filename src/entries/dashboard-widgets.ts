@@ -63,10 +63,7 @@ export {
   type TableWidgetRow,
   type TableWidgetColumn,
 } from "../components/dashboards/table-widget";
-export {
-  type ResolvePosterUrl,
-  type SessionCardConfig,
-} from "../components/dashboards/session-cards";
+export { type SessionCardConfig } from "../components/dashboards/session-cards";
 export {
   NarrativeWidget,
   type NarrativeWidgetProps,

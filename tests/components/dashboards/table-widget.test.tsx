@@ -415,7 +415,14 @@ describe("TableWidget cards", () => {
   const CARD_DATA: TableWidgetData = {
     columns: [{ header: "Speaker" }, { header: "Room" }],
     rows: [
-      { name: "Opening keynote", mediaId: "m1", mediaType: "video", durationSec: 3725, cells: ["Ada", "Hall A"] },
+      {
+        name: "Opening keynote",
+        mediaId: "m1",
+        mediaType: "video",
+        mediaUrl: "https://media.example/m1.mp4",
+        durationSec: 3725,
+        cells: ["Ada", "Hall A"],
+      },
       { name: "Podcast live", mediaId: "m2", mediaType: "audio", cells: ["Grace", "Hall B"] },
     ],
     total: 2,
@@ -448,18 +455,22 @@ describe("TableWidget cards", () => {
     expect(onRowClick).toHaveBeenCalledWith("m1");
   });
 
-  it("renders plain cards when row click is off", () => {
+  it("renders plain cards when row click is off and the shared empty state when search matches nothing", async () => {
     render(
       <TableWidget
         data={CARD_DATA}
         isLoading={false}
         isError={false}
-        config={{ ...cardConfig, rowClick: "none" }}
+        config={{ ...cardConfig, rowClick: "none", searchable: true }}
         labels={LABELS}
       />,
     );
     expect(screen.getByRole("heading", { name: "Opening keynote" })).toBeInTheDocument();
     expect(screen.queryByRole("button")).toBeNull();
+
+    await userEvent.type(screen.getByRole("searchbox"), "zzz");
+    expect(screen.getByText("No rows")).toBeInTheDocument();
+    expect(screen.getByText("Nothing matched.")).toBeInTheDocument();
   });
 
   it("loads the poster only once in view, skips audio, and falls back when the video fails", async () => {
@@ -474,23 +485,13 @@ describe("TableWidget cards", () => {
         disconnect() {}
       },
     );
-    const resolvePosterUrl = vi.fn().mockResolvedValue("https://media.example/m1.mp4");
     const { container } = render(
-      <TableWidget
-        data={CARD_DATA}
-        isLoading={false}
-        isError={false}
-        config={cardConfig}
-        labels={LABELS}
-        resolvePosterUrl={resolvePosterUrl}
-      />,
+      <TableWidget data={CARD_DATA} isLoading={false} isError={false} config={cardConfig} labels={LABELS} />,
     );
-    expect(resolvePosterUrl).not.toHaveBeenCalled();
+    expect(container.querySelector("video")).toBeNull();
 
     act(() => observers.forEach((cb) => cb([{ isIntersecting: true }])));
-    await waitFor(() => expect(container.querySelector("video")).not.toBeNull());
-    expect(resolvePosterUrl).toHaveBeenCalledTimes(1);
-    expect(resolvePosterUrl).toHaveBeenCalledWith("m1");
+    expect(container.querySelectorAll("video")).toHaveLength(1);
     expect(screen.getByText("Audio")).toBeInTheDocument();
 
     const video = container.querySelector("video") as HTMLVideoElement;

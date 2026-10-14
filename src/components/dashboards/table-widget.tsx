@@ -28,7 +28,6 @@ import {
 import { formatCount, formatDurationHuman } from "./format";
 import {
   SessionCardGrid,
-  type ResolvePosterUrl,
   type SessionCardConfig,
   type SessionCardData,
 } from "./session-cards";
@@ -46,6 +45,7 @@ export interface TableWidgetRow {
   mediaId?: string;
   durationSec?: number;
   mediaType?: "video" | "audio";
+  mediaUrl?: string;
   cells: (string | number | null)[];
 }
 
@@ -99,7 +99,6 @@ export interface TableWidgetProps {
   /** Group rows (rowsAre: "groups") become clickable and report the group's value, e.g. an Account ID. */
   onGroupRowClick?: (groupName: string) => void;
   onRetry?: () => void;
-  resolvePosterUrl?: ResolvePosterUrl;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -162,6 +161,7 @@ function toCard(
     key: `${row.mediaId ?? row.name ?? ""}-${index}`,
     mediaId: row.mediaId,
     mediaType: row.mediaType,
+    mediaUrl: row.mediaUrl,
     durationSec: row.durationSec,
     title: configuredTitle ?? row.name ?? cardLine(row.cells[0], columns[0]?.format) ?? "—",
     subtitles: linesFor(card?.subtitleColumns),
@@ -354,7 +354,6 @@ export function TableWidget({
   onRowClick,
   onGroupRowClick,
   onRetry,
-  resolvePosterUrl,
 }: TableWidgetProps) {
   const columns = data?.columns ?? [];
 
@@ -441,15 +440,15 @@ export function TableWidget({
     );
   }
 
-  if (!data || rows.length === 0) {
-    return (
-      <WidgetEmpty
-        icon={<BarChart3Icon className="h-10 w-10" />}
-        title={labels.empty}
-        description={labels.emptyDescription}
-      />
-    );
-  }
+  const emptyState = (
+    <WidgetEmpty
+      icon={<BarChart3Icon className="h-10 w-10" />}
+      title={labels.empty}
+      description={labels.emptyDescription}
+    />
+  );
+
+  if (!data || rows.length === 0) return emptyState;
 
   const handleSort = (key: string, direction: SortDirection) => {
     setUserSort({ key: direction ? key : null, dir: direction });
@@ -470,15 +469,12 @@ export function TableWidget({
           className="h-9 w-full max-w-xs rounded-lg border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
         />
       )}
-      {asCards && visibleRows.length === 0 && (
-        <p className="py-8 text-center text-sm text-muted-foreground">{labels.empty}</p>
-      )}
+      {asCards && visibleRows.length === 0 && emptyState}
       {asCards && visibleRows.length > 0 && (
         <SessionCardGrid
           cards={pagedRows.map((row, i) => toCard(row, currentPage * pageSize + i, columns, config.card))}
           config={config.card}
           clickable={clickable}
-          resolvePosterUrl={resolvePosterUrl}
           audioOnlyLabel={labels.audioOnly}
           onOpen={onRowClick}
         />

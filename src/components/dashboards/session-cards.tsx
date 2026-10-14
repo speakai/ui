@@ -13,12 +13,11 @@ export interface SessionCardConfig {
   showDuration?: boolean;
 }
 
-export type ResolvePosterUrl = (mediaId: string) => Promise<string | null | undefined>;
-
 export interface SessionCardData {
   key: string;
   mediaId?: string;
   mediaType?: "video" | "audio";
+  mediaUrl?: string;
   durationSec?: number;
   title: string;
   subtitles: string[];
@@ -52,40 +51,22 @@ function useNearViewport() {
 interface SessionPosterProps {
   card: SessionCardData;
   showDuration: boolean;
-  resolvePosterUrl?: ResolvePosterUrl;
   audioOnlyLabel?: string;
 }
 
-function SessionPoster({ card, showDuration, resolvePosterUrl, audioOnlyLabel }: SessionPosterProps) {
+function SessionPoster({ card, showDuration, audioOnlyLabel }: SessionPosterProps) {
   const { ref, near } = useNearViewport();
-  const [url, setUrl] = useState<string | null>(null);
   const [frameReady, setFrameReady] = useState(false);
   const [failed, setFailed] = useState(false);
-  const { mediaId, durationSec } = card;
+  const { mediaUrl, durationSec } = card;
   const isAudio = card.mediaType === "audio";
-
-  useEffect(() => {
-    if (!near || isAudio || !mediaId || !resolvePosterUrl) return;
-    let cancelled = false;
-    resolvePosterUrl(mediaId)
-      .then((resolved) => {
-        if (cancelled) return;
-        if (resolved) setUrl(resolved);
-        else setFailed(true);
-      })
-      .catch(() => {
-        if (!cancelled) setFailed(true);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [near, isAudio, mediaId, resolvePosterUrl]);
+  const showVideo = near && !isAudio && !!mediaUrl && !failed;
 
   return (
     <div ref={ref} className="relative aspect-video w-full overflow-hidden rounded-t-xl bg-muted">
-      {url && !failed ? (
+      {showVideo ? (
         <video
-          src={`${url}#t=${POSTER_SEEK_SECONDS}`}
+          src={`${mediaUrl}#t=${POSTER_SEEK_SECONDS}`}
           preload="metadata"
           muted
           playsInline
@@ -124,12 +105,11 @@ interface SessionCardProps {
   card: SessionCardData;
   showDuration: boolean;
   clickable: boolean;
-  resolvePosterUrl?: ResolvePosterUrl;
   audioOnlyLabel?: string;
   onOpen?: (mediaId: string) => void;
 }
 
-function SessionCard({ card, showDuration, clickable, resolvePosterUrl, audioOnlyLabel, onOpen }: SessionCardProps) {
+function SessionCard({ card, showDuration, clickable, audioOnlyLabel, onOpen }: SessionCardProps) {
   const mediaId = clickable ? card.mediaId : undefined;
   return (
     <article
@@ -138,12 +118,7 @@ function SessionCard({ card, showDuration, clickable, resolvePosterUrl, audioOnl
         mediaId && "transition-shadow hover:shadow-md",
       )}
     >
-      <SessionPoster
-        card={card}
-        showDuration={showDuration}
-        resolvePosterUrl={resolvePosterUrl}
-        audioOnlyLabel={audioOnlyLabel}
-      />
+      <SessionPoster card={card} showDuration={showDuration} audioOnlyLabel={audioOnlyLabel} />
       <div className="flex flex-1 flex-col gap-1 p-3 text-left">
         <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">{card.title}</h3>
         {card.subtitles.map((line, i) => (
@@ -173,7 +148,6 @@ interface SessionCardGridProps {
   cards: SessionCardData[];
   config?: SessionCardConfig;
   clickable: boolean;
-  resolvePosterUrl?: ResolvePosterUrl;
   audioOnlyLabel?: string;
   onOpen?: (mediaId: string) => void;
 }
@@ -182,7 +156,6 @@ export function SessionCardGrid({
   cards,
   config,
   clickable,
-  resolvePosterUrl,
   audioOnlyLabel,
   onOpen,
 }: SessionCardGridProps) {
@@ -195,7 +168,6 @@ export function SessionCardGrid({
           card={card}
           showDuration={showDuration}
           clickable={clickable}
-          resolvePosterUrl={resolvePosterUrl}
           audioOnlyLabel={audioOnlyLabel}
           onOpen={onOpen}
         />
