@@ -446,7 +446,6 @@ export function TableWidget({
     [visibleRows, currentPage, pageSize],
   );
   const rowByIndex = config.card?.rowBy ? columns.findIndex((column) => column.header === config.card?.rowBy) : -1;
-  // With no row value to group by, rows would be one "Other" row, so the paged grid is used instead.
   const asRows =
     config.display === "cards" &&
     config.card?.layout === "rows" &&
@@ -484,7 +483,6 @@ export function TableWidget({
 
   const columnCount = columns.length + (hasNameColumn ? 1 : 0);
   const asCards = config.display === "cards";
-  // The hero is the first record after sort and search; later pages of the grid have none.
   const cardSource = asRows
     ? visibleRows.map((row, index) => ({ row, index }))
     : pagedRows.map((row, i) => ({ row, index: currentPage * pageSize + i }));
@@ -579,7 +577,12 @@ export function TableWidget({
                     }
                   >
                     {hasNameColumn && (
-                      <TableCell className="min-w-40 align-top font-medium text-foreground">
+                      <TableCell
+                        className={cn(
+                          rowAvatar ? "min-w-40" : "whitespace-nowrap",
+                          "align-top font-medium text-foreground",
+                        )}
+                      >
                         {rowAvatar && !row.mediaId && row.name != null ? (
                           <span className="flex max-w-xs items-center gap-2">
                             <Avatar
@@ -596,10 +599,12 @@ export function TableWidget({
                               {row.name}
                             </span>
                           </span>
-                        ) : (
+                        ) : rowAvatar ? (
                           <span className="line-clamp-3 max-w-xs break-words" title={row.name ?? undefined}>
                             {row.name ?? "—"}
                           </span>
+                        ) : (
+                          (row.name ?? "—")
                         )}
                       </TableCell>
                     )}

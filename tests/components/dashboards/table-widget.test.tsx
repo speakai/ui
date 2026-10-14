@@ -56,7 +56,9 @@ describe("TableWidget", () => {
     expect(screen.getByText("Name")).toBeInTheDocument();
     expect(screen.getByText("Score")).toBeInTheDocument();
     expect(screen.getByText("Duration")).toBeInTheDocument();
-    expect(screen.getByText("Alpha")).toBeInTheDocument();
+    expect(screen.getByText("Alpha")).toHaveClass("whitespace-nowrap");
+    expect(screen.getByText("Alpha")).not.toHaveClass("min-w-40");
+    expect(document.querySelector(".line-clamp-3")).toBeNull();
     // duration column formats 3700s → "1h 1m"
     expect(screen.getByText("1h 1m")).toBeInTheDocument();
     expect(screen.getByText("3 items total")).toBeInTheDocument();

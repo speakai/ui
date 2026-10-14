@@ -20,7 +20,6 @@ const ROW_BUTTON_CLASS =
 const MAX_CONCURRENT_FRAME_LOADS = 2;
 const FRAME_SLOT_TIMEOUT_MS = 8000;
 
-// Source videos are huge; loading every card's frame at once stalls phones.
 let activeFrameLoads = 0;
 const frameLoadWaiters: Array<() => void> = [];
 
@@ -214,7 +213,6 @@ function SessionPoster({
         <div
           className={cn(
             "absolute inset-0 flex text-white/80",
-            // With a play button centred, the monogram moves to the corner so the two never overlap.
             initials && !isAudio && showPlayButton ? "items-end justify-start p-3" : "items-center justify-center",
           )}
         >
@@ -384,7 +382,6 @@ function SessionCardRowView({ row, showDuration, clickable, labels, audioOnlyLab
   const measure = useCallback(() => {
     const node = scroller.current;
     if (!node) return;
-    // Scroll offsets go negative in right-to-left layouts, so compare magnitudes.
     const offset = Math.abs(node.scrollLeft);
     setCanPrev(offset > 1);
     setCanNext(offset + node.clientWidth < node.scrollWidth - 1);
