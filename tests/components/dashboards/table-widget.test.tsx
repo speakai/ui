@@ -433,7 +433,7 @@ describe("TableWidget cards", () => {
     card: { subtitleColumns: ["Track", "Speaker"], detailColumns: ["Room"] },
   };
 
-  const PLAY_OVERLAY = ".rounded-full.bg-black\\/70";
+  const PLAY_OVERLAY = ".rounded-full.bg-primary";
 
   it("shows a card skeleton grid while loading, then a card per row with a topic chip and play overlay that opens the media on click", async () => {
     const onRowClick = vi.fn();
@@ -454,7 +454,7 @@ describe("TableWidget cards", () => {
     );
     expect(container.querySelector("table")).toBeNull();
     expect(screen.getByRole("heading", { name: "Opening keynote" })).toBeInTheDocument();
-    expect(screen.getByText("Health").closest(".bg-muted")).not.toBeNull();
+    expect(screen.getByText("Health").closest(".bg-primary\\/10")).not.toBeNull();
     expect(screen.getByText("Ada").tagName).toBe("P");
     expect(screen.getByText("Hall A")).toBeInTheDocument();
     expect(screen.getByText("1:02:05")).toBeInTheDocument();

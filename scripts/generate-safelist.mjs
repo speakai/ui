@@ -91,7 +91,7 @@ function isLikelyTailwindClass(token) {
     // Modifiers
     "dark:", "sm:", "md:", "lg:", "xl:", "2xl:",
     "hover:", "focus:", "focus-visible:", "focus-within:",
-    "active:", "disabled:", "group-hover:", "peer-",
+    "active:", "disabled:", "group-hover:", "group-focus-within:", "motion-reduce:", "peer-",
     "first:", "last:", "odd:", "even:", "placeholder:",
   ];
 
