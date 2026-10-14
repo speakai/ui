@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { cn } from "../../utils/cn";
+import { Avatar } from "../Avatar";
 import { Badge } from "../Badge";
 import { Skeleton } from "../Skeleton";
 import { formatClockDuration } from "./format";
@@ -28,6 +29,7 @@ export interface SessionCardConfig {
   rowOrder?: string[];
   /** Render the first record as a wide hero banner above the grid or rows. */
   hero?: boolean;
+  avatarColumn?: string;
 }
 
 export interface SessionCardLabels {
@@ -53,6 +55,9 @@ export interface SessionCardData {
   title: string;
   subtitles: string[];
   details: string[];
+  avatarSrc?: string;
+  /** Display name behind `avatarSrc`, used for the initials fallback and alt text. */
+  avatarName?: string;
 }
 
 function useNearViewport() {
@@ -185,10 +190,25 @@ function SessionCard({ card, showDuration, clickable, audioOnlyLabel, onOpen }: 
         audioOnlyLabel={audioOnlyLabel}
       />
       <div className="flex flex-1 flex-col gap-1 p-3 text-start">
-        {topic ? (
-          <Badge color="gray" size="sm" role={undefined} className="mb-1 max-w-full self-start rounded-md">
-            <span className="line-clamp-1">{topic}</span>
-          </Badge>
+        {topic || card.avatarSrc ? (
+          <div className="mb-1 flex max-w-full items-center gap-2 self-start">
+            {card.avatarSrc ? (
+              <Avatar
+                name={card.avatarName ?? card.title}
+                src={card.avatarSrc}
+                size="sm"
+                variant="circle"
+                className="h-6 w-6 text-[10px]"
+                imgReferrerPolicy="no-referrer"
+                imgLoading="lazy"
+              />
+            ) : null}
+            {topic ? (
+              <Badge color="gray" size="sm" role={undefined} className="max-w-full rounded-md">
+                <span className="line-clamp-1">{topic}</span>
+              </Badge>
+            ) : null}
+          </div>
         ) : null}
         <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">{card.title}</h3>
         {subtitles.map((line, i) => (

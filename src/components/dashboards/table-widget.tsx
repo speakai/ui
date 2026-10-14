@@ -17,6 +17,7 @@ import {
   TableEmpty,
   type SortDirection,
 } from "../Table";
+import { Avatar } from "../Avatar";
 import { Popover } from "../Popover";
 import { WidgetError, WidgetEmpty } from "./widget-states";
 import { BarChart3Icon } from "./icons";
@@ -102,6 +103,10 @@ export interface TableWidgetProps {
   onRowClick?: (mediaId: string) => void;
   /** Group rows (rowsAre: "groups") become clickable and report the group's value, e.g. an Account ID. */
   onGroupRowClick?: (groupName: string) => void;
+  /** Photo URL for a group row's name (e.g. a speaker). When provided, group rows show an avatar, with initials when this returns undefined. */
+  rowAvatar?: (rowName: string) => string | undefined;
+  /** Photo URL for a card, resolved from the value in the card config's `avatarColumn`. */
+  cardAvatar?: (value: string) => string | undefined;
   onRetry?: () => void;
 }
 
@@ -149,6 +154,7 @@ function toCard(
   index: number,
   columns: TableWidgetColumn[],
   card: SessionCardConfig | undefined,
+  cardAvatar?: (value: string) => string | undefined,
 ): SessionCardData {
   const lineFor = (header: string): string | null => {
     const col = columns.findIndex((c) => c.header === header);
@@ -161,6 +167,9 @@ function toCard(
   // Without a card config the first two columns become the detail lines.
   const detailHeaders = card ? card.detailColumns : columns.slice(0, 2).map((c) => c.header);
 
+  const avatarName = card?.avatarColumn && cardAvatar ? lineFor(card.avatarColumn) : null;
+  const avatarSrc = avatarName ? cardAvatar?.(avatarName) : undefined;
+
   return {
     key: row.mediaId ?? `${row.name ?? ""}-${index}`,
     group: card?.rowBy ? (lineFor(card.rowBy) ?? undefined) : undefined,
@@ -171,6 +180,7 @@ function toCard(
     title: configuredTitle ?? row.name ?? cardLine(row.cells[0], columns[0]?.format) ?? "—",
     subtitles: linesFor(card?.subtitleColumns),
     details: linesFor(detailHeaders),
+    ...(avatarSrc && avatarName ? { avatarSrc, avatarName } : {}),
   };
 }
 
@@ -358,6 +368,8 @@ export function TableWidget({
   labels,
   onRowClick,
   onGroupRowClick,
+  rowAvatar,
+  cardAvatar,
   onRetry,
 }: TableWidgetProps) {
   const columns = data?.columns ?? [];
@@ -491,8 +503,8 @@ export function TableWidget({
       {asCards && visibleRows.length === 0 && emptyState}
       {asCards && visibleRows.length > 0 && (
         <SessionCardGrid
-          cards={cardRows.map(({ row, index }) => toCard(row, index, columns, config.card))}
-          hero={heroRow ? toCard(heroRow.row, heroRow.index, columns, config.card) : undefined}
+          cards={cardRows.map(({ row, index }) => toCard(row, index, columns, config.card, cardAvatar))}
+          hero={heroRow ? toCard(heroRow.row, heroRow.index, columns, config.card, cardAvatar) : undefined}
           config={config.card}
           clickable={clickable}
           audioOnlyLabel={labels.audioOnly}
@@ -563,13 +575,28 @@ export function TableWidget({
                     }
                   >
                     {hasNameColumn && (
-                      <TableCell className="min-w-40 max-w-xs align-top font-medium text-foreground">
-                        <span
-                          className="line-clamp-3 break-words"
-                          title={row.name ?? undefined}
-                        >
-                          {row.name ?? "—"}
-                        </span>
+                      <TableCell className="min-w-40 align-top font-medium text-foreground">
+                        {rowAvatar && !row.mediaId && row.name != null ? (
+                          <span className="flex max-w-xs items-center gap-2">
+                            <Avatar
+                              name={row.name}
+                              src={rowAvatar(row.name)}
+                              size="sm"
+                              variant="circle"
+                              aria-hidden="true"
+                              className="shrink-0"
+                              imgReferrerPolicy="no-referrer"
+                              imgLoading="lazy"
+                            />
+                            <span className="line-clamp-3 min-w-0 break-words" title={row.name}>
+                              {row.name}
+                            </span>
+                          </span>
+                        ) : (
+                          <span className="line-clamp-3 max-w-xs break-words" title={row.name ?? undefined}>
+                            {row.name ?? "—"}
+                          </span>
+                        )}
                       </TableCell>
                     )}
                     {columns.map((column, colIndex) => {

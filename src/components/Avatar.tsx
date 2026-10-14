@@ -9,6 +9,8 @@ export interface AvatarProps extends HTMLAttributes<HTMLDivElement> {
   src?: string;
   size?: AvatarSize;
   variant?: AvatarVariant;
+  imgReferrerPolicy?: ReferrerPolicy;
+  imgLoading?: "lazy" | "eager";
 }
 
 const sizeClasses: Record<AvatarSize, string> = {
@@ -30,7 +32,7 @@ function getInitials(name: string): string {
 }
 
 export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
-  ({ name, src, size = "default", variant = "circle", className, ...props }, ref) => {
+  ({ name, src, size = "default", variant = "circle", imgReferrerPolicy, imgLoading, className, ...props }, ref) => {
     const [imgError, setImgError] = useState(false);
     const showImage = src && !imgError;
 
@@ -51,6 +53,8 @@ export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
           <img
             src={src}
             alt={name}
+            referrerPolicy={imgReferrerPolicy}
+            loading={imgLoading}
             className="h-full w-full object-cover"
             onError={() => setImgError(true)}
           />
