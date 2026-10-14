@@ -544,8 +544,14 @@ export function TableWidget({
                     }
                   >
                     {hasNameColumn && (
-                      <TableCell className="whitespace-nowrap align-top font-medium text-foreground">
-                        {row.name ?? "—"}
+                      <TableCell className="min-w-40 max-w-xs align-top font-medium text-foreground">
+                        <span
+                          className="line-clamp-3 break-words"
+                          title={row.name ?? undefined}
+                          data-testid="table-name-cell"
+                        >
+                          {row.name ?? "—"}
+                        </span>
                       </TableCell>
                     )}
                     {columns.map((column, colIndex) => {

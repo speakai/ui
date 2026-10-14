@@ -62,6 +62,24 @@ describe("TableWidget", () => {
     expect(screen.getByText("3 items total")).toBeInTheDocument();
   });
 
+  it("clamps long names to three wrapped lines and exposes the full name on hover", () => {
+    const longName = "A very long media name ".repeat(8).trim();
+    render(
+      <TableWidget
+        data={{ ...DATA, rows: [{ name: longName, mediaId: "m9", cells: [10, 20] }], total: 1 }}
+        isLoading={false}
+        isError={false}
+        config={{}}
+        labels={LABELS}
+      />,
+    );
+    const cell = screen.getByTestId("table-name-cell");
+    expect(cell).toHaveAttribute("title", longName);
+    expect(cell.className).toContain("line-clamp-3");
+    expect(cell.closest("td")?.className).toContain("max-w-xs");
+    expect(cell.closest("td")?.className).not.toContain("whitespace-nowrap");
+  });
+
   it("omits the name column when no row carries a name", () => {
     render(
       <TableWidget
