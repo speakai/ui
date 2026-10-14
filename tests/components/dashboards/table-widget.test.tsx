@@ -5,6 +5,7 @@ import {
   TableWidget,
   type TableWidgetData,
 } from "../../../src/components/dashboards/table-widget";
+import { getTitleInitials } from "../../../src/components/dashboards/session-cards";
 
 const LABELS = {
   title: "Media table",
@@ -509,5 +510,63 @@ describe("TableWidget cards", () => {
     fireEvent.error(video);
     await waitFor(() => expect(container.querySelector("video")).toBeNull());
     vi.unstubAllGlobals();
+  });
+
+  it("shows title initials, hidden from assistive tech, when a video row has no media url, and none for audio", () => {
+    render(
+      <TableWidget
+        data={{
+          columns: [{ header: "Track" }],
+          rows: [
+            { name: "Quarterly planning review", mediaId: "m1", mediaType: "video", cells: ["Planning"] },
+            { name: "Podcast live", mediaId: "m2", mediaType: "audio", cells: ["Tech"] },
+          ],
+          total: 2,
+        }}
+        isLoading={false}
+        isError={false}
+        config={{ ...cardConfig, card: { subtitleColumns: ["Track"] } }}
+        labels={LABELS}
+      />,
+    );
+    expect(screen.getByText("QP")).toHaveAttribute("aria-hidden", "true");
+    expect(screen.queryByText("PL")).toBeNull();
+    expect(screen.getByText("Audio")).toBeInTheDocument();
+  });
+
+  it("opens a session from the keyboard-focusable button named by the title", async () => {
+    const onRowClick = vi.fn();
+    render(
+      <TableWidget
+        data={CARD_DATA}
+        isLoading={false}
+        isError={false}
+        config={cardConfig}
+        labels={LABELS}
+        onRowClick={onRowClick}
+      />,
+    );
+    const button = screen.getByRole("button", { name: "Opening keynote" });
+    await userEvent.tab();
+    expect(button).toHaveFocus();
+    await userEvent.keyboard("{Enter}");
+    expect(onRowClick).toHaveBeenCalledWith("m1");
+  });
+});
+
+describe("getTitleInitials", () => {
+  it("takes the first letter of the first two words, uppercased", () => {
+    expect(getTitleInitials("quarterly planning review")).toBe("QP");
+  });
+
+  it("handles one word, punctuation, digits and non-latin letters", () => {
+    expect(getTitleInitials("Intro")).toBe("I");
+    expect(getTitleInitials("  -- (draft) 2nd round")).toBe("D2");
+    expect(getTitleInitials("événement été")).toBe("ÉÉ");
+  });
+
+  it("returns empty for a title with no letters or digits", () => {
+    expect(getTitleInitials("— …")).toBe("");
+    expect(getTitleInitials("")).toBe("");
   });
 });
