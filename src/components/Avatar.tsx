@@ -1,5 +1,6 @@
 import { forwardRef, HTMLAttributes, useState } from "react";
 import { cn } from "../utils/cn";
+import { getInitials } from "../utils/initials";
 
 export type AvatarSize = "sm" | "default" | "lg";
 export type AvatarVariant = "circle" | "rounded";
@@ -23,13 +24,6 @@ const variantClasses: Record<AvatarVariant, string> = {
   circle: "rounded-full",
   rounded: "rounded-lg",
 };
-
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? "?";
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
 
 export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
   ({ name, src, size = "default", variant = "circle", imgReferrerPolicy, imgLoading, className, ...props }, ref) => {
@@ -59,7 +53,7 @@ export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
             onError={() => setImgError(true)}
           />
         ) : (
-          <span aria-hidden="true">{getInitials(name)}</span>
+          <span aria-hidden="true">{getInitials(name) || "?"}</span>
         )}
       </div>
     );

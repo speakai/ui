@@ -8,8 +8,9 @@ import * as SpeakUI from "../src/index";
 describe("Package exports", () => {
   // ── Utilities ─────────────────────────────────────────────────────────────
 
-  it("exports cn utility", () => {
+  it("exports cn and getInitials utilities", () => {
     expect(SpeakUI.cn).toBeTypeOf("function");
+    expect(SpeakUI.getInitials).toBeTypeOf("function");
   });
 
   // ── Components ────────────────────────────────────────────────────────────

@@ -1,5 +1,6 @@
 // Utilities
 export { cn } from "./utils/cn";
+export { getInitials } from "./utils/initials";
 
 // Components
 export { Button } from "./components/Button";

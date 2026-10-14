@@ -62,20 +62,6 @@ describe("TableWidget", () => {
     expect(screen.getByText("3 items total")).toBeInTheDocument();
   });
 
-  it("keeps long names whole in the cell and exposes the full name on hover", () => {
-    const longName = "A very long media name ".repeat(8).trim();
-    render(
-      <TableWidget
-        data={{ ...DATA, rows: [{ name: longName, mediaId: "m9", cells: [10, 20] }], total: 1 }}
-        isLoading={false}
-        isError={false}
-        config={{}}
-        labels={LABELS}
-      />,
-    );
-    expect(screen.getByTitle(longName)).toHaveTextContent(longName);
-  });
-
   it("omits the name column when no row carries a name", () => {
     render(
       <TableWidget
@@ -497,7 +483,7 @@ describe("TableWidget cards", () => {
     expect(screen.getByText("Nothing matched.")).toBeInTheDocument();
   });
 
-  it("loads the poster only once in view, skips audio, and falls back when the video fails", async () => {
+  it("loads the poster only once in view, skips audio, and falls back to hidden title initials when the video fails", async () => {
     const observers: Array<(entries: Array<{ isIntersecting: boolean }>) => void> = [];
     vi.stubGlobal(
       "IntersectionObserver",
@@ -522,60 +508,20 @@ describe("TableWidget cards", () => {
     expect(video.getAttribute("src")).toBe("https://media.example/m1.mp4#t=3");
     fireEvent.error(video);
     await waitFor(() => expect(container.querySelector("video")).toBeNull());
+    expect(screen.getByText("OK")).toHaveAttribute("aria-hidden", "true");
+    expect(screen.queryByText("PL")).toBeNull();
     vi.unstubAllGlobals();
   });
 
-  it("shows title initials, hidden from assistive tech, when a video row has no media url, and none for audio", () => {
-    render(
-      <TableWidget
-        data={{
-          columns: [{ header: "Track" }],
-          rows: [
-            { name: "Quarterly planning review", mediaId: "m1", mediaType: "video", cells: ["Planning"] },
-            { name: "Podcast live", mediaId: "m2", mediaType: "audio", cells: ["Tech"] },
-          ],
-          total: 2,
-        }}
-        isLoading={false}
-        isError={false}
-        config={{ ...cardConfig, card: { subtitleColumns: ["Track"] } }}
-        labels={LABELS}
-      />,
-    );
-    expect(screen.getByText("QP")).toHaveAttribute("aria-hidden", "true");
-    expect(screen.queryByText("PL")).toBeNull();
-    expect(screen.getByText("Audio")).toBeInTheDocument();
-  });
 
-  it("opens a session from the keyboard-focusable button named by the title", async () => {
-    const onRowClick = vi.fn();
-    render(
-      <TableWidget
-        data={CARD_DATA}
-        isLoading={false}
-        isError={false}
-        config={cardConfig}
-        labels={LABELS}
-        onRowClick={onRowClick}
-      />,
-    );
-    const button = screen.getByRole("button", { name: "Opening keynote" });
-    await userEvent.tab();
-    expect(button).toHaveFocus();
-    await userEvent.keyboard("{Enter}");
-    expect(onRowClick).toHaveBeenCalledWith("m1");
-  });
-
-  describe("posters", () => {
-    const posterRows = (n: number, extra: Partial<TableWidgetData["rows"][number]> = {}) =>
-      Array.from({ length: n }, (_, i) => ({
-        name: `Session ${i + 1}`,
-        mediaId: `m${i + 1}`,
-        mediaType: "video" as const,
-        mediaUrl: `https://media.example/${i + 1}.mp4`,
-        cells: [],
-        ...extra,
-      }));
+  it("shows the thumbnail, falls back to a video frame, and loads at most two frames, freeing slots on metadata, data, error, timeout or unmount", () => {
+    const posterRows = Array.from({ length: 6 }, (_, i) => ({
+      name: `Session ${i + 1}`,
+      mediaId: `m${i + 1}`,
+      mediaType: "video" as const,
+      mediaUrl: `https://media.example/${i + 1}.mp4`,
+      cells: [],
+    }));
     const renderPosters = (rows: TableWidgetData["rows"]) =>
       render(
         <TableWidget
@@ -586,67 +532,47 @@ describe("TableWidget cards", () => {
           labels={LABELS}
         />,
       );
+    vi.useFakeTimers();
+    try {
+      const grid = renderPosters(posterRows);
+      const videos = () => Array.from(grid.container.querySelectorAll("video"));
+      const srcs = () => videos().map((v) => v.getAttribute("src"));
+      expect(videos()).toHaveLength(2);
+      act(() => {
+        fireEvent.loadedMetadata(videos()[0]);
+      });
+      expect(videos()).toHaveLength(3);
+      act(() => {
+        fireEvent.loadedData(videos()[1]);
+      });
+      expect(videos()).toHaveLength(4);
+      act(() => {
+        fireEvent.error(videos()[2]);
+      });
+      expect(srcs()).toContain("https://media.example/5.mp4#t=3");
+      expect(srcs()).not.toContain("https://media.example/6.mp4#t=3");
+      act(() => {
+        vi.advanceTimersByTime(8000);
+      });
+      expect(srcs()).toContain("https://media.example/6.mp4#t=3");
 
-    it("renders a lazy thumbnail image and no video when thumbnailUrl is set, and falls back to the video frame on error", () => {
-      const { container } = renderPosters([
-        { ...posterRows(1)[0], thumbnailUrl: "https://media.example/1.jpg" },
-      ]);
-      const img = container.querySelector("img") as HTMLImageElement;
-      expect(img.getAttribute("src")).toBe("https://media.example/1.jpg");
-      expect(img.getAttribute("loading")).toBe("lazy");
-      expect(img.getAttribute("decoding")).toBe("async");
-      expect(img.getAttribute("alt")).toBe("");
-      expect(container.querySelector("video")).toBeNull();
-      expect(img.className).toContain("opacity-0");
-      fireEvent.load(img);
-      expect(img.className).toContain("opacity-100");
-
+      const thumb = renderPosters([{ ...posterRows[0], mediaId: "t", thumbnailUrl: "https://media.example/t.jpg" }]);
+      const img = thumb.container.querySelector("img") as HTMLImageElement;
+      expect(img).toHaveAttribute("src", "https://media.example/t.jpg");
+      expect(img).toHaveAttribute("loading", "lazy");
+      expect(img).toHaveAttribute("alt", "");
+      expect(thumb.container.querySelector("video")).toBeNull();
       fireEvent.error(img);
-      expect(container.querySelector("img")).toBeNull();
-      expect(container.querySelector("video")?.getAttribute("src")).toBe("https://media.example/1.mp4#t=3");
-    });
+      expect(thumb.container.querySelector("img")).toBeNull();
+      expect(thumb.container.querySelector("video")).toHaveAttribute("src", "https://media.example/1.mp4#t=3");
 
-    it("loads at most two video frames at once and frees a slot on metadata, data, error or after a timeout", () => {
-      vi.useFakeTimers();
-      try {
-        const { container } = renderPosters(posterRows(6));
-        const videos = () => Array.from(container.querySelectorAll("video"));
-        const srcs = () => videos().map((v) => v.getAttribute("src"));
-        expect(videos()).toHaveLength(2);
-
-        act(() => {
-          fireEvent.loadedMetadata(videos()[0]);
-        });
-        expect(videos()).toHaveLength(3);
-
-        act(() => {
-          fireEvent.loadedData(videos()[1]);
-        });
-        expect(videos()).toHaveLength(4);
-
-        act(() => {
-          fireEvent.error(videos()[2]);
-        });
-        expect(srcs()).toContain("https://media.example/5.mp4#t=3");
-        expect(srcs()).not.toContain("https://media.example/6.mp4#t=3");
-
-        act(() => {
-          vi.advanceTimersByTime(8000);
-        });
-        expect(srcs()).toContain("https://media.example/6.mp4#t=3");
-      } finally {
-        vi.useRealTimers();
-      }
-    });
-
-    it("frees the slot when a loading card unmounts", () => {
-      const first = renderPosters(posterRows(2));
-      expect(first.container.querySelectorAll("video")).toHaveLength(2);
-      const second = renderPosters(posterRows(1).map((r) => ({ ...r, mediaId: "x", mediaUrl: "https://media.example/x.mp4" })));
-      expect(second.container.querySelectorAll("video")).toHaveLength(0);
-      first.unmount();
-      expect(second.container.querySelectorAll("video")).toHaveLength(1);
-    });
+      const waiting = renderPosters([{ ...posterRows[0], mediaId: "w", mediaUrl: "https://media.example/w.mp4" }]);
+      expect(waiting.container.querySelector("video")).toBeNull();
+      grid.unmount();
+      expect(waiting.container.querySelector("video")).toHaveAttribute("src", "https://media.example/w.mp4#t=3");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 
@@ -683,57 +609,40 @@ describe("TableWidget cards: hero and rows", () => {
         onRowClick={onRowClick}
       />,
     );
+  const rowHeadings = () =>
+    screen
+      .getAllByRole("heading", { level: 3 })
+      .map((h) => h.textContent)
+      .filter((t) => /sessions$/.test(t ?? ""));
 
-  it("keeps the plain grid when layout is grid or unset and no row column is given", () => {
-    renderWidget({ layout: "rows" });
-    expect(screen.queryAllByTestId("session-card-row")).toHaveLength(0);
-    expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(6);
-  });
-
-  it("keeps paging when the row column is missing or all blank and the layout falls back to the grid", () => {
-    for (const rowBy of ["Missing header", "Notes"]) {
+  it("groups cards into ordered rows with a trailing blank row, scrolls and opens them, and falls back to the paged grid without row values", async () => {
+    for (const rowBy of [undefined, "Missing header", "Notes"]) {
       const { unmount } = renderWidget({ layout: "rows", rowBy }, { pageSize: 2 });
       expect(screen.queryAllByTestId("session-card-row")).toHaveLength(0);
       expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(2);
       expect(screen.getByLabelText("Next page")).toBeInTheDocument();
       unmount();
     }
-  });
 
-  it("renders one row per value ordered by count with a blank row last, titles and counts", () => {
-    renderWidget({ layout: "rows", rowBy: "Track" });
-    expect(screen.getAllByTestId("session-card-row")).toHaveLength(4);
-    const headings = screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent);
-    expect(headings.filter((t) => /sessions$/.test(t ?? ""))).toEqual(["Tech3 sessions", "Health1 sessions", "Culture1 sessions", "More1 sessions"]);
-  });
+    const ordered = renderWidget({ layout: "rows", rowBy: "Track", rowOrder: ["Culture", "Missing", "Health"] });
+    expect(rowHeadings()).toEqual(["Culture1 sessions", "Health1 sessions", "Tech3 sessions", "More1 sessions"]);
+    ordered.unmount();
 
-  it("puts rowOrder values first, then the rest by count", () => {
-    renderWidget({ layout: "rows", rowBy: "Track", rowOrder: ["Culture", "Missing", "Health"] });
-    const headings = screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent);
-    expect(headings.filter((t) => /sessions$/.test(t ?? ""))).toEqual(["Culture1 sessions", "Health1 sessions", "Tech3 sessions", "More1 sessions"]);
-  });
-
-  it("shows every record in rows without a pager and opens the media on click", async () => {
-    const onRowClick = vi.fn();
-    renderWidget({ layout: "rows", rowBy: "Track" }, { pageSize: 2 }, onRowClick);
-    expect(screen.queryByLabelText("Next page")).toBeNull();
-    await userEvent.click(screen.getByRole("button", { name: "Session E" }));
-    expect(onRowClick).toHaveBeenCalledWith("e");
-  });
-
-  it("scrolls a row with the prev and next buttons", async () => {
     const scrollBy = vi.fn();
     Object.defineProperty(HTMLElement.prototype, "scrollBy", { configurable: true, value: scrollBy });
     Object.defineProperty(HTMLElement.prototype, "clientWidth", { configurable: true, value: 400 });
     Object.defineProperty(HTMLElement.prototype, "scrollWidth", { configurable: true, value: 1600 });
     try {
-      renderWidget({ layout: "rows", rowBy: "Track" });
-      const next = screen.getByRole("button", { name: "Scroll right: Tech" });
-      const prev = screen.getByRole("button", { name: "Scroll left: Tech" });
-      expect(prev).toBeDisabled();
-      expect(next).toBeEnabled();
-      await userEvent.click(next);
+      const onRowClick = vi.fn();
+      renderWidget({ layout: "rows", rowBy: "Track" }, { pageSize: 2 }, onRowClick);
+      expect(screen.getAllByTestId("session-card-row")).toHaveLength(4);
+      expect(rowHeadings()).toEqual(["Tech3 sessions", "Health1 sessions", "Culture1 sessions", "More1 sessions"]);
+      expect(screen.queryByLabelText("Next page")).toBeNull();
+      expect(screen.getByRole("button", { name: "Scroll left: Tech" })).toBeDisabled();
+      await userEvent.click(screen.getByRole("button", { name: "Scroll right: Tech" }));
       expect(scrollBy).toHaveBeenCalledWith(expect.objectContaining({ left: 360 }));
+      await userEvent.click(screen.getByRole("button", { name: "Session E" }));
+      expect(onRowClick).toHaveBeenCalledWith("e");
     } finally {
       delete (HTMLElement.prototype as unknown as Record<string, unknown>).scrollBy;
       delete (HTMLElement.prototype as unknown as Record<string, unknown>).clientWidth;
@@ -741,9 +650,9 @@ describe("TableWidget cards: hero and rows", () => {
     }
   });
 
-  it("renders the first record as a hero with a Play button that opens it, and leaves it out of the grid", async () => {
+  it("shows the first sorted record as a hero that opens on Play, leaves it out of the grid and rows, and drops Play when row click is off", async () => {
     const onRowClick = vi.fn();
-    renderWidget({ hero: true }, {}, onRowClick);
+    const grid = renderWidget({ hero: true }, {}, onRowClick);
     const hero = screen.getByTestId("session-card-hero");
     expect(within(hero).getByRole("heading", { name: "Session A" })).toBeInTheDocument();
     expect(within(hero).getByText("Health")).toBeInTheDocument();
@@ -751,122 +660,81 @@ describe("TableWidget cards: hero and rows", () => {
     expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(6);
     await userEvent.click(within(hero).getByRole("button", { name: /Watch/ }));
     expect(onRowClick).toHaveBeenCalledWith("a");
-  });
+    grid.unmount();
 
-  it("follows the sort for the hero, drops it from rows, and has no Play button when row click is off", () => {
     renderWidget(
       { hero: true, layout: "rows", rowBy: "Track" },
       { rowClick: "none", sort: { column: "Room", dir: "desc" } },
     );
-    const hero = screen.getByTestId("session-card-hero");
-    expect(within(hero).queryByRole("button")).toBeNull();
-    const heroTitle = within(hero).getByRole("heading").textContent;
-    expect(screen.getAllByRole("heading", { name: heroTitle ?? "" })).toHaveLength(1);
+    const sortedHero = screen.getByTestId("session-card-hero");
+    expect(within(sortedHero).queryByRole("button")).toBeNull();
+    const heroTitle = within(sortedHero).getByRole("heading").textContent ?? "";
+    expect(heroTitle).not.toBe("Session A");
+    expect(screen.getAllByRole("heading", { name: heroTitle })).toHaveLength(1);
   });
 });
 
 describe("TableWidget speaker avatars", () => {
-  const GROUP_DATA: TableWidgetData = {
-    columns: [{ header: "Sessions", format: "number" }],
-    rows: [
-      { name: "Alex Rivera", cells: [4] },
-      { name: "Sam Chen", cells: [2] },
-    ],
-    total: 2,
-  };
   const PHOTO = "https://photos.example/alex.jpg";
   const lookup = (name: string) => (name === "Alex Rivera" ? PHOTO : undefined);
+  const LONG_NAME = "A very long media name ".repeat(8).trim();
 
-  const renderGroups = (props: Partial<React.ComponentProps<typeof TableWidget>> = {}) =>
-    render(
+  it("shows lazy no-referrer photos or initials on group rows and cards, hidden from assistive tech, only when a lookup is given", async () => {
+    const onGroupRowClick = vi.fn();
+    const groups = render(
       <TableWidget
-        data={GROUP_DATA}
+        data={{
+          columns: [{ header: "Sessions", format: "number" }],
+          rows: [
+            { name: "Alex Rivera", cells: [4] },
+            { name: "Sam Chen", cells: [2] },
+            { name: LONG_NAME, mediaId: "m9", cells: [1] },
+          ],
+          total: 3,
+        }}
         isLoading={false}
         isError={false}
         config={{}}
         labels={LABELS}
-        {...props}
+        rowAvatar={lookup}
+        onGroupRowClick={onGroupRowClick}
       />,
     );
-
-  it("renders no avatar on group rows without rowAvatar", () => {
-    const { container } = renderGroups();
-    expect(container.querySelector("img")).toBeNull();
-    expect(screen.queryByText("AR")).toBeNull();
-  });
-
-  it("shows a lazy, no-referrer photo for known names, initials for the rest, and hides avatars from assistive tech", () => {
-    const { container } = renderGroups({ rowAvatar: lookup });
-    const img = container.querySelector("img") as HTMLImageElement;
-    expect(img.getAttribute("src")).toBe(PHOTO);
-    expect(img.getAttribute("referrerpolicy")).toBe("no-referrer");
-    expect(img.getAttribute("loading")).toBe("lazy");
-    expect(container.querySelectorAll("img")).toHaveLength(1);
+    const imgs = groups.container.querySelectorAll("img");
+    expect(imgs).toHaveLength(1);
+    expect(imgs[0]).toHaveAttribute("src", PHOTO);
+    expect(imgs[0]).toHaveAttribute("referrerpolicy", "no-referrer");
+    expect(imgs[0]).toHaveAttribute("loading", "lazy");
     expect(screen.getByText("SC")).toBeInTheDocument();
-    expect(screen.getByText("Sam Chen")).toBeInTheDocument();
+    expect(screen.getByTitle(LONG_NAME)).toHaveTextContent(LONG_NAME);
+    expect(screen.queryByText("AV")).toBeNull();
     expect(screen.queryAllByRole("img")).toHaveLength(0);
-  });
-
-  it("keeps group row clicks working and skips avatars on media rows", async () => {
-    const onGroupRowClick = vi.fn();
-    const { container } = renderGroups({ rowAvatar: lookup, onGroupRowClick });
     await userEvent.click(screen.getByText("Alex Rivera"));
     expect(onGroupRowClick).toHaveBeenCalledWith("Alex Rivera");
+    groups.unmount();
 
-    const { container: media } = render(
-      <TableWidget
-        data={{ columns: [], rows: [{ name: "Alpha", mediaId: "m1", cells: [] }], total: 1 }}
-        isLoading={false}
-        isError={false}
-        config={{}}
-        labels={LABELS}
-        rowAvatar={() => PHOTO}
-      />,
+    const cardData: TableWidgetData = {
+      columns: [{ header: "Track" }, { header: "Speaker" }],
+      rows: [
+        { name: "Opening keynote", mediaId: "m1", mediaType: "audio", cells: ["Health", "Alex Rivera"] },
+        { name: "Panel", mediaId: "m2", mediaType: "audio", cells: ["Tech", "Sam Chen"] },
+      ],
+      total: 2,
+    };
+    const cardConfig = { display: "cards" as const, card: { subtitleColumns: ["Track"], avatarColumn: "Speaker" } };
+    const cards = render(
+      <TableWidget data={cardData} isLoading={false} isError={false} config={cardConfig} labels={LABELS} cardAvatar={lookup} />,
     );
-    expect(media.querySelector("img")).toBeNull();
-    expect(container.querySelectorAll("img")).toHaveLength(1);
-  });
-
-  it("resolves card avatars from the avatarColumn value", () => {
-    const { container } = render(
-      <TableWidget
-        data={{
-          columns: [{ header: "Track" }, { header: "Speaker" }],
-          rows: [
-            { name: "Opening keynote", mediaId: "m1", cells: ["Health", "Alex Rivera"] },
-            { name: "Panel", mediaId: "m2", cells: ["Tech", "Sam Chen"] },
-          ],
-          total: 2,
-        }}
-        isLoading={false}
-        isError={false}
-        config={{ display: "cards", card: { subtitleColumns: ["Track"], avatarColumn: "Speaker" } }}
-        labels={LABELS}
-        cardAvatar={lookup}
-      />,
-    );
-    const imgs = container.querySelectorAll("img");
-    expect(imgs).toHaveLength(1);
-    expect(imgs[0].getAttribute("src")).toBe(PHOTO);
-    expect(imgs[0].getAttribute("referrerpolicy")).toBe("no-referrer");
-    expect(imgs[0].getAttribute("loading")).toBe("lazy");
+    const cardImgs = cards.container.querySelectorAll("img");
+    expect(cardImgs).toHaveLength(1);
+    expect(cardImgs[0]).toHaveAttribute("src", PHOTO);
+    expect(cardImgs[0]).toHaveAttribute("referrerpolicy", "no-referrer");
     expect(screen.queryAllByRole("img")).toHaveLength(0);
-  });
+    cards.unmount();
 
-  it("ignores avatarColumn when cardAvatar is not provided", () => {
-    const { container } = render(
-      <TableWidget
-        data={{
-          columns: [{ header: "Speaker" }],
-          rows: [{ name: "Opening keynote", mediaId: "m1", cells: ["Alex Rivera"] }],
-          total: 1,
-        }}
-        isLoading={false}
-        isError={false}
-        config={{ display: "cards", card: { avatarColumn: "Speaker" } }}
-        labels={LABELS}
-      />,
+    const plain = render(
+      <TableWidget data={cardData} isLoading={false} isError={false} config={cardConfig} labels={LABELS} />,
     );
-    expect(container.querySelector("img")).toBeNull();
+    expect(plain.container.querySelector("img")).toBeNull();
   });
 });

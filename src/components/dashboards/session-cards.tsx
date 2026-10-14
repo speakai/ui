@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import type { TableCardLayout } from "@speakai/shared";
 import { cn } from "../../utils/cn";
+import { getInitials } from "../../utils/initials";
 import { Avatar } from "../Avatar";
 import { Badge } from "../Badge";
 import { Skeleton } from "../Skeleton";
-import { formatClockDuration, getTitleInitials } from "./format";
+import { formatClockDuration } from "./format";
 import { ChevronLeftIcon, ChevronRightIcon, FileAudioIcon, PlayIcon } from "./icons";
 
 const POSTER_SEEK_SECONDS = 3;
@@ -54,7 +56,7 @@ export interface SessionCardConfig {
   subtitleColumns?: string[];
   detailColumns?: string[];
   showDuration?: boolean;
-  layout?: "grid" | "rows";
+  layout?: TableCardLayout;
   rowBy?: string;
   rowOrder?: string[];
   hero?: boolean;
@@ -142,7 +144,7 @@ function SessionPoster({
   const showVideo = wantsFrame && slotGranted;
   const showPlayButton = clickable && isVideo && !hidePlayGlyph;
   const showFallback = !frameReady || failed;
-  const initials = getTitleInitials(card.title);
+  const initials = getInitials(card.title, "first-two");
 
   const releaseSlot = useRef<(() => void) | null>(null);
   const freeSlot = useCallback(() => {
