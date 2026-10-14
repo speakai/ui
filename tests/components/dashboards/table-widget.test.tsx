@@ -511,3 +511,105 @@ describe("TableWidget cards", () => {
     vi.unstubAllGlobals();
   });
 });
+
+describe("TableWidget speaker avatars", () => {
+  const GROUP_DATA: TableWidgetData = {
+    columns: [{ header: "Sessions", format: "number" }],
+    rows: [
+      { name: "Alex Rivera", cells: [4] },
+      { name: "Sam Chen", cells: [2] },
+    ],
+    total: 2,
+  };
+  const PHOTO = "https://photos.example/alex.jpg";
+  const lookup = (name: string) => (name === "Alex Rivera" ? PHOTO : undefined);
+
+  const renderGroups = (props: Partial<React.ComponentProps<typeof TableWidget>> = {}) =>
+    render(
+      <TableWidget
+        data={GROUP_DATA}
+        isLoading={false}
+        isError={false}
+        config={{}}
+        labels={LABELS}
+        {...props}
+      />,
+    );
+
+  it("renders no avatar on group rows without rowAvatar", () => {
+    const { container } = renderGroups();
+    expect(container.querySelector("img")).toBeNull();
+    expect(screen.queryByTitle("Alex Rivera")).toBeNull();
+  });
+
+  it("shows a lazy, no-referrer photo for known names and initials for the rest", () => {
+    const { container } = renderGroups({ rowAvatar: lookup });
+    const img = container.querySelector("img") as HTMLImageElement;
+    expect(img.getAttribute("src")).toBe(PHOTO);
+    expect(img.getAttribute("referrerpolicy")).toBe("no-referrer");
+    expect(img.getAttribute("loading")).toBe("lazy");
+    expect(container.querySelectorAll("img")).toHaveLength(1);
+    expect(screen.getByTitle("Sam Chen")).toHaveTextContent("SC");
+    expect(screen.getByText("Sam Chen")).toBeInTheDocument();
+  });
+
+  it("keeps group row clicks working and skips avatars on media rows", async () => {
+    const onGroupRowClick = vi.fn();
+    const { container } = renderGroups({ rowAvatar: lookup, onGroupRowClick });
+    await userEvent.click(screen.getByText("Alex Rivera"));
+    expect(onGroupRowClick).toHaveBeenCalledWith("Alex Rivera");
+
+    const { container: media } = render(
+      <TableWidget
+        data={{ columns: [], rows: [{ name: "Alpha", mediaId: "m1", cells: [] }], total: 1 }}
+        isLoading={false}
+        isError={false}
+        config={{}}
+        labels={LABELS}
+        rowAvatar={() => PHOTO}
+      />,
+    );
+    expect(media.querySelector("img")).toBeNull();
+    expect(container.querySelectorAll("img")).toHaveLength(1);
+  });
+
+  it("resolves card avatars from the avatarColumn value", () => {
+    const { container } = render(
+      <TableWidget
+        data={{
+          columns: [{ header: "Track" }, { header: "Speaker" }],
+          rows: [
+            { name: "Opening keynote", mediaId: "m1", cells: ["Health", "Alex Rivera"] },
+            { name: "Panel", mediaId: "m2", cells: ["Tech", "Sam Chen"] },
+          ],
+          total: 2,
+        }}
+        isLoading={false}
+        isError={false}
+        config={{ display: "cards", card: { subtitleColumns: ["Track"], avatarColumn: "Speaker" } }}
+        labels={LABELS}
+        cardAvatar={lookup}
+      />,
+    );
+    const imgs = container.querySelectorAll("img");
+    expect(imgs).toHaveLength(1);
+    expect(imgs[0].getAttribute("src")).toBe(PHOTO);
+  });
+
+  it("ignores avatarColumn when cardAvatar is not provided", () => {
+    const { container } = render(
+      <TableWidget
+        data={{
+          columns: [{ header: "Speaker" }],
+          rows: [{ name: "Opening keynote", mediaId: "m1", cells: ["Alex Rivera"] }],
+          total: 1,
+        }}
+        isLoading={false}
+        isError={false}
+        config={{ display: "cards", card: { avatarColumn: "Speaker" } }}
+        labels={LABELS}
+      />,
+    );
+    expect(container.querySelector("img")).toBeNull();
+  });
+});

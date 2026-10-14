@@ -17,6 +17,7 @@ import {
   TableEmpty,
   type SortDirection,
 } from "../Table";
+import { Avatar } from "../Avatar";
 import { Popover } from "../Popover";
 import { WidgetError, WidgetEmpty } from "./widget-states";
 import { BarChart3Icon } from "./icons";
@@ -99,6 +100,10 @@ export interface TableWidgetProps {
   onRowClick?: (mediaId: string) => void;
   /** Group rows (rowsAre: "groups") become clickable and report the group's value, e.g. an Account ID. */
   onGroupRowClick?: (groupName: string) => void;
+  /** Photo URL for a group row's name (e.g. a speaker). When provided, group rows show an avatar, with initials when this returns undefined. */
+  rowAvatar?: (rowName: string) => string | undefined;
+  /** Photo URL for a card, resolved from the value in the card config's `avatarColumn`. */
+  cardAvatar?: (value: string) => string | undefined;
   onRetry?: () => void;
 }
 
@@ -146,6 +151,7 @@ function toCard(
   index: number,
   columns: TableWidgetColumn[],
   card: SessionCardConfig | undefined,
+  cardAvatar?: (value: string) => string | undefined,
 ): SessionCardData {
   const lineFor = (header: string): string | null => {
     const col = columns.findIndex((c) => c.header === header);
@@ -158,6 +164,10 @@ function toCard(
   // Without a card config the first two columns become the detail lines.
   const detailHeaders = card ? card.detailColumns : columns.slice(0, 2).map((c) => c.header);
 
+  const avatarName =
+    card?.avatarColumn && cardAvatar ? lineFor(card.avatarColumn) : null;
+  const avatarSrc = avatarName ? cardAvatar?.(avatarName) : undefined;
+
   return {
     key: row.mediaId ?? `${row.name ?? ""}-${index}`,
     mediaId: row.mediaId,
@@ -167,6 +177,7 @@ function toCard(
     title: configuredTitle ?? row.name ?? cardLine(row.cells[0], columns[0]?.format) ?? "—",
     subtitles: linesFor(card?.subtitleColumns),
     details: linesFor(detailHeaders),
+    ...(avatarSrc ? { avatarSrc, avatarName: avatarName as string } : {}),
   };
 }
 
@@ -354,6 +365,8 @@ export function TableWidget({
   labels,
   onRowClick,
   onGroupRowClick,
+  rowAvatar,
+  cardAvatar,
   onRetry,
 }: TableWidgetProps) {
   const columns = data?.columns ?? [];
@@ -474,7 +487,7 @@ export function TableWidget({
       {asCards && visibleRows.length === 0 && emptyState}
       {asCards && visibleRows.length > 0 && (
         <SessionCardGrid
-          cards={pagedRows.map((row, i) => toCard(row, currentPage * pageSize + i, columns, config.card))}
+          cards={pagedRows.map((row, i) => toCard(row, currentPage * pageSize + i, columns, config.card, cardAvatar))}
           config={config.card}
           clickable={clickable}
           audioOnlyLabel={labels.audioOnly}
@@ -545,7 +558,21 @@ export function TableWidget({
                   >
                     {hasNameColumn && (
                       <TableCell className="whitespace-nowrap align-top font-medium text-foreground">
-                        {row.name ?? "—"}
+                        {rowAvatar && !row.mediaId && row.name != null ? (
+                          <span className="inline-flex items-center gap-2">
+                            <Avatar
+                              name={row.name}
+                              src={rowAvatar(row.name)}
+                              size="sm"
+                              variant="circle"
+                              imgReferrerPolicy="no-referrer"
+                              imgLoading="lazy"
+                            />
+                            {row.name}
+                          </span>
+                        ) : (
+                          (row.name ?? "—")
+                        )}
                       </TableCell>
                     )}
                     {columns.map((column, colIndex) => {
