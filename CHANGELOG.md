@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.33.0 (2026-10-14)
+
+- Merge pull request #73 from speakai/feat/dashboard-session-cards;feat(dashboards): polish session cards toward the demo hub look fix(build): safelist classes used only by sub-path entries;fix(dashboards): key table rows by media id feat(dashboards): card loading skeleton grid and stable media keys;refactor(dashboards): read card posters from row mediaUrl, reuse widget empty state refactor(dashboards): simplify session cards PR;fix(dashboards): notes actions without text, unlabeled actions, accessible session cards feat(dashboards): session card layout for the records table
+
 ## v0.32.1 (2026-10-08)
 
 - Merge pull request #70 from speakai/fix/avatar-dark-contrast;fix(color-picker): visible label names the picker button when there is no hex input fix(color-picker): accessible names for picker, hex input and swatches;fix(avatar): readable initials in dark mode
