@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import {
   TableWidget,
@@ -408,5 +408,106 @@ describe("TableWidget top scrollbar", () => {
     const bar = screen.getByTestId("table-top-scrollbar");
     expect(bar).toBeInTheDocument();
     expect((bar.firstElementChild as HTMLElement).style.width).toBe("1600px");
+  });
+});
+
+describe("TableWidget cards", () => {
+  const CARD_DATA: TableWidgetData = {
+    columns: [{ header: "Track" }, { header: "Speaker" }, { header: "Room" }],
+    rows: [
+      {
+        name: "Opening keynote",
+        mediaId: "m1",
+        mediaType: "video",
+        mediaUrl: "https://media.example/m1.mp4",
+        durationSec: 3725,
+        cells: ["Health", "Ada", "Hall A"],
+      },
+      { name: "Podcast live", mediaId: "m2", mediaType: "audio", cells: ["Tech", "Grace", "Hall B"] },
+    ],
+    total: 2,
+  };
+  const cardConfig = {
+    display: "cards" as const,
+    rowClick: "openMedia" as const,
+    card: { subtitleColumns: ["Track", "Speaker"], detailColumns: ["Room"] },
+  };
+
+  const PLAY_OVERLAY = ".rounded-full.bg-black\\/70";
+
+  it("shows a card skeleton grid while loading, then a card per row with a topic chip and play overlay that opens the media on click", async () => {
+    const onRowClick = vi.fn();
+    const { container, rerender } = render(
+      <TableWidget data={undefined} isLoading={true} isError={false} config={cardConfig} labels={LABELS} />,
+    );
+    expect(container.querySelectorAll(".aspect-video")).toHaveLength(3);
+
+    rerender(
+      <TableWidget
+        data={CARD_DATA}
+        isLoading={false}
+        isError={false}
+        config={cardConfig}
+        labels={LABELS}
+        onRowClick={onRowClick}
+      />,
+    );
+    expect(container.querySelector("table")).toBeNull();
+    expect(screen.getByRole("heading", { name: "Opening keynote" })).toBeInTheDocument();
+    expect(screen.getByText("Health").closest(".bg-muted")).not.toBeNull();
+    expect(screen.getByText("Ada").tagName).toBe("P");
+    expect(screen.getByText("Hall A")).toBeInTheDocument();
+    expect(screen.getByText("1:02:05")).toBeInTheDocument();
+    expect(container.querySelectorAll(PLAY_OVERLAY)).toHaveLength(1);
+
+    await userEvent.click(screen.getByRole("button", { name: "Opening keynote" }));
+    expect(onRowClick).toHaveBeenCalledWith("m1");
+  });
+
+  it("renders plain cards without a play overlay when row click is off and the shared empty state when search matches nothing", async () => {
+    const { container } = render(
+      <TableWidget
+        data={CARD_DATA}
+        isLoading={false}
+        isError={false}
+        config={{ ...cardConfig, rowClick: "none", searchable: true }}
+        labels={LABELS}
+      />,
+    );
+    expect(screen.getByRole("heading", { name: "Opening keynote" })).toBeInTheDocument();
+    expect(screen.queryByRole("button")).toBeNull();
+    expect(container.querySelector(PLAY_OVERLAY)).toBeNull();
+
+    await userEvent.type(screen.getByRole("searchbox"), "zzz");
+    expect(screen.getByText("No rows")).toBeInTheDocument();
+    expect(screen.getByText("Nothing matched.")).toBeInTheDocument();
+  });
+
+  it("loads the poster only once in view, skips audio, and falls back when the video fails", async () => {
+    const observers: Array<(entries: Array<{ isIntersecting: boolean }>) => void> = [];
+    vi.stubGlobal(
+      "IntersectionObserver",
+      class {
+        constructor(cb: (entries: Array<{ isIntersecting: boolean }>) => void) {
+          observers.push(cb);
+        }
+        observe() {}
+        disconnect() {}
+      },
+    );
+    const { container } = render(
+      <TableWidget data={CARD_DATA} isLoading={false} isError={false} config={cardConfig} labels={LABELS} />,
+    );
+    expect(container.querySelector("video")).toBeNull();
+
+    act(() => observers.forEach((cb) => cb([{ isIntersecting: true }])));
+    expect(container.querySelectorAll("video")).toHaveLength(1);
+    expect(screen.getByText("Audio")).toBeInTheDocument();
+
+    const video = container.querySelector("video") as HTMLVideoElement;
+    expect(video.getAttribute("src")).toBe("https://media.example/m1.mp4#t=3");
+    fireEvent.error(video);
+    await waitFor(() => expect(container.querySelector("video")).toBeNull());
+    vi.unstubAllGlobals();
   });
 });

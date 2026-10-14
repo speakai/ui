@@ -26,6 +26,12 @@ import {
   type SpecThreshold,
 } from "./spec-thresholds";
 import { formatCount, formatDurationHuman } from "./format";
+import {
+  SessionCardGrid,
+  SessionCardGridSkeleton,
+  type SessionCardConfig,
+  type SessionCardData,
+} from "./session-cards";
 
 // ── Data contract ────────────────────────────────────────────────────────────
 
@@ -38,6 +44,9 @@ export interface TableWidgetColumn {
 export interface TableWidgetRow {
   name?: string;
   mediaId?: string;
+  durationSec?: number;
+  mediaType?: "video" | "audio";
+  mediaUrl?: string;
   cells: (string | number | null)[];
 }
 
@@ -55,6 +64,8 @@ export interface TableWidgetConfig {
   rowClick?: "openMedia" | "none";
   /** Rows shown per page before the pager appears. Defaults to 25. */
   pageSize?: number;
+  display?: "table" | "cards";
+  card?: SessionCardConfig;
 }
 
 export interface TableWidgetLabels {
@@ -76,6 +87,7 @@ export interface TableWidgetLabels {
   nextPage?: string;
   /** Pager: range summary. Defaults to "{from}–{to} of {total}". */
   pageSummary?: (from: number, to: number, total: number) => string;
+  audioOnly?: string;
 }
 
 export interface TableWidgetProps {
@@ -122,6 +134,40 @@ function formatCell(
   if (format === "duration") return formatDurationHuman(cell);
   if (format === "percent") return `${Math.round(cell * 100)}%`;
   return formatCount(cell);
+}
+
+function cardLine(cell: string | number | null | undefined, format: TableWidgetColumn["format"]): string | null {
+  if (cell == null || cell === "") return null;
+  return formatCell(cell, format);
+}
+
+function toCard(
+  row: TableWidgetRow,
+  index: number,
+  columns: TableWidgetColumn[],
+  card: SessionCardConfig | undefined,
+): SessionCardData {
+  const lineFor = (header: string): string | null => {
+    const col = columns.findIndex((c) => c.header === header);
+    return col < 0 ? null : cardLine(row.cells[col], columns[col].format);
+  };
+  const linesFor = (headers: string[] = []): string[] =>
+    headers.map(lineFor).filter((line): line is string => !!line);
+
+  const configuredTitle = card?.titleColumn ? lineFor(card.titleColumn) : null;
+  // Without a card config the first two columns become the detail lines.
+  const detailHeaders = card ? card.detailColumns : columns.slice(0, 2).map((c) => c.header);
+
+  return {
+    key: row.mediaId ?? `${row.name ?? ""}-${index}`,
+    mediaId: row.mediaId,
+    mediaType: row.mediaType,
+    mediaUrl: row.mediaUrl,
+    durationSec: row.durationSec,
+    title: configuredTitle ?? row.name ?? cardLine(row.cells[0], columns[0]?.format) ?? "—",
+    subtitles: linesFor(card?.subtitleColumns),
+    details: linesFor(detailHeaders),
+  };
 }
 
 /** Text cells longer than this clamp to a preview with a read-more popover. */
@@ -383,6 +429,7 @@ export function TableWidget({
   const showPager = visibleRows.length > Math.min(pageSize, PAGE_SIZE_OPTIONS[0]);
 
   if (isLoading) {
+    if (config.display === "cards") return <SessionCardGridSkeleton />;
     return <div className="h-80 w-full animate-pulse rounded-xl bg-muted" aria-hidden="true" />;
   }
 
@@ -395,21 +442,22 @@ export function TableWidget({
     );
   }
 
-  if (!data || rows.length === 0) {
-    return (
-      <WidgetEmpty
-        icon={<BarChart3Icon className="h-10 w-10" />}
-        title={labels.empty}
-        description={labels.emptyDescription}
-      />
-    );
-  }
+  const emptyState = (
+    <WidgetEmpty
+      icon={<BarChart3Icon className="h-10 w-10" />}
+      title={labels.empty}
+      description={labels.emptyDescription}
+    />
+  );
+
+  if (!data || rows.length === 0) return emptyState;
 
   const handleSort = (key: string, direction: SortDirection) => {
     setUserSort({ key: direction ? key : null, dir: direction });
   };
 
   const columnCount = columns.length + (hasNameColumn ? 1 : 0);
+  const asCards = config.display === "cards";
 
   return (
     <div className="flex w-full flex-col gap-3">
@@ -423,7 +471,17 @@ export function TableWidget({
           className="h-9 w-full max-w-xs rounded-lg border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
         />
       )}
-      {overflows && (
+      {asCards && visibleRows.length === 0 && emptyState}
+      {asCards && visibleRows.length > 0 && (
+        <SessionCardGrid
+          cards={pagedRows.map((row, i) => toCard(row, currentPage * pageSize + i, columns, config.card))}
+          config={config.card}
+          clickable={clickable}
+          audioOnlyLabel={labels.audioOnly}
+          onOpen={onRowClick}
+        />
+      )}
+      {!asCards && overflows && (
         <div
           ref={topRef}
           onScroll={onTopScroll}
@@ -434,105 +492,107 @@ export function TableWidget({
           <div style={{ width: scrollWidth, height: 1 }} />
         </div>
       )}
-      <Table ref={tableRef} aria-label={labels.title}>
-        <TableHeader>
-          <TableRow>
-            {hasNameColumn && (
-              <TableSortHead
-                sortKey={NAME_SORT_KEY}
-                activeSort={sortKey}
-                direction={sortDir}
-                onSort={handleSort}
-              >
-                {labels.nameHeader}
-              </TableSortHead>
-            )}
-            {columns.map((column, i) => (
-              <TableSortHead
-                key={`${column.header}-${i}`}
-                sortKey={columnSortKey(i)}
-                activeSort={sortKey}
-                direction={sortDir}
-                onSort={handleSort}
-              >
-                <span className="whitespace-nowrap">{column.header}</span>
-              </TableSortHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {visibleRows.length === 0 ? (
-            <TableEmpty colSpan={columnCount} title={labels.empty} />
-          ) : (
-            pagedRows.map((row, rowIndex) => {
-              const groupClickable =
-                !row.mediaId && row.name != null && !!onGroupRowClick;
-              const rowClickable = (clickable && !!row.mediaId) || groupClickable;
-              return (
-                <TableRow
-                  key={`${row.mediaId ?? row.name ?? ""}-${rowIndex}`}
-                  clickable={rowClickable}
-                  // Non-clickable rows keep a lighter hover so every dashboard
-                  // table reads consistently, matching the app's media table.
-                  className={rowClickable ? undefined : "hover:bg-muted/40"}
-                  onClick={
-                    rowClickable
-                      ? () =>
-                          row.mediaId
-                            ? onRowClick?.(row.mediaId as string)
-                            : onGroupRowClick?.(row.name as string)
-                      : undefined
-                  }
+      {!asCards && (
+        <Table ref={tableRef} aria-label={labels.title}>
+          <TableHeader>
+            <TableRow>
+              {hasNameColumn && (
+                <TableSortHead
+                  sortKey={NAME_SORT_KEY}
+                  activeSort={sortKey}
+                  direction={sortDir}
+                  onSort={handleSort}
                 >
-                  {hasNameColumn && (
-                    <TableCell className="whitespace-nowrap align-top font-medium text-foreground">
-                      {row.name ?? "—"}
-                    </TableCell>
-                  )}
-                  {columns.map((column, colIndex) => {
-                    const cell = row.cells[colIndex] ?? null;
-                    const match =
-                      typeof cell === "number"
-                        ? resolveThresholdStatus(cell, column.thresholds)
-                        : null;
-                    const formatted = formatCell(cell, column.format);
-                    const isLongText =
-                      typeof cell === "string" && cell.length > LONG_TEXT_LIMIT;
-                    // Numbers, dates and short labels never wrap; medium text keeps a
-                    // readable width so a two-word objection is not stacked three high.
-                    const sizing =
-                      typeof cell === "number" || (typeof cell === "string" && cell.length <= SHORT_TEXT_LIMIT)
-                        ? "whitespace-nowrap"
-                        : isLongText
-                          ? undefined
-                          : "min-w-[12rem]";
-                    return (
-                      <TableCell
-                        key={colIndex}
-                        className={cn("align-top", sizing, match && THRESHOLD_TEXT_CLASS[match.status])}
-                      >
-                        {isLongText ? (
-                          <LongTextCell
-                            text={formatted}
-                            readMoreLabel={labels.readMore ?? "Read more"}
-                          />
-                        ) : (
-                          formatted
-                        )}
-                        {match?.label && (
-                          <span className="ml-1.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                            {match.label}
-                          </span>
-                        )}
+                  {labels.nameHeader}
+                </TableSortHead>
+              )}
+              {columns.map((column, i) => (
+                <TableSortHead
+                  key={`${column.header}-${i}`}
+                  sortKey={columnSortKey(i)}
+                  activeSort={sortKey}
+                  direction={sortDir}
+                  onSort={handleSort}
+                >
+                  <span className="whitespace-nowrap">{column.header}</span>
+                </TableSortHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {visibleRows.length === 0 ? (
+              <TableEmpty colSpan={columnCount} title={labels.empty} />
+            ) : (
+              pagedRows.map((row, rowIndex) => {
+                const groupClickable =
+                  !row.mediaId && row.name != null && !!onGroupRowClick;
+                const rowClickable = (clickable && !!row.mediaId) || groupClickable;
+                return (
+                  <TableRow
+                    key={row.mediaId ?? `${row.name ?? ""}-${rowIndex}`}
+                    clickable={rowClickable}
+                    // Non-clickable rows keep a lighter hover so every dashboard
+                    // table reads consistently, matching the app's media table.
+                    className={rowClickable ? undefined : "hover:bg-muted/40"}
+                    onClick={
+                      rowClickable
+                        ? () =>
+                            row.mediaId
+                              ? onRowClick?.(row.mediaId as string)
+                              : onGroupRowClick?.(row.name as string)
+                        : undefined
+                    }
+                  >
+                    {hasNameColumn && (
+                      <TableCell className="whitespace-nowrap align-top font-medium text-foreground">
+                        {row.name ?? "—"}
                       </TableCell>
-                    );
-                  })}
-                </TableRow>
-              );
-            })
-          )}
-        </TableBody>
-      </Table>
+                    )}
+                    {columns.map((column, colIndex) => {
+                      const cell = row.cells[colIndex] ?? null;
+                      const match =
+                        typeof cell === "number"
+                          ? resolveThresholdStatus(cell, column.thresholds)
+                          : null;
+                      const formatted = formatCell(cell, column.format);
+                      const isLongText =
+                        typeof cell === "string" && cell.length > LONG_TEXT_LIMIT;
+                      // Numbers, dates and short labels never wrap; medium text keeps a
+                      // readable width so a two-word objection is not stacked three high.
+                      const sizing =
+                        typeof cell === "number" || (typeof cell === "string" && cell.length <= SHORT_TEXT_LIMIT)
+                          ? "whitespace-nowrap"
+                          : isLongText
+                            ? undefined
+                            : "min-w-[12rem]";
+                      return (
+                        <TableCell
+                          key={colIndex}
+                          className={cn("align-top", sizing, match && THRESHOLD_TEXT_CLASS[match.status])}
+                        >
+                          {isLongText ? (
+                            <LongTextCell
+                              text={formatted}
+                              readMoreLabel={labels.readMore ?? "Read more"}
+                            />
+                          ) : (
+                            formatted
+                          )}
+                          {match?.label && (
+                            <span className="ml-1.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                              {match.label}
+                            </span>
+                          )}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
+      )}
       {showPager && (
         <TablePager
           page={currentPage}

@@ -1,6 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { NotesWidget } from "../../src/components/dashboards/notes-widget";
+import userEvent from "@testing-library/user-event";
+import { NotesWidget, type NotesAction } from "../../src/components/dashboards/notes-widget";
 
 const labels = { emptyTitle: "Empty" };
 const renderNotes = (content: string) => render(<NotesWidget config={{ content }} labels={labels} />);
@@ -102,5 +103,26 @@ describe("NotesWidget markdown", () => {
     const { container } = renderNotes("Line one\nLine two");
     expect(container.querySelectorAll("p")).toHaveLength(1);
     expect(container.querySelector("p")?.textContent).toBe("Line one\nLine two");
+  });
+});
+
+describe("NotesWidget actions", () => {
+  it("renders labeled actions without other content and reports the pressed one", async () => {
+    const onAction = vi.fn();
+    const config = {
+      actions: [
+        { action: "openChat" } as NotesAction,
+        { label: "Watch sessions", action: "goToSection" as const, sectionId: "sessions" },
+      ],
+    };
+    const { rerender } = render(<NotesWidget config={config} labels={labels} onAction={onAction} />);
+    expect(screen.queryByText("Empty")).toBeNull();
+    expect(screen.getAllByRole("button")).toHaveLength(1);
+
+    await userEvent.click(screen.getByRole("button", { name: "Watch sessions" }));
+    expect(onAction).toHaveBeenCalledWith(config.actions[1]);
+
+    rerender(<NotesWidget config={config} labels={labels} />);
+    expect(screen.queryByRole("button")).toBeNull();
   });
 });

@@ -20,9 +20,12 @@ const CSS_FILE = resolve(__dirname, "../src/styles/globals.css");
 function extractClasses() {
   const classes = new Set();
 
-  const mjsFiles = readdirSync(DIST_DIR)
-    .filter((f) => f.endsWith(".mjs"))
-    .map((f) => resolve(DIST_DIR, f));
+  const ENTRIES_DIR = resolve(DIST_DIR, "entries");
+  const mjsFiles = [DIST_DIR, ENTRIES_DIR].flatMap((dir) =>
+    readdirSync(dir)
+      .filter((f) => f.endsWith(".mjs"))
+      .map((f) => resolve(dir, f)),
+  );
 
   for (const distFile of mjsFiles) {
   // Process line-by-line to avoid regex engine issues on large files
@@ -79,7 +82,7 @@ function isLikelyTailwindClass(token) {
     "items-", "content-", "justify-", "place-", "self-",
     "grow-", "shrink-", "basis-", "order-", "z-", "inset-",
     "scrollbar-",
-    "top-", "right-", "bottom-", "left-",
+    "top-", "right-", "bottom-", "left-", "end-",
     "rounded-", "overflow-", "opacity-", "cursor-", "pointer-events-",
     "select-", "resize-", "appearance-",
     "sr-only", "not-sr-only", "truncate", "line-clamp-", "whitespace-",
