@@ -153,7 +153,7 @@ function SessionCard({ card, showDuration, clickable, audioOnlyLabel, onOpen }: 
       className={cn(
         "group relative flex w-full flex-col overflow-hidden rounded-xl border border-border bg-card text-card-foreground",
         mediaId &&
-          "transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg motion-reduce:transition-none motion-reduce:hover:translate-y-0",
+          "transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg motion-reduce:transition-none motion-reduce:hover:translate-y-0",
       )}
     >
       <SessionPoster
