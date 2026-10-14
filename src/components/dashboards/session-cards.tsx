@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { cn } from "../../utils/cn";
+import { Skeleton } from "../Skeleton";
 import { formatClockDuration } from "./format";
 import { FileAudioIcon, PlayIcon } from "./icons";
 
 const POSTER_SEEK_SECONDS = 3;
 const POSTER_ROOT_MARGIN = "200px";
+const CARD_GRID_CLASS = "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3";
+const SKELETON_CARD_COUNT = 3;
 
 export interface SessionCardConfig {
   titleColumn?: string;
@@ -161,7 +164,7 @@ export function SessionCardGrid({
 }: SessionCardGridProps) {
   const showDuration = config?.showDuration !== false;
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className={CARD_GRID_CLASS}>
       {cards.map((card) => (
         <SessionCard
           key={card.key}
@@ -171,6 +174,16 @@ export function SessionCardGrid({
           audioOnlyLabel={audioOnlyLabel}
           onOpen={onOpen}
         />
+      ))}
+    </div>
+  );
+}
+
+export function SessionCardGridSkeleton() {
+  return (
+    <div className={CARD_GRID_CLASS} aria-hidden="true">
+      {Array.from({ length: SKELETON_CARD_COUNT }, (_, i) => (
+        <Skeleton key={i} className="aspect-video w-full rounded-xl" />
       ))}
     </div>
   );

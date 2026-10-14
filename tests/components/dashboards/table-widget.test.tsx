@@ -433,9 +433,14 @@ describe("TableWidget cards", () => {
     card: { subtitleColumns: ["Speaker"], detailColumns: ["Room"] },
   };
 
-  it("renders a card per row and opens the media on click", async () => {
+  it("shows a card skeleton grid while loading, then a card per row that opens the media on click", async () => {
     const onRowClick = vi.fn();
-    const { container } = render(
+    const { container, rerender } = render(
+      <TableWidget data={undefined} isLoading={true} isError={false} config={cardConfig} labels={LABELS} />,
+    );
+    expect(container.querySelectorAll(".aspect-video")).toHaveLength(3);
+
+    rerender(
       <TableWidget
         data={CARD_DATA}
         isLoading={false}

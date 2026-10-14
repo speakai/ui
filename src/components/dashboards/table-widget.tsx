@@ -28,6 +28,7 @@ import {
 import { formatCount, formatDurationHuman } from "./format";
 import {
   SessionCardGrid,
+  SessionCardGridSkeleton,
   type SessionCardConfig,
   type SessionCardData,
 } from "./session-cards";
@@ -158,7 +159,7 @@ function toCard(
   const detailHeaders = card ? card.detailColumns : columns.slice(0, 2).map((c) => c.header);
 
   return {
-    key: `${row.mediaId ?? row.name ?? ""}-${index}`,
+    key: row.mediaId ?? `${row.name ?? ""}-${index}`,
     mediaId: row.mediaId,
     mediaType: row.mediaType,
     mediaUrl: row.mediaUrl,
@@ -428,6 +429,7 @@ export function TableWidget({
   const showPager = visibleRows.length > Math.min(pageSize, PAGE_SIZE_OPTIONS[0]);
 
   if (isLoading) {
+    if (config.display === "cards") return <SessionCardGridSkeleton />;
     return <div className="h-80 w-full animate-pulse rounded-xl bg-muted" aria-hidden="true" />;
   }
 
