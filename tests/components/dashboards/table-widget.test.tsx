@@ -606,20 +606,37 @@ describe("TableWidget cards", () => {
       expect(container.querySelector("video")?.getAttribute("src")).toBe("https://media.example/1.mp4#t=3");
     });
 
-    it("loads at most two video frames at once and frees a slot on loadeddata or error", () => {
-      const { container } = renderPosters(posterRows(4));
-      const videos = () => Array.from(container.querySelectorAll("video"));
-      expect(videos()).toHaveLength(2);
+    it("loads at most two video frames at once and frees a slot on metadata, data, error or after a timeout", () => {
+      vi.useFakeTimers();
+      try {
+        const { container } = renderPosters(posterRows(6));
+        const videos = () => Array.from(container.querySelectorAll("video"));
+        const srcs = () => videos().map((v) => v.getAttribute("src"));
+        expect(videos()).toHaveLength(2);
 
-      act(() => {
-        fireEvent.loadedData(videos()[0]);
-      });
-      expect(videos()).toHaveLength(3);
+        act(() => {
+          fireEvent.loadedMetadata(videos()[0]);
+        });
+        expect(videos()).toHaveLength(3);
 
-      act(() => {
-        fireEvent.error(videos()[1]);
-      });
-      expect(videos().map((v) => v.getAttribute("src"))).toContain("https://media.example/4.mp4#t=3");
+        act(() => {
+          fireEvent.loadedData(videos()[1]);
+        });
+        expect(videos()).toHaveLength(4);
+
+        act(() => {
+          fireEvent.error(videos()[2]);
+        });
+        expect(srcs()).toContain("https://media.example/5.mp4#t=3");
+        expect(srcs()).not.toContain("https://media.example/6.mp4#t=3");
+
+        act(() => {
+          vi.advanceTimersByTime(8000);
+        });
+        expect(srcs()).toContain("https://media.example/6.mp4#t=3");
+      } finally {
+        vi.useRealTimers();
+      }
     });
 
     it("frees the slot when a loading card unmounts", () => {
@@ -635,7 +652,7 @@ describe("TableWidget cards", () => {
 
 describe("TableWidget cards: hero and rows", () => {
   const ROW_DATA: TableWidgetData = {
-    columns: [{ header: "Track" }, { header: "Speaker" }, { header: "Room" }],
+    columns: [{ header: "Track" }, { header: "Speaker" }, { header: "Room" }, { header: "Notes" }],
     rows: [
       { name: "Session A", mediaId: "a", mediaType: "video", mediaUrl: "https://media.example/a.mp4", durationSec: 60, cells: ["Health", "Ada", "Hall 1"] },
       { name: "Session B", mediaId: "b", mediaType: "video", cells: ["Tech", "Grace", "Hall 2"] },
@@ -673,11 +690,14 @@ describe("TableWidget cards: hero and rows", () => {
     expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(6);
   });
 
-  it("keeps paging when rows cannot resolve and the layout falls back to the grid", () => {
-    renderWidget({ layout: "rows", rowBy: "Missing header" }, { pageSize: 2 });
-    expect(screen.queryAllByTestId("session-card-row")).toHaveLength(0);
-    expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(2);
-    expect(screen.getByLabelText("Next page")).toBeInTheDocument();
+  it("keeps paging when the row column is missing or all blank and the layout falls back to the grid", () => {
+    for (const rowBy of ["Missing header", "Notes"]) {
+      const { unmount } = renderWidget({ layout: "rows", rowBy }, { pageSize: 2 });
+      expect(screen.queryAllByTestId("session-card-row")).toHaveLength(0);
+      expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(2);
+      expect(screen.getByLabelText("Next page")).toBeInTheDocument();
+      unmount();
+    }
   });
 
   it("renders one row per value ordered by count with a blank row last, titles and counts", () => {
@@ -772,7 +792,7 @@ describe("TableWidget speaker avatars", () => {
   it("renders no avatar on group rows without rowAvatar", () => {
     const { container } = renderGroups();
     expect(container.querySelector("img")).toBeNull();
-    expect(screen.queryByTitle("Alex Rivera")).toBeNull();
+    expect(screen.queryByText("AR")).toBeNull();
   });
 
   it("shows a lazy, no-referrer photo for known names, initials for the rest, and hides avatars from assistive tech", () => {
@@ -782,7 +802,7 @@ describe("TableWidget speaker avatars", () => {
     expect(img.getAttribute("referrerpolicy")).toBe("no-referrer");
     expect(img.getAttribute("loading")).toBe("lazy");
     expect(container.querySelectorAll("img")).toHaveLength(1);
-    expect(screen.getByTitle("Sam Chen")).toHaveTextContent("SC");
+    expect(screen.getByText("SC")).toBeInTheDocument();
     expect(screen.getByText("Sam Chen")).toBeInTheDocument();
     expect(screen.queryAllByRole("img")).toHaveLength(0);
   });
@@ -830,6 +850,7 @@ describe("TableWidget speaker avatars", () => {
     expect(imgs[0].getAttribute("src")).toBe(PHOTO);
     expect(imgs[0].getAttribute("referrerpolicy")).toBe("no-referrer");
     expect(imgs[0].getAttribute("loading")).toBe("lazy");
+    expect(screen.queryAllByRole("img")).toHaveLength(0);
   });
 
   it("ignores avatarColumn when cardAvatar is not provided", () => {

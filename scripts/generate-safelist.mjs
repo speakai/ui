@@ -89,12 +89,12 @@ function isLikelyTailwindClass(token) {
     "sr-only", "not-sr-only", "truncate", "line-clamp-", "whitespace-",
     "font-", "leading-", "tracking-", "align-",
     "underline-", "tabular-nums",
-    "snap-", "scroll-", "aspect-", "object-", "transition-", "duration-", "inline-",
-    "after:", "rtl:", "motion-reduce:",
+    "snap-", "scroll-", "inline-",
+    "after:", "rtl:",
     // Modifiers
     "dark:", "sm:", "md:", "lg:", "xl:", "2xl:",
     "hover:", "focus:", "focus-visible:", "focus-within:",
-    "active:", "disabled:", "group-hover:", "group-focus-within:", "motion-reduce:", "peer-",
+    "active:", "disabled:", "group-hover:", "motion-reduce:", "peer-",
     "first:", "last:", "odd:", "even:", "placeholder:",
   ];
 
@@ -128,7 +128,7 @@ const newBlock = `/* ───────────────────�
    ────────────────────────────────────────────── */
 @source inline("${sorted.join(" ")}");`;
 
-const sourceBlockRegex = /\/\*[\s\S]*?Source hints[\s\S]*?\*\/\n@source inline\([^)]*\);/;
+const sourceBlockRegex = /\/\*[\s\S]*?Source hints[\s\S]*?\*\/\n@source inline\("[^"]*"\);/;
 if (sourceBlockRegex.test(css)) {
   css = css.replace(sourceBlockRegex, newBlock);
 } else {

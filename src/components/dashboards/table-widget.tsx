@@ -91,7 +91,6 @@ export interface TableWidgetLabels {
   /** Pager: range summary. Defaults to "{from}–{to} of {total}". */
   pageSummary?: (from: number, to: number, total: number) => string;
   audioOnly?: string;
-  /** Session cards: hero call-to-action, row scroll buttons, row count and the leftover row title. */
   cardLabels?: SessionCardLabels;
 }
 
@@ -104,9 +103,7 @@ export interface TableWidgetProps {
   onRowClick?: (mediaId: string) => void;
   /** Group rows (rowsAre: "groups") become clickable and report the group's value, e.g. an Account ID. */
   onGroupRowClick?: (groupName: string) => void;
-  /** Photo URL for a group row's name (e.g. a speaker). When provided, group rows show an avatar, with initials when this returns undefined. */
   rowAvatar?: (rowName: string) => string | undefined;
-  /** Photo URL for a card, resolved from the value in the card config's `avatarColumn`. */
   cardAvatar?: (value: string) => string | undefined;
   onRetry?: () => void;
 }
@@ -444,13 +441,13 @@ export function TableWidget({
     () => visibleRows.slice(currentPage * pageSize, (currentPage + 1) * pageSize),
     [visibleRows, currentPage, pageSize],
   );
-  // Rows show every record in a scroller, so paging only applies to the grid (also the fallback when rowBy is not a column).
-  const rowBy = config.card?.rowBy;
+  const rowByIndex = config.card?.rowBy ? columns.findIndex((column) => column.header === config.card?.rowBy) : -1;
+  // With no row value to group by, rows would be one "Other" row, so the paged grid is used instead.
   const asRows =
     config.display === "cards" &&
     config.card?.layout === "rows" &&
-    !!rowBy &&
-    columns.some((column) => column.header === rowBy);
+    rowByIndex >= 0 &&
+    visibleRows.some((row) => !!cardLine(row.cells[rowByIndex], columns[rowByIndex].format)?.trim());
   const showPager = !asRows && visibleRows.length > Math.min(pageSize, PAGE_SIZE_OPTIONS[0]);
 
   if (isLoading) {
@@ -511,6 +508,7 @@ export function TableWidget({
           clickable={clickable}
           audioOnlyLabel={labels.audioOnly}
           labels={labels.cardLabels}
+          asRows={asRows}
           onOpen={onRowClick}
         />
       )}

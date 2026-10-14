@@ -16,6 +16,7 @@ const ROW_CARD_CLASS =
 const ROW_BUTTON_CLASS =
   "inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-muted focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40";
 const MAX_CONCURRENT_FRAME_LOADS = 2;
+const FRAME_SLOT_TIMEOUT_MS = 8000;
 
 // Source videos are huge; loading every card's frame at once stalls phones.
 let activeFrameLoads = 0;
@@ -53,31 +54,22 @@ export interface SessionCardConfig {
   subtitleColumns?: string[];
   detailColumns?: string[];
   showDuration?: boolean;
-  /** "rows" renders one snap-scroll row per `rowBy` value; "grid" (default) is a plain grid. */
   layout?: "grid" | "rows";
-  /** Column header whose cell text names each row. Needed for the "rows" layout. */
   rowBy?: string;
-  /** Row values shown first, in this order; the rest follow by count. */
   rowOrder?: string[];
-  /** Render the first record as a wide hero banner above the grid or rows. */
   hero?: boolean;
   avatarColumn?: string;
 }
 
 export interface SessionCardLabels {
-  /** Hero call-to-action. Defaults to "Play". */
   play?: string;
-  /** Row scroll button labels. Default "Scroll left" and "Scroll right". */
   scrollPrevious?: string;
   scrollNext?: string;
-  /** Title of the row holding cards with no row value. Defaults to "Other". */
   otherRow?: string;
-  /** Count shown beside a row title. Defaults to the bare number. */
   rowCount?: (count: number) => string;
 }
 
 export interface SessionCardData {
-  /** Row value for the "rows" layout. */
   group?: string;
   key: string;
   mediaId?: string;
@@ -89,7 +81,6 @@ export interface SessionCardData {
   subtitles: string[];
   details: string[];
   avatarSrc?: string;
-  /** Display name behind `avatarSrc`, used for the initials fallback and alt text. */
   avatarName?: string;
 }
 
@@ -126,9 +117,7 @@ interface SessionPosterProps {
   showDuration: boolean;
   clickable: boolean;
   audioOnlyLabel?: string;
-  /** Replaces the default card-top sizing and rounding. */
   className?: string;
-  /** Hides the centered play glyph when a separate control carries the call to action. */
   hidePlayGlyph?: boolean;
 }
 
@@ -156,16 +145,22 @@ function SessionPoster({
   const initials = getTitleInitials(card.title);
 
   const releaseSlot = useRef<(() => void) | null>(null);
-  const freeSlot = () => {
+  const freeSlot = useCallback(() => {
     releaseSlot.current?.();
     releaseSlot.current = null;
-  };
+  }, []);
 
   useEffect(() => {
     if (!wantsFrame) return;
     releaseSlot.current = acquireFrameSlot(() => setSlotGranted(true));
     return freeSlot;
-  }, [wantsFrame]);
+  }, [wantsFrame, freeSlot]);
+
+  useEffect(() => {
+    if (!showVideo) return;
+    const timer = setTimeout(freeSlot, FRAME_SLOT_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [showVideo, freeSlot]);
 
   return (
     <div
@@ -197,6 +192,7 @@ function SessionPoster({
           playsInline
           tabIndex={-1}
           aria-hidden="true"
+          onLoadedMetadata={freeSlot}
           onLoadedData={() => {
             setFrameReady(true);
             freeSlot();
@@ -238,7 +234,7 @@ function SessionPoster({
       ) : null}
       {showPlayButton ? (
         <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true" data-testid="session-card-play">
-          <span className="rounded-full bg-primary p-3 text-primary-foreground shadow-lg ring-2 ring-white/70 transition-transform group-hover:scale-110 group-focus-within:scale-110 motion-reduce:transition-none motion-reduce:group-hover:scale-100 motion-reduce:group-focus-within:scale-100">
+          <span className="rounded-full bg-primary p-3 text-primary-foreground shadow-lg ring-2 ring-white/70">
             <PlayIcon className="ms-0.5 h-6 w-6 fill-current" />
           </span>
         </div>
@@ -267,8 +263,7 @@ function SessionCard({ card, showDuration, clickable, audioOnlyLabel, onOpen }: 
     <article
       className={cn(
         "group relative flex w-full flex-col overflow-hidden rounded-xl border border-border bg-card text-card-foreground",
-        mediaId &&
-          "transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg motion-reduce:transition-none motion-reduce:hover:translate-y-0",
+        mediaId && "transition-colors hover:border-primary/50 motion-reduce:transition-none",
       )}
     >
       <SessionPoster
@@ -328,8 +323,6 @@ interface SessionCardRow {
   title: string;
   cards: SessionCardData[];
 }
-
-/** Splits cards into rows by `group`: `order` values first, then by count (ties keep first appearance), blanks last. */
 function groupSessionCards(
   cards: SessionCardData[],
   order: string[] = [],
@@ -534,8 +527,8 @@ interface SessionCardGridProps {
   clickable: boolean;
   audioOnlyLabel?: string;
   labels?: SessionCardLabels;
-  /** Rendered as a hero banner above the cards; pass it only when `config.hero` is on. */
   hero?: SessionCardData;
+  asRows: boolean;
   onOpen?: (mediaId: string) => void;
 }
 
@@ -546,11 +539,10 @@ export function SessionCardGrid({
   audioOnlyLabel,
   labels,
   hero,
+  asRows,
   onOpen,
 }: SessionCardGridProps) {
   const showDuration = config?.showDuration !== false;
-  // Without a resolvable row column the rows layout would be one "Other" row, so fall back to the grid.
-  const asRows = config?.layout === "rows" && cards.some((card) => card.group?.trim());
   const rows = asRows ? groupSessionCards(cards, config?.rowOrder, labels?.otherRow) : [];
   return (
     <div className="flex min-w-0 flex-col gap-6">
