@@ -164,8 +164,7 @@ function toCard(
   // Without a card config the first two columns become the detail lines.
   const detailHeaders = card ? card.detailColumns : columns.slice(0, 2).map((c) => c.header);
 
-  const avatarName =
-    card?.avatarColumn && cardAvatar ? lineFor(card.avatarColumn) : null;
+  const avatarName = card?.avatarColumn && cardAvatar ? lineFor(card.avatarColumn) : null;
   const avatarSrc = avatarName ? cardAvatar?.(avatarName) : undefined;
 
   return {
@@ -177,7 +176,7 @@ function toCard(
     title: configuredTitle ?? row.name ?? cardLine(row.cells[0], columns[0]?.format) ?? "—",
     subtitles: linesFor(card?.subtitleColumns),
     details: linesFor(detailHeaders),
-    ...(avatarSrc ? { avatarSrc, avatarName: avatarName as string } : {}),
+    ...(avatarSrc && avatarName ? { avatarSrc, avatarName } : {}),
   };
 }
 
@@ -565,6 +564,7 @@ export function TableWidget({
                               src={rowAvatar(row.name)}
                               size="sm"
                               variant="circle"
+                              aria-hidden="true"
                               imgReferrerPolicy="no-referrer"
                               imgLoading="lazy"
                             />

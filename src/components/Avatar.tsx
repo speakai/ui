@@ -9,9 +9,7 @@ export interface AvatarProps extends HTMLAttributes<HTMLDivElement> {
   src?: string;
   size?: AvatarSize;
   variant?: AvatarVariant;
-  /** Passed to the inner img; unset keeps the browser default. */
   imgReferrerPolicy?: ReferrerPolicy;
-  /** Passed to the inner img; unset keeps the browser default. */
   imgLoading?: "lazy" | "eager";
 }
 

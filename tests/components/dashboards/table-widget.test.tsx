@@ -553,6 +553,11 @@ describe("TableWidget speaker avatars", () => {
     expect(screen.getByText("Sam Chen")).toBeInTheDocument();
   });
 
+  it("hides the row avatar from assistive tech because the name is already text", () => {
+    renderGroups({ rowAvatar: lookup });
+    expect(screen.queryAllByRole("img")).toHaveLength(0);
+  });
+
   it("keeps group row clicks working and skips avatars on media rows", async () => {
     const onGroupRowClick = vi.fn();
     const { container } = renderGroups({ rowAvatar: lookup, onGroupRowClick });
