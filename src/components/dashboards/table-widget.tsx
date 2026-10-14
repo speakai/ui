@@ -47,7 +47,6 @@ export interface TableWidgetRow {
   durationSec?: number;
   mediaType?: "video" | "audio";
   mediaUrl?: string;
-  thumbnailUrl?: string;
   cells: (string | number | null)[];
 }
 
@@ -164,7 +163,6 @@ function toCard(
     mediaId: row.mediaId,
     mediaType: row.mediaType,
     mediaUrl: row.mediaUrl,
-    thumbnailUrl: row.thumbnailUrl,
     durationSec: row.durationSec,
     title: configuredTitle ?? row.name ?? cardLine(row.cells[0], columns[0]?.format) ?? "—",
     subtitles: linesFor(card?.subtitleColumns),

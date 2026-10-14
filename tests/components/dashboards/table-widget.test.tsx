@@ -532,25 +532,6 @@ describe("TableWidget cards", () => {
         />,
       );
 
-    it("renders a lazy thumbnail image and no video when thumbnailUrl is set, and falls back to the video frame on error", () => {
-      const { container } = renderPosters([
-        { ...posterRows(1)[0], thumbnailUrl: "https://media.example/1.jpg" },
-      ]);
-      const img = container.querySelector("img") as HTMLImageElement;
-      expect(img.getAttribute("src")).toBe("https://media.example/1.jpg");
-      expect(img.getAttribute("loading")).toBe("lazy");
-      expect(img.getAttribute("decoding")).toBe("async");
-      expect(img.getAttribute("alt")).toBe("");
-      expect(container.querySelector("video")).toBeNull();
-      expect(img.className).toContain("opacity-0");
-      fireEvent.load(img);
-      expect(img.className).toContain("opacity-100");
-
-      fireEvent.error(img);
-      expect(container.querySelector("img")).toBeNull();
-      expect(container.querySelector("video")?.getAttribute("src")).toBe("https://media.example/1.mp4#t=3");
-    });
-
     it("loads at most two video frames at once and frees a slot on loadeddata or error", () => {
       const { container } = renderPosters(posterRows(4));
       const videos = () => Array.from(container.querySelectorAll("video"));
