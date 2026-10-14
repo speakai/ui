@@ -1,14 +1,19 @@
 import { forwardRef, HTMLAttributes, useState } from "react";
+import type { DashboardProfileImageShape } from "@speakai/shared";
 import { cn } from "../utils/cn";
 
 export type AvatarSize = "sm" | "default" | "lg";
 export type AvatarVariant = "circle" | "rounded";
+export type AvatarFit = "cover" | "contain";
 
 export interface AvatarProps extends HTMLAttributes<HTMLDivElement> {
   name: string;
   src?: string;
   size?: AvatarSize;
   variant?: AvatarVariant;
+  fit?: AvatarFit;
+  imgReferrerPolicy?: ReferrerPolicy;
+  imgLoading?: "lazy" | "eager";
 }
 
 const sizeClasses: Record<AvatarSize, string> = {
@@ -22,6 +27,16 @@ const variantClasses: Record<AvatarVariant, string> = {
   rounded: "rounded-lg",
 };
 
+const fitClasses: Record<AvatarFit, string> = {
+  cover: "object-cover",
+  contain: "object-contain",
+};
+
+export const AVATAR_SHAPE_PROPS = {
+  round: { variant: "circle", fit: "cover" },
+  square: { variant: "rounded", fit: "contain" },
+} as const satisfies Record<DashboardProfileImageShape, Pick<AvatarProps, "variant" | "fit">>;
+
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/);
   if (parts.length === 0) return "?";
@@ -30,7 +45,7 @@ function getInitials(name: string): string {
 }
 
 export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
-  ({ name, src, size = "default", variant = "circle", className, ...props }, ref) => {
+  ({ name, src, size = "default", variant = "circle", fit = "cover", imgReferrerPolicy, imgLoading, className, ...props }, ref) => {
     const [imgError, setImgError] = useState(false);
     const showImage = src && !imgError;
 
@@ -51,7 +66,9 @@ export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
           <img
             src={src}
             alt={name}
-            className="h-full w-full object-cover"
+            referrerPolicy={imgReferrerPolicy}
+            loading={imgLoading}
+            className={cn("h-full w-full", fitClasses[fit])}
             onError={() => setImgError(true)}
           />
         ) : (

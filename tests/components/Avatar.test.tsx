@@ -38,9 +38,12 @@ describe("Avatar", () => {
     expect(container.firstChild).not.toHaveClass("text-white");
   });
 
-  it("handles empty name gracefully", () => {
-    render(<Avatar name="" />);
+  it("handles empty name gracefully and keeps punctuation in initials", () => {
+    const { unmount } = render(<Avatar name="" />);
     expect(screen.getByText("?")).toBeInTheDocument();
+    unmount();
+    render(<Avatar name="(Jane) Smith" />);
+    expect(screen.getByText("(S")).toBeInTheDocument();
   });
 
   it("handles multi-word name (first + last initial)", () => {

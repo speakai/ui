@@ -81,17 +81,20 @@ function isLikelyTailwindClass(token) {
     "gap-", "space-", "grid-", "col-", "row-", "flex-",
     "items-", "content-", "justify-", "place-", "self-",
     "grow-", "shrink-", "basis-", "order-", "z-", "inset-",
-    "scrollbar-",
+    "scrollbar-", "break-",
     "top-", "right-", "bottom-", "left-", "end-",
     "rounded-", "overflow-", "opacity-", "cursor-", "pointer-events-",
     "select-", "resize-", "appearance-",
+    "ms-", "me-", "aspect-", "object-", "transition-", "duration-",
     "sr-only", "not-sr-only", "truncate", "line-clamp-", "whitespace-",
     "font-", "leading-", "tracking-", "align-",
     "underline-", "tabular-nums",
+    "snap-", "scroll-", "inline-",
+    "after:", "rtl:",
     // Modifiers
     "dark:", "sm:", "md:", "lg:", "xl:", "2xl:",
     "hover:", "focus:", "focus-visible:", "focus-within:",
-    "active:", "disabled:", "group-hover:", "peer-",
+    "active:", "disabled:", "group-hover:", "motion-reduce:", "peer-",
     "first:", "last:", "odd:", "even:", "placeholder:",
   ];
 
@@ -107,6 +110,8 @@ const alwaysInclude = [
   "sm:w-80", "sm:w-[420px]", "sm:w-[500px]", "sm:w-[640px]", "w-full",
   "sm:max-w-sm", "sm:items-end", "sm:p-6",
   "border-l-4",
+  "-mx-1", "[scrollbar-width:thin]", "after:content-['']", "w-[85%]",
+  "sm:w-[calc((100%-1rem)/2.3)]", "lg:w-[calc((100%-3rem)/3.4)]",
 ];
 
 for (const c of alwaysInclude) classes.add(c);
@@ -123,7 +128,7 @@ const newBlock = `/* ───────────────────�
    ────────────────────────────────────────────── */
 @source inline("${sorted.join(" ")}");`;
 
-const sourceBlockRegex = /\/\*[\s\S]*?Source hints[\s\S]*?\*\/\n@source inline\([^)]*\);/;
+const sourceBlockRegex = /\/\*[\s\S]*?Source hints[\s\S]*?\*\/\n@source inline\("[^"]*"\);/;
 if (sourceBlockRegex.test(css)) {
   css = css.replace(sourceBlockRegex, newBlock);
 } else {

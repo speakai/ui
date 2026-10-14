@@ -1,5 +1,6 @@
 // Utilities
 export { cn } from "./utils/cn";
+export { getInitials } from "./utils/initials";
 
 // Components
 export { Button } from "./components/Button";
@@ -115,8 +116,8 @@ export { Tabs, TabsList, TabsTrigger, TabsContent } from "./components/Tabs";
 export type { TabsProps, TabsListProps, TabsTriggerProps, TabsContentProps } from "./components/Tabs";
 
 // Avatar
-export { Avatar } from "./components/Avatar";
-export type { AvatarProps, AvatarSize, AvatarVariant } from "./components/Avatar";
+export { AVATAR_SHAPE_PROPS, Avatar } from "./components/Avatar";
+export type { AvatarFit, AvatarProps, AvatarSize, AvatarVariant } from "./components/Avatar";
 
 // Switch
 export { Switch } from "./components/Switch";

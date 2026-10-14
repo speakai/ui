@@ -56,7 +56,9 @@ describe("TableWidget", () => {
     expect(screen.getByText("Name")).toBeInTheDocument();
     expect(screen.getByText("Score")).toBeInTheDocument();
     expect(screen.getByText("Duration")).toBeInTheDocument();
-    expect(screen.getByText("Alpha")).toBeInTheDocument();
+    expect(screen.getByText("Alpha")).toHaveClass("whitespace-nowrap");
+    expect(screen.getByText("Alpha")).not.toHaveClass("min-w-40");
+    expect(document.querySelector(".line-clamp-3")).toBeNull();
     // duration column formats 3700s → "1h 1m"
     expect(screen.getByText("1h 1m")).toBeInTheDocument();
     expect(screen.getByText("3 items total")).toBeInTheDocument();
@@ -433,7 +435,7 @@ describe("TableWidget cards", () => {
     card: { subtitleColumns: ["Track", "Speaker"], detailColumns: ["Room"] },
   };
 
-  const PLAY_OVERLAY = ".rounded-full.bg-black\\/70";
+  const PLAY_OVERLAY = '[data-testid="session-card-play"]';
 
   it("shows a card skeleton grid while loading, then a card per row with a topic chip and play overlay that opens the media on click", async () => {
     const onRowClick = vi.fn();
@@ -454,7 +456,7 @@ describe("TableWidget cards", () => {
     );
     expect(container.querySelector("table")).toBeNull();
     expect(screen.getByRole("heading", { name: "Opening keynote" })).toBeInTheDocument();
-    expect(screen.getByText("Health").closest(".bg-muted")).not.toBeNull();
+    expect(screen.getByText("Health")).toBeInTheDocument();
     expect(screen.getByText("Ada").tagName).toBe("P");
     expect(screen.getByText("Hall A")).toBeInTheDocument();
     expect(screen.getByText("1:02:05")).toBeInTheDocument();
@@ -483,7 +485,7 @@ describe("TableWidget cards", () => {
     expect(screen.getByText("Nothing matched.")).toBeInTheDocument();
   });
 
-  it("loads the poster only once in view, skips audio, and falls back when the video fails", async () => {
+  it("loads the poster only once in view, skips audio, and falls back to hidden title initials when the video fails", async () => {
     const observers: Array<(entries: Array<{ isIntersecting: boolean }>) => void> = [];
     vi.stubGlobal(
       "IntersectionObserver",
@@ -508,6 +510,236 @@ describe("TableWidget cards", () => {
     expect(video.getAttribute("src")).toBe("https://media.example/m1.mp4#t=3");
     fireEvent.error(video);
     await waitFor(() => expect(container.querySelector("video")).toBeNull());
+    expect(screen.getByText("OK")).toHaveAttribute("aria-hidden", "true");
+    expect(screen.queryByText("PL")).toBeNull();
     vi.unstubAllGlobals();
+  });
+
+
+  it("shows the thumbnail, falls back to a video frame, and loads at most two frames, freeing slots on metadata, data, error, timeout or unmount", () => {
+    const posterRows = Array.from({ length: 6 }, (_, i) => ({
+      name: `Session ${i + 1}`,
+      mediaId: `m${i + 1}`,
+      mediaType: "video" as const,
+      mediaUrl: `https://media.example/${i + 1}.mp4`,
+      cells: [],
+    }));
+    const renderPosters = (rows: TableWidgetData["rows"]) =>
+      render(
+        <TableWidget
+          data={{ columns: [], rows, total: rows.length }}
+          isLoading={false}
+          isError={false}
+          config={{ display: "cards" }}
+          labels={LABELS}
+        />,
+      );
+    vi.useFakeTimers();
+    try {
+      const grid = renderPosters(posterRows);
+      const videos = () => Array.from(grid.container.querySelectorAll("video"));
+      const srcs = () => videos().map((v) => v.getAttribute("src"));
+      expect(videos()).toHaveLength(2);
+      act(() => {
+        fireEvent.loadedMetadata(videos()[0]);
+      });
+      expect(videos()).toHaveLength(3);
+      act(() => {
+        fireEvent.loadedData(videos()[1]);
+      });
+      expect(videos()).toHaveLength(4);
+      act(() => {
+        fireEvent.error(videos()[2]);
+      });
+      expect(srcs()).toContain("https://media.example/5.mp4#t=3");
+      expect(srcs()).not.toContain("https://media.example/6.mp4#t=3");
+      act(() => {
+        vi.advanceTimersByTime(8000);
+      });
+      expect(srcs()).toContain("https://media.example/6.mp4#t=3");
+
+      const thumb = renderPosters([{ ...posterRows[0], mediaId: "t", thumbnailUrl: "https://media.example/t.jpg" }]);
+      const img = thumb.container.querySelector("img") as HTMLImageElement;
+      expect(img).toHaveAttribute("src", "https://media.example/t.jpg");
+      expect(img).toHaveAttribute("loading", "lazy");
+      expect(img).toHaveAttribute("alt", "");
+      expect(thumb.container.querySelector("video")).toBeNull();
+      fireEvent.error(img);
+      expect(thumb.container.querySelector("img")).toBeNull();
+      expect(thumb.container.querySelector("video")).toHaveAttribute("src", "https://media.example/1.mp4#t=3");
+
+      const waiting = renderPosters([{ ...posterRows[0], mediaId: "w", mediaUrl: "https://media.example/w.mp4" }]);
+      expect(waiting.container.querySelector("video")).toBeNull();
+      grid.unmount();
+      expect(waiting.container.querySelector("video")).toHaveAttribute("src", "https://media.example/w.mp4#t=3");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+describe("TableWidget cards: hero and rows", () => {
+  const ROW_DATA: TableWidgetData = {
+    columns: [{ header: "Track" }, { header: "Speaker" }, { header: "Room" }, { header: "Notes" }],
+    rows: [
+      { name: "Session A", mediaId: "a", mediaType: "video", mediaUrl: "https://media.example/a.mp4", durationSec: 60, cells: ["Health", "Ada", "Hall 1"] },
+      { name: "Session B", mediaId: "b", mediaType: "video", cells: ["Tech", "Grace", "Hall 2"] },
+      { name: "Session C", mediaId: "c", mediaType: "video", cells: ["Tech", "Linus", "Hall 2"] },
+      { name: "Session D", mediaId: "d", mediaType: "video", cells: ["Tech", "Ada", "Hall 3"] },
+      { name: "Session E", mediaId: "e", mediaType: "video", cells: ["Culture", "Grace", "Hall 3"] },
+      { name: "Session F", mediaId: "f", mediaType: "video", cells: [null, "Ada", "Hall 3"] },
+    ],
+    total: 6,
+  };
+  const LABELS_X = {
+    ...LABELS,
+    cardLabels: { play: "Watch", otherRow: "More", rowCount: (n: number) => `${n} sessions` },
+  };
+  const base = {
+    display: "cards" as const,
+    rowClick: "openMedia" as const,
+    card: { subtitleColumns: ["Track", "Speaker"], detailColumns: ["Room"] },
+  };
+  const renderWidget = (card: Record<string, unknown>, extra: Record<string, unknown> = {}, onRowClick = vi.fn()) =>
+    render(
+      <TableWidget
+        data={ROW_DATA}
+        isLoading={false}
+        isError={false}
+        config={{ ...base, ...extra, card: { ...base.card, ...card } }}
+        labels={LABELS_X}
+        onRowClick={onRowClick}
+      />,
+    );
+  const rowHeadings = () =>
+    screen
+      .getAllByRole("heading", { level: 3 })
+      .map((h) => h.textContent)
+      .filter((t) => /sessions$/.test(t ?? ""));
+
+  it("groups cards into ordered rows with a trailing blank row, scrolls and opens them, and falls back to the paged grid without row values", async () => {
+    for (const rowBy of [undefined, "Missing header", "Notes"]) {
+      const { unmount } = renderWidget({ layout: "rows", rowBy }, { pageSize: 2 });
+      expect(screen.queryAllByTestId("session-card-row")).toHaveLength(0);
+      expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(2);
+      expect(screen.getByLabelText("Next page")).toBeInTheDocument();
+      unmount();
+    }
+
+    const ordered = renderWidget({ layout: "rows", rowBy: "Track", rowOrder: ["Culture", "Missing", "Health"] });
+    expect(rowHeadings()).toEqual(["Culture1 sessions", "Health1 sessions", "Tech3 sessions", "More1 sessions"]);
+    ordered.unmount();
+
+    const scrollBy = vi.fn();
+    Object.defineProperty(HTMLElement.prototype, "scrollBy", { configurable: true, value: scrollBy });
+    Object.defineProperty(HTMLElement.prototype, "clientWidth", { configurable: true, value: 400 });
+    Object.defineProperty(HTMLElement.prototype, "scrollWidth", { configurable: true, value: 1600 });
+    try {
+      const onRowClick = vi.fn();
+      renderWidget({ layout: "rows", rowBy: "Track" }, { pageSize: 2 }, onRowClick);
+      expect(screen.getAllByTestId("session-card-row")).toHaveLength(4);
+      expect(rowHeadings()).toEqual(["Tech3 sessions", "Health1 sessions", "Culture1 sessions", "More1 sessions"]);
+      expect(screen.queryByLabelText("Next page")).toBeNull();
+      expect(screen.getByRole("button", { name: "Scroll left: Tech" })).toBeDisabled();
+      await userEvent.click(screen.getByRole("button", { name: "Scroll right: Tech" }));
+      expect(scrollBy).toHaveBeenCalledWith(expect.objectContaining({ left: 360 }));
+      await userEvent.click(screen.getByRole("button", { name: "Session E" }));
+      expect(onRowClick).toHaveBeenCalledWith("e");
+    } finally {
+      delete (HTMLElement.prototype as unknown as Record<string, unknown>).scrollBy;
+      delete (HTMLElement.prototype as unknown as Record<string, unknown>).clientWidth;
+      delete (HTMLElement.prototype as unknown as Record<string, unknown>).scrollWidth;
+    }
+  });
+
+  it("shows the first sorted record as a hero that opens on Play, leaves it out of the grid and rows, and drops Play when row click is off", async () => {
+    const onRowClick = vi.fn();
+    const grid = renderWidget({ hero: true }, {}, onRowClick);
+    const hero = screen.getByTestId("session-card-hero");
+    expect(within(hero).getByRole("heading", { name: "Session A" })).toBeInTheDocument();
+    expect(within(hero).getByText("Health")).toBeInTheDocument();
+    expect(screen.getAllByRole("heading", { name: "Session A" })).toHaveLength(1);
+    expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(6);
+    await userEvent.click(within(hero).getByRole("button", { name: /Watch/ }));
+    expect(onRowClick).toHaveBeenCalledWith("a");
+    grid.unmount();
+
+    renderWidget(
+      { hero: true, layout: "rows", rowBy: "Track" },
+      { rowClick: "none", sort: { column: "Room", dir: "desc" } },
+    );
+    const sortedHero = screen.getByTestId("session-card-hero");
+    expect(within(sortedHero).queryByRole("button")).toBeNull();
+    const heroTitle = within(sortedHero).getByRole("heading").textContent ?? "";
+    expect(heroTitle).not.toBe("Session A");
+    expect(screen.getAllByRole("heading", { name: heroTitle })).toHaveLength(1);
+  });
+});
+
+describe("TableWidget speaker avatars", () => {
+  const PHOTO = "https://photos.example/alex.jpg";
+  const lookup = (name: string) => (name === "Alex Rivera" ? PHOTO : undefined);
+  const LONG_NAME = "A very long media name ".repeat(8).trim();
+
+  it("shows lazy no-referrer photos or initials on group rows and cards, round by default and square on request, only when a lookup is given", async () => {
+    const onGroupRowClick = vi.fn();
+    const groups = render(
+      <TableWidget
+        data={{
+          columns: [{ header: "Sessions", format: "number" }],
+          rows: [
+            { name: "Alex Rivera", cells: [4] },
+            { name: "Sam Chen", cells: [2] },
+            { name: LONG_NAME, mediaId: "m9", cells: [1] },
+          ],
+          total: 3,
+        }}
+        isLoading={false}
+        isError={false}
+        config={{}}
+        labels={LABELS}
+        rowAvatar={lookup}
+        onGroupRowClick={onGroupRowClick}
+      />,
+    );
+    const imgs = groups.container.querySelectorAll("img");
+    expect(imgs).toHaveLength(1);
+    expect(imgs[0]).toHaveAttribute("src", PHOTO);
+    expect(imgs[0]).toHaveAttribute("referrerpolicy", "no-referrer");
+    expect(imgs[0]).toHaveAttribute("loading", "lazy");
+    expect(imgs[0].parentElement).toHaveClass("rounded-full");
+    expect(screen.getByText("SC")).toBeInTheDocument();
+    expect(screen.getByTitle(LONG_NAME)).toHaveTextContent(LONG_NAME);
+    expect(screen.queryByText("AV")).toBeNull();
+    expect(screen.queryAllByRole("img")).toHaveLength(0);
+    await userEvent.click(screen.getByText("Alex Rivera"));
+    expect(onGroupRowClick).toHaveBeenCalledWith("Alex Rivera");
+    groups.unmount();
+
+    const cardData: TableWidgetData = {
+      columns: [{ header: "Track" }, { header: "Speaker" }],
+      rows: [
+        { name: "Opening keynote", mediaId: "m1", mediaType: "audio", cells: ["Health", "Alex Rivera"] },
+        { name: "Panel", mediaId: "m2", mediaType: "audio", cells: ["Tech", "Sam Chen"] },
+      ],
+      total: 2,
+    };
+    const cardConfig = { display: "cards" as const, card: { subtitleColumns: ["Track"], imageColumn: "Speaker" } };
+    const cards = render(
+      <TableWidget data={cardData} isLoading={false} isError={false} config={cardConfig} labels={LABELS} cardAvatar={lookup} avatarShape="square" />,
+    );
+    const cardImgs = cards.container.querySelectorAll("img");
+    expect(cardImgs).toHaveLength(1);
+    expect(cardImgs[0]).toHaveAttribute("src", PHOTO);
+    expect(cardImgs[0]).toHaveAttribute("referrerpolicy", "no-referrer");
+    expect(cardImgs[0]).toHaveClass("object-contain");
+    expect(cardImgs[0].parentElement).toHaveClass("rounded-lg");
+    expect(screen.queryAllByRole("img")).toHaveLength(0);
+    cards.unmount();
+
+    const plain = render(
+      <TableWidget data={cardData} isLoading={false} isError={false} config={cardConfig} labels={LABELS} />,
+    );
+    expect(plain.container.querySelector("img")).toBeNull();
   });
 });

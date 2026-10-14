@@ -6,6 +6,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import type { DashboardProfileImageShape } from "@speakai/shared";
 import { cn } from "../../utils/cn";
 import {
   Table,
@@ -17,6 +18,7 @@ import {
   TableEmpty,
   type SortDirection,
 } from "../Table";
+import { AVATAR_SHAPE_PROPS, Avatar } from "../Avatar";
 import { Popover } from "../Popover";
 import { WidgetError, WidgetEmpty } from "./widget-states";
 import { BarChart3Icon } from "./icons";
@@ -31,6 +33,7 @@ import {
   SessionCardGridSkeleton,
   type SessionCardConfig,
   type SessionCardData,
+  type SessionCardLabels,
 } from "./session-cards";
 
 // ── Data contract ────────────────────────────────────────────────────────────
@@ -47,6 +50,7 @@ export interface TableWidgetRow {
   durationSec?: number;
   mediaType?: "video" | "audio";
   mediaUrl?: string;
+  thumbnailUrl?: string;
   cells: (string | number | null)[];
 }
 
@@ -88,6 +92,7 @@ export interface TableWidgetLabels {
   /** Pager: range summary. Defaults to "{from}–{to} of {total}". */
   pageSummary?: (from: number, to: number, total: number) => string;
   audioOnly?: string;
+  cardLabels?: SessionCardLabels;
 }
 
 export interface TableWidgetProps {
@@ -99,6 +104,9 @@ export interface TableWidgetProps {
   onRowClick?: (mediaId: string) => void;
   /** Group rows (rowsAre: "groups") become clickable and report the group's value, e.g. an Account ID. */
   onGroupRowClick?: (groupName: string) => void;
+  rowAvatar?: (rowName: string) => string | undefined;
+  cardAvatar?: (value: string) => string | undefined;
+  avatarShape?: DashboardProfileImageShape;
   onRetry?: () => void;
 }
 
@@ -146,6 +154,8 @@ function toCard(
   index: number,
   columns: TableWidgetColumn[],
   card: SessionCardConfig | undefined,
+  cardAvatar?: (value: string) => string | undefined,
+  avatarShape?: DashboardProfileImageShape,
 ): SessionCardData {
   const lineFor = (header: string): string | null => {
     const col = columns.findIndex((c) => c.header === header);
@@ -158,15 +168,21 @@ function toCard(
   // Without a card config the first two columns become the detail lines.
   const detailHeaders = card ? card.detailColumns : columns.slice(0, 2).map((c) => c.header);
 
+  const avatarName = card?.imageColumn && cardAvatar ? lineFor(card.imageColumn) : null;
+  const avatarSrc = avatarName ? cardAvatar?.(avatarName) : undefined;
+
   return {
     key: row.mediaId ?? `${row.name ?? ""}-${index}`,
+    group: card?.rowBy ? (lineFor(card.rowBy) ?? undefined) : undefined,
     mediaId: row.mediaId,
     mediaType: row.mediaType,
     mediaUrl: row.mediaUrl,
+    thumbnailUrl: row.thumbnailUrl,
     durationSec: row.durationSec,
     title: configuredTitle ?? row.name ?? cardLine(row.cells[0], columns[0]?.format) ?? "—",
     subtitles: linesFor(card?.subtitleColumns),
     details: linesFor(detailHeaders),
+    ...(avatarSrc && avatarName ? { avatarSrc, avatarName, avatarShape } : {}),
   };
 }
 
@@ -354,6 +370,9 @@ export function TableWidget({
   labels,
   onRowClick,
   onGroupRowClick,
+  rowAvatar,
+  cardAvatar,
+  avatarShape = "round",
   onRetry,
 }: TableWidgetProps) {
   const columns = data?.columns ?? [];
@@ -426,10 +445,16 @@ export function TableWidget({
     () => visibleRows.slice(currentPage * pageSize, (currentPage + 1) * pageSize),
     [visibleRows, currentPage, pageSize],
   );
-  const showPager = visibleRows.length > Math.min(pageSize, PAGE_SIZE_OPTIONS[0]);
+  const rowByIndex = config.card?.rowBy ? columns.findIndex((column) => column.header === config.card?.rowBy) : -1;
+  const asRows =
+    config.display === "cards" &&
+    config.card?.layout === "rows" &&
+    rowByIndex >= 0 &&
+    visibleRows.some((row) => !!cardLine(row.cells[rowByIndex], columns[rowByIndex].format)?.trim());
+  const showPager = !asRows && visibleRows.length > Math.min(pageSize, PAGE_SIZE_OPTIONS[0]);
 
   if (isLoading) {
-    if (config.display === "cards") return <SessionCardGridSkeleton />;
+    if (config.display === "cards") return <SessionCardGridSkeleton hero={config.card?.hero} />;
     return <div className="h-80 w-full animate-pulse rounded-xl bg-muted" aria-hidden="true" />;
   }
 
@@ -458,6 +483,11 @@ export function TableWidget({
 
   const columnCount = columns.length + (hasNameColumn ? 1 : 0);
   const asCards = config.display === "cards";
+  const cardSource = asRows
+    ? visibleRows.map((row, index) => ({ row, index }))
+    : pagedRows.map((row, i) => ({ row, index: currentPage * pageSize + i }));
+  const heroRow = asCards && config.card?.hero && cardSource[0]?.index === 0 ? cardSource[0] : undefined;
+  const cardRows = heroRow ? cardSource.slice(1) : cardSource;
 
   return (
     <div className="flex w-full flex-col gap-3">
@@ -474,10 +504,13 @@ export function TableWidget({
       {asCards && visibleRows.length === 0 && emptyState}
       {asCards && visibleRows.length > 0 && (
         <SessionCardGrid
-          cards={pagedRows.map((row, i) => toCard(row, currentPage * pageSize + i, columns, config.card))}
+          cards={cardRows.map(({ row, index }) => toCard(row, index, columns, config.card, cardAvatar, avatarShape))}
+          hero={heroRow ? toCard(heroRow.row, heroRow.index, columns, config.card, cardAvatar, avatarShape) : undefined}
           config={config.card}
           clickable={clickable}
           audioOnlyLabel={labels.audioOnly}
+          labels={labels.cardLabels}
+          asRows={asRows}
           onOpen={onRowClick}
         />
       )}
@@ -544,8 +577,35 @@ export function TableWidget({
                     }
                   >
                     {hasNameColumn && (
-                      <TableCell className="whitespace-nowrap align-top font-medium text-foreground">
-                        {row.name ?? "—"}
+                      <TableCell
+                        className={cn(
+                          rowAvatar ? "min-w-40" : "whitespace-nowrap",
+                          "align-top font-medium text-foreground",
+                        )}
+                      >
+                        {rowAvatar && !row.mediaId && row.name != null ? (
+                          <span className="flex max-w-xs items-center gap-2">
+                            <Avatar
+                              name={row.name}
+                              src={rowAvatar(row.name)}
+                              size="sm"
+                              {...AVATAR_SHAPE_PROPS[avatarShape]}
+                              aria-hidden="true"
+                              className="shrink-0"
+                              imgReferrerPolicy="no-referrer"
+                              imgLoading="lazy"
+                            />
+                            <span className="line-clamp-3 min-w-0 break-words" title={row.name}>
+                              {row.name}
+                            </span>
+                          </span>
+                        ) : rowAvatar ? (
+                          <span className="line-clamp-3 max-w-xs break-words" title={row.name ?? undefined}>
+                            {row.name ?? "—"}
+                          </span>
+                        ) : (
+                          (row.name ?? "—")
+                        )}
                       </TableCell>
                     )}
                     {columns.map((column, colIndex) => {
