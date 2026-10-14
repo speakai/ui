@@ -85,6 +85,7 @@ function isLikelyTailwindClass(token) {
     "top-", "right-", "bottom-", "left-", "end-",
     "rounded-", "overflow-", "opacity-", "cursor-", "pointer-events-",
     "select-", "resize-", "appearance-",
+    "ms-", "me-", "aspect-", "object-", "transition-", "duration-",
     "sr-only", "not-sr-only", "truncate", "line-clamp-", "whitespace-",
     "font-", "leading-", "tracking-", "align-",
     "underline-", "tabular-nums",
@@ -93,7 +94,7 @@ function isLikelyTailwindClass(token) {
     // Modifiers
     "dark:", "sm:", "md:", "lg:", "xl:", "2xl:",
     "hover:", "focus:", "focus-visible:", "focus-within:",
-    "active:", "disabled:", "group-hover:", "peer-",
+    "active:", "disabled:", "group-hover:", "group-focus-within:", "motion-reduce:", "peer-",
     "first:", "last:", "odd:", "even:", "placeholder:",
   ];
 

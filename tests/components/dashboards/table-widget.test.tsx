@@ -447,7 +447,7 @@ describe("TableWidget cards", () => {
     card: { subtitleColumns: ["Track", "Speaker"], detailColumns: ["Room"] },
   };
 
-  const PLAY_OVERLAY = ".rounded-full.bg-black\\/70";
+  const PLAY_OVERLAY = '[data-testid="session-card-play"]';
 
   it("shows a card skeleton grid while loading, then a card per row with a topic chip and play overlay that opens the media on click", async () => {
     const onRowClick = vi.fn();
@@ -468,7 +468,7 @@ describe("TableWidget cards", () => {
     );
     expect(container.querySelector("table")).toBeNull();
     expect(screen.getByRole("heading", { name: "Opening keynote" })).toBeInTheDocument();
-    expect(screen.getByText("Health").closest(".bg-muted")).not.toBeNull();
+    expect(screen.getByText("Health")).toBeInTheDocument();
     expect(screen.getByText("Ada").tagName).toBe("P");
     expect(screen.getByText("Hall A")).toBeInTheDocument();
     expect(screen.getByText("1:02:05")).toBeInTheDocument();
@@ -523,6 +523,47 @@ describe("TableWidget cards", () => {
     fireEvent.error(video);
     await waitFor(() => expect(container.querySelector("video")).toBeNull());
     vi.unstubAllGlobals();
+  });
+
+  it("shows title initials, hidden from assistive tech, when a video row has no media url, and none for audio", () => {
+    render(
+      <TableWidget
+        data={{
+          columns: [{ header: "Track" }],
+          rows: [
+            { name: "Quarterly planning review", mediaId: "m1", mediaType: "video", cells: ["Planning"] },
+            { name: "Podcast live", mediaId: "m2", mediaType: "audio", cells: ["Tech"] },
+          ],
+          total: 2,
+        }}
+        isLoading={false}
+        isError={false}
+        config={{ ...cardConfig, card: { subtitleColumns: ["Track"] } }}
+        labels={LABELS}
+      />,
+    );
+    expect(screen.getByText("QP")).toHaveAttribute("aria-hidden", "true");
+    expect(screen.queryByText("PL")).toBeNull();
+    expect(screen.getByText("Audio")).toBeInTheDocument();
+  });
+
+  it("opens a session from the keyboard-focusable button named by the title", async () => {
+    const onRowClick = vi.fn();
+    render(
+      <TableWidget
+        data={CARD_DATA}
+        isLoading={false}
+        isError={false}
+        config={cardConfig}
+        labels={LABELS}
+        onRowClick={onRowClick}
+      />,
+    );
+    const button = screen.getByRole("button", { name: "Opening keynote" });
+    await userEvent.tab();
+    expect(button).toHaveFocus();
+    await userEvent.keyboard("{Enter}");
+    expect(onRowClick).toHaveBeenCalledWith("m1");
   });
 });
 

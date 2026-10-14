@@ -97,3 +97,13 @@ export function formatClockDuration(totalSeconds: number): string {
   if (hours > 0) return `${hours}:${String(minutes).padStart(2, "0")}:${ss}`;
   return `${minutes}:${ss}`;
 }
+
+/** Up to two leading letters or digits of the title, uppercased; empty when there are none. */
+export function getTitleInitials(title: string): string {
+  const words = title.split(/\s+/).map((word) => Array.from(word).find((ch) => /[\p{L}\p{N}]/u.test(ch)));
+  return words
+    .filter((ch): ch is string => !!ch)
+    .slice(0, 2)
+    .join("")
+    .toLocaleUpperCase();
+}

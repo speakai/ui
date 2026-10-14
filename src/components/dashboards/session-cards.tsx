@@ -3,7 +3,7 @@ import { cn } from "../../utils/cn";
 import { Avatar } from "../Avatar";
 import { Badge } from "../Badge";
 import { Skeleton } from "../Skeleton";
-import { formatClockDuration } from "./format";
+import { formatClockDuration, getTitleInitials } from "./format";
 import { ChevronLeftIcon, ChevronRightIcon, FileAudioIcon, PlayIcon } from "./icons";
 
 const POSTER_SEEK_SECONDS = 3;
@@ -115,11 +115,16 @@ function SessionPoster({
   const isVideo = !isAudio && !!mediaUrl;
   const showVideo = near && isVideo && !failed;
   const showPlayButton = clickable && isVideo && !hidePlayGlyph;
+  const showFallback = !frameReady || failed;
+  const initials = getTitleInitials(card.title);
 
   return (
     <div
       ref={ref}
-      className={cn("relative w-full overflow-hidden bg-muted", className ?? "aspect-video rounded-t-xl")}
+      className={cn(
+        "relative w-full overflow-hidden bg-black bg-gradient-to-br from-primary/30 to-black",
+        className ?? "aspect-video rounded-t-xl",
+      )}
     >
       {showVideo ? (
         <video
@@ -132,17 +137,30 @@ function SessionPoster({
           onLoadedData={() => setFrameReady(true)}
           onError={() => setFailed(true)}
           className={cn(
-            "absolute inset-0 h-full w-full object-cover transition-opacity duration-300",
+            "absolute inset-0 h-full w-full object-cover transition-opacity duration-300 motion-reduce:transition-none",
             frameReady ? "opacity-100" : "opacity-0",
           )}
         />
       ) : null}
-      {!frameReady || failed ? (
-        <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+      {showFallback ? (
+        <div
+          className={cn(
+            "absolute inset-0 flex text-white/80",
+            // With a play button centred, the monogram moves to the corner so the two never overlap.
+            initials && !isAudio && showPlayButton ? "items-end justify-start p-3" : "items-center justify-center",
+          )}
+        >
           {isAudio ? (
             <span className="flex flex-col items-center gap-1 text-xs font-medium">
               <FileAudioIcon className="h-8 w-8" />
               {audioOnlyLabel ?? "Audio"}
+            </span>
+          ) : initials ? (
+            <span
+              aria-hidden="true"
+              className={cn("select-none font-semibold tracking-wide", showPlayButton ? "text-2xl" : "text-3xl")}
+            >
+              {initials}
             </span>
           ) : showPlayButton || hidePlayGlyph ? null : (
             <PlayIcon className="h-8 w-8 opacity-60" />
@@ -150,9 +168,9 @@ function SessionPoster({
         </div>
       ) : null}
       {showPlayButton ? (
-        <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
-          <span className="rounded-full bg-black/70 p-3 text-white shadow-lg backdrop-blur-sm transition-transform group-hover:scale-110">
-            <PlayIcon className="ml-0.5 h-6 w-6 fill-current" />
+        <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true" data-testid="session-card-play">
+          <span className="rounded-full bg-primary p-3 text-primary-foreground shadow-lg ring-2 ring-white/70 transition-transform group-hover:scale-110 group-focus-within:scale-110 motion-reduce:transition-none motion-reduce:group-hover:scale-100 motion-reduce:group-focus-within:scale-100">
+            <PlayIcon className="ms-0.5 h-6 w-6 fill-current" />
           </span>
         </div>
       ) : null}
@@ -180,7 +198,8 @@ function SessionCard({ card, showDuration, clickable, audioOnlyLabel, onOpen }: 
     <article
       className={cn(
         "group relative flex w-full flex-col overflow-hidden rounded-xl border border-border bg-card text-card-foreground",
-        mediaId && "transition-shadow hover:shadow-md",
+        mediaId &&
+          "transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg motion-reduce:transition-none motion-reduce:hover:translate-y-0",
       )}
     >
       <SessionPoster
@@ -198,13 +217,14 @@ function SessionCard({ card, showDuration, clickable, audioOnlyLabel, onOpen }: 
                 src={card.avatarSrc}
                 size="sm"
                 variant="circle"
-                className="h-6 w-6 text-[10px]"
+                aria-hidden="true"
+                className="h-6 w-6 shrink-0 text-[10px]"
                 imgReferrerPolicy="no-referrer"
                 imgLoading="lazy"
               />
             ) : null}
             {topic ? (
-              <Badge color="gray" size="sm" role={undefined} className="max-w-full rounded-md">
+              <Badge variant="default" size="sm" role={undefined} className="max-w-full rounded-md">
                 <span className="line-clamp-1">{topic}</span>
               </Badge>
             ) : null}
@@ -227,7 +247,7 @@ function SessionCard({ card, showDuration, clickable, audioOnlyLabel, onOpen }: 
           type="button"
           aria-label={card.title}
           onClick={() => onOpen?.(mediaId)}
-          className="absolute inset-0 cursor-pointer rounded-xl focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+          className="absolute inset-0 cursor-pointer rounded-xl focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
         />
       ) : null}
     </article>
