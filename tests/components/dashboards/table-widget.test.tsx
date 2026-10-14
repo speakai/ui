@@ -599,6 +599,9 @@ describe("TableWidget speaker avatars", () => {
     const imgs = container.querySelectorAll("img");
     expect(imgs).toHaveLength(1);
     expect(imgs[0].getAttribute("src")).toBe(PHOTO);
+    expect(imgs[0].getAttribute("referrerpolicy")).toBe("no-referrer");
+    expect(imgs[0].getAttribute("loading")).toBe("lazy");
+    expect(imgs[0].closest(".rounded-full")).not.toBeNull();
   });
 
   it("ignores avatarColumn when cardAvatar is not provided", () => {
