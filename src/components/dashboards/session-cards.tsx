@@ -15,6 +15,38 @@ const ROW_CARD_CLASS =
   "w-[85%] shrink-0 snap-start sm:w-[calc((100%-1rem)/2.3)] lg:w-[calc((100%-3rem)/3.4)]";
 const ROW_BUTTON_CLASS =
   "inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-muted focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40";
+const MAX_CONCURRENT_FRAME_LOADS = 2;
+
+// Source videos are huge; loading every card's frame at once stalls phones.
+let activeFrameLoads = 0;
+const frameLoadWaiters: Array<() => void> = [];
+
+function acquireFrameSlot(onGranted: () => void): () => void {
+  let held = false;
+  let waiting = false;
+  const grant = () => {
+    waiting = false;
+    held = true;
+    activeFrameLoads += 1;
+    onGranted();
+  };
+  if (activeFrameLoads < MAX_CONCURRENT_FRAME_LOADS) grant();
+  else {
+    waiting = true;
+    frameLoadWaiters.push(grant);
+  }
+  return () => {
+    if (waiting) {
+      const i = frameLoadWaiters.indexOf(grant);
+      if (i >= 0) frameLoadWaiters.splice(i, 1);
+      waiting = false;
+    }
+    if (!held) return;
+    held = false;
+    activeFrameLoads -= 1;
+    frameLoadWaiters.shift()?.();
+  };
+}
 
 export interface SessionCardConfig {
   titleColumn?: string;
@@ -51,6 +83,7 @@ export interface SessionCardData {
   mediaId?: string;
   mediaType?: "video" | "audio";
   mediaUrl?: string;
+  thumbnailUrl?: string;
   durationSec?: number;
   title: string;
   subtitles: string[];
@@ -110,13 +143,29 @@ function SessionPoster({
   const { ref, near } = useNearViewport();
   const [frameReady, setFrameReady] = useState(false);
   const [failed, setFailed] = useState(false);
-  const { mediaUrl, durationSec } = card;
+  const [thumbFailed, setThumbFailed] = useState(false);
+  const [slotGranted, setSlotGranted] = useState(false);
+  const { mediaUrl, thumbnailUrl, durationSec } = card;
   const isAudio = card.mediaType === "audio";
   const isVideo = !isAudio && !!mediaUrl;
-  const showVideo = near && isVideo && !failed;
+  const showThumb = near && !isAudio && !!thumbnailUrl && !thumbFailed;
+  const wantsFrame = near && isVideo && !failed && !showThumb;
+  const showVideo = wantsFrame && slotGranted;
   const showPlayButton = clickable && isVideo && !hidePlayGlyph;
   const showFallback = !frameReady || failed;
   const initials = getTitleInitials(card.title);
+
+  const releaseSlot = useRef<(() => void) | null>(null);
+  const freeSlot = () => {
+    releaseSlot.current?.();
+    releaseSlot.current = null;
+  };
+
+  useEffect(() => {
+    if (!wantsFrame) return;
+    releaseSlot.current = acquireFrameSlot(() => setSlotGranted(true));
+    return freeSlot;
+  }, [wantsFrame]);
 
   return (
     <div
@@ -126,6 +175,20 @@ function SessionPoster({
         className ?? "aspect-video rounded-t-xl",
       )}
     >
+      {showThumb ? (
+        <img
+          src={thumbnailUrl}
+          loading="lazy"
+          decoding="async"
+          alt=""
+          onLoad={() => setFrameReady(true)}
+          onError={() => setThumbFailed(true)}
+          className={cn(
+            "absolute inset-0 h-full w-full object-cover transition-opacity duration-300 motion-reduce:transition-none",
+            frameReady ? "opacity-100" : "opacity-0",
+          )}
+        />
+      ) : null}
       {showVideo ? (
         <video
           src={`${mediaUrl}#t=${POSTER_SEEK_SECONDS}`}
@@ -134,8 +197,14 @@ function SessionPoster({
           playsInline
           tabIndex={-1}
           aria-hidden="true"
-          onLoadedData={() => setFrameReady(true)}
-          onError={() => setFailed(true)}
+          onLoadedData={() => {
+            setFrameReady(true);
+            freeSlot();
+          }}
+          onError={() => {
+            setFailed(true);
+            freeSlot();
+          }}
           className={cn(
             "absolute inset-0 h-full w-full object-cover transition-opacity duration-300 motion-reduce:transition-none",
             frameReady ? "opacity-100" : "opacity-0",

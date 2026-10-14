@@ -565,6 +565,72 @@ describe("TableWidget cards", () => {
     await userEvent.keyboard("{Enter}");
     expect(onRowClick).toHaveBeenCalledWith("m1");
   });
+
+  describe("posters", () => {
+    const posterRows = (n: number, extra: Partial<TableWidgetData["rows"][number]> = {}) =>
+      Array.from({ length: n }, (_, i) => ({
+        name: `Session ${i + 1}`,
+        mediaId: `m${i + 1}`,
+        mediaType: "video" as const,
+        mediaUrl: `https://media.example/${i + 1}.mp4`,
+        cells: [],
+        ...extra,
+      }));
+    const renderPosters = (rows: TableWidgetData["rows"]) =>
+      render(
+        <TableWidget
+          data={{ columns: [], rows, total: rows.length }}
+          isLoading={false}
+          isError={false}
+          config={{ display: "cards" }}
+          labels={LABELS}
+        />,
+      );
+
+    it("renders a lazy thumbnail image and no video when thumbnailUrl is set, and falls back to the video frame on error", () => {
+      const { container } = renderPosters([
+        { ...posterRows(1)[0], thumbnailUrl: "https://media.example/1.jpg" },
+      ]);
+      const img = container.querySelector("img") as HTMLImageElement;
+      expect(img.getAttribute("src")).toBe("https://media.example/1.jpg");
+      expect(img.getAttribute("loading")).toBe("lazy");
+      expect(img.getAttribute("decoding")).toBe("async");
+      expect(img.getAttribute("alt")).toBe("");
+      expect(container.querySelector("video")).toBeNull();
+      expect(img.className).toContain("opacity-0");
+      fireEvent.load(img);
+      expect(img.className).toContain("opacity-100");
+
+      fireEvent.error(img);
+      expect(container.querySelector("img")).toBeNull();
+      expect(container.querySelector("video")?.getAttribute("src")).toBe("https://media.example/1.mp4#t=3");
+    });
+
+    it("loads at most two video frames at once and frees a slot on loadeddata or error", () => {
+      const { container } = renderPosters(posterRows(4));
+      const videos = () => Array.from(container.querySelectorAll("video"));
+      expect(videos()).toHaveLength(2);
+
+      act(() => {
+        fireEvent.loadedData(videos()[0]);
+      });
+      expect(videos()).toHaveLength(3);
+
+      act(() => {
+        fireEvent.error(videos()[1]);
+      });
+      expect(videos().map((v) => v.getAttribute("src"))).toContain("https://media.example/4.mp4#t=3");
+    });
+
+    it("frees the slot when a loading card unmounts", () => {
+      const first = renderPosters(posterRows(2));
+      expect(first.container.querySelectorAll("video")).toHaveLength(2);
+      const second = renderPosters(posterRows(1).map((r) => ({ ...r, mediaId: "x", mediaUrl: "https://media.example/x.mp4" })));
+      expect(second.container.querySelectorAll("video")).toHaveLength(0);
+      first.unmount();
+      expect(second.container.querySelectorAll("video")).toHaveLength(1);
+    });
+  });
 });
 
 describe("TableWidget cards: hero and rows", () => {
