@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import type { TableCardLayout } from "@speakai/shared";
+import type { DashboardProfileImageShape, TableCardLayout } from "@speakai/shared";
 import { cn } from "../../utils/cn";
 import { getInitials } from "../../utils/initials";
-import { Avatar } from "../Avatar";
+import { Avatar, type AvatarProps } from "../Avatar";
 import { Badge } from "../Badge";
 import { Skeleton } from "../Skeleton";
 import { formatClockDuration } from "./format";
@@ -19,6 +19,10 @@ const ROW_BUTTON_CLASS =
   "inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-muted focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40";
 const MAX_CONCURRENT_FRAME_LOADS = 2;
 const FRAME_SLOT_TIMEOUT_MS = 8000;
+export const AVATAR_SHAPE_PROPS = {
+  round: { variant: "circle", fit: "cover" },
+  square: { variant: "rounded", fit: "contain" },
+} as const satisfies Record<DashboardProfileImageShape, Pick<AvatarProps, "variant" | "fit">>;
 
 // Source videos are huge; loading every card's frame at once stalls phones.
 let activeFrameLoads = 0;
@@ -60,7 +64,7 @@ export interface SessionCardConfig {
   rowBy?: string;
   rowOrder?: string[];
   hero?: boolean;
-  avatarColumn?: string;
+  imageColumn?: string;
 }
 
 export interface SessionCardLabels {
@@ -84,6 +88,7 @@ export interface SessionCardData {
   details: string[];
   avatarSrc?: string;
   avatarName?: string;
+  avatarShape?: DashboardProfileImageShape;
 }
 
 function useNearViewport() {
@@ -282,7 +287,7 @@ function SessionCard({ card, showDuration, clickable, audioOnlyLabel, onOpen }: 
                 name={card.avatarName ?? card.title}
                 src={card.avatarSrc}
                 size="sm"
-                variant="circle"
+                {...AVATAR_SHAPE_PROPS[card.avatarShape ?? "round"]}
                 aria-hidden="true"
                 className="h-6 w-6 shrink-0 text-[10px]"
                 imgReferrerPolicy="no-referrer"

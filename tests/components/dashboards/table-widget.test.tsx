@@ -679,7 +679,7 @@ describe("TableWidget speaker avatars", () => {
   const lookup = (name: string) => (name === "Alex Rivera" ? PHOTO : undefined);
   const LONG_NAME = "A very long media name ".repeat(8).trim();
 
-  it("shows lazy no-referrer photos or initials on group rows and cards, hidden from assistive tech, only when a lookup is given", async () => {
+  it("shows lazy no-referrer photos or initials on group rows and cards, round by default and square on request, only when a lookup is given", async () => {
     const onGroupRowClick = vi.fn();
     const groups = render(
       <TableWidget
@@ -705,6 +705,7 @@ describe("TableWidget speaker avatars", () => {
     expect(imgs[0]).toHaveAttribute("src", PHOTO);
     expect(imgs[0]).toHaveAttribute("referrerpolicy", "no-referrer");
     expect(imgs[0]).toHaveAttribute("loading", "lazy");
+    expect(imgs[0].parentElement).toHaveClass("rounded-full");
     expect(screen.getByText("SC")).toBeInTheDocument();
     expect(screen.getByTitle(LONG_NAME)).toHaveTextContent(LONG_NAME);
     expect(screen.queryByText("AV")).toBeNull();
@@ -721,14 +722,16 @@ describe("TableWidget speaker avatars", () => {
       ],
       total: 2,
     };
-    const cardConfig = { display: "cards" as const, card: { subtitleColumns: ["Track"], avatarColumn: "Speaker" } };
+    const cardConfig = { display: "cards" as const, card: { subtitleColumns: ["Track"], imageColumn: "Speaker" } };
     const cards = render(
-      <TableWidget data={cardData} isLoading={false} isError={false} config={cardConfig} labels={LABELS} cardAvatar={lookup} />,
+      <TableWidget data={cardData} isLoading={false} isError={false} config={cardConfig} labels={LABELS} cardAvatar={lookup} avatarShape="square" />,
     );
     const cardImgs = cards.container.querySelectorAll("img");
     expect(cardImgs).toHaveLength(1);
     expect(cardImgs[0]).toHaveAttribute("src", PHOTO);
     expect(cardImgs[0]).toHaveAttribute("referrerpolicy", "no-referrer");
+    expect(cardImgs[0]).toHaveClass("object-contain");
+    expect(cardImgs[0].parentElement).toHaveClass("rounded-lg");
     expect(screen.queryAllByRole("img")).toHaveLength(0);
     cards.unmount();
 

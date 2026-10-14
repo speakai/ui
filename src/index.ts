@@ -117,7 +117,7 @@ export type { TabsProps, TabsListProps, TabsTriggerProps, TabsContentProps } fro
 
 // Avatar
 export { Avatar } from "./components/Avatar";
-export type { AvatarProps, AvatarSize, AvatarVariant } from "./components/Avatar";
+export type { AvatarFit, AvatarProps, AvatarSize, AvatarVariant } from "./components/Avatar";
 
 // Switch
 export { Switch } from "./components/Switch";

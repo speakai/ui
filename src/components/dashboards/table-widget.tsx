@@ -6,6 +6,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import type { DashboardProfileImageShape } from "@speakai/shared";
 import { cn } from "../../utils/cn";
 import {
   Table,
@@ -28,6 +29,7 @@ import {
 } from "./spec-thresholds";
 import { formatCount, formatDurationHuman } from "./format";
 import {
+  AVATAR_SHAPE_PROPS,
   SessionCardGrid,
   SessionCardGridSkeleton,
   type SessionCardConfig,
@@ -105,6 +107,7 @@ export interface TableWidgetProps {
   onGroupRowClick?: (groupName: string) => void;
   rowAvatar?: (rowName: string) => string | undefined;
   cardAvatar?: (value: string) => string | undefined;
+  avatarShape?: DashboardProfileImageShape;
   onRetry?: () => void;
 }
 
@@ -153,6 +156,7 @@ function toCard(
   columns: TableWidgetColumn[],
   card: SessionCardConfig | undefined,
   cardAvatar?: (value: string) => string | undefined,
+  avatarShape?: DashboardProfileImageShape,
 ): SessionCardData {
   const lineFor = (header: string): string | null => {
     const col = columns.findIndex((c) => c.header === header);
@@ -165,7 +169,7 @@ function toCard(
   // Without a card config the first two columns become the detail lines.
   const detailHeaders = card ? card.detailColumns : columns.slice(0, 2).map((c) => c.header);
 
-  const avatarName = card?.avatarColumn && cardAvatar ? lineFor(card.avatarColumn) : null;
+  const avatarName = card?.imageColumn && cardAvatar ? lineFor(card.imageColumn) : null;
   const avatarSrc = avatarName ? cardAvatar?.(avatarName) : undefined;
 
   return {
@@ -179,7 +183,7 @@ function toCard(
     title: configuredTitle ?? row.name ?? cardLine(row.cells[0], columns[0]?.format) ?? "—",
     subtitles: linesFor(card?.subtitleColumns),
     details: linesFor(detailHeaders),
-    ...(avatarSrc && avatarName ? { avatarSrc, avatarName } : {}),
+    ...(avatarSrc && avatarName ? { avatarSrc, avatarName, avatarShape } : {}),
   };
 }
 
@@ -369,6 +373,7 @@ export function TableWidget({
   onGroupRowClick,
   rowAvatar,
   cardAvatar,
+  avatarShape = "round",
   onRetry,
 }: TableWidgetProps) {
   const columns = data?.columns ?? [];
@@ -502,8 +507,8 @@ export function TableWidget({
       {asCards && visibleRows.length === 0 && emptyState}
       {asCards && visibleRows.length > 0 && (
         <SessionCardGrid
-          cards={cardRows.map(({ row, index }) => toCard(row, index, columns, config.card, cardAvatar))}
-          hero={heroRow ? toCard(heroRow.row, heroRow.index, columns, config.card, cardAvatar) : undefined}
+          cards={cardRows.map(({ row, index }) => toCard(row, index, columns, config.card, cardAvatar, avatarShape))}
+          hero={heroRow ? toCard(heroRow.row, heroRow.index, columns, config.card, cardAvatar, avatarShape) : undefined}
           config={config.card}
           clickable={clickable}
           audioOnlyLabel={labels.audioOnly}
@@ -582,7 +587,7 @@ export function TableWidget({
                               name={row.name}
                               src={rowAvatar(row.name)}
                               size="sm"
-                              variant="circle"
+                              {...AVATAR_SHAPE_PROPS[avatarShape]}
                               aria-hidden="true"
                               className="shrink-0"
                               imgReferrerPolicy="no-referrer"

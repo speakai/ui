@@ -4,12 +4,14 @@ import { getInitials } from "../utils/initials";
 
 export type AvatarSize = "sm" | "default" | "lg";
 export type AvatarVariant = "circle" | "rounded";
+export type AvatarFit = "cover" | "contain";
 
 export interface AvatarProps extends HTMLAttributes<HTMLDivElement> {
   name: string;
   src?: string;
   size?: AvatarSize;
   variant?: AvatarVariant;
+  fit?: AvatarFit;
   imgReferrerPolicy?: ReferrerPolicy;
   imgLoading?: "lazy" | "eager";
 }
@@ -25,8 +27,13 @@ const variantClasses: Record<AvatarVariant, string> = {
   rounded: "rounded-lg",
 };
 
+const fitClasses: Record<AvatarFit, string> = {
+  cover: "object-cover",
+  contain: "object-contain",
+};
+
 export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
-  ({ name, src, size = "default", variant = "circle", imgReferrerPolicy, imgLoading, className, ...props }, ref) => {
+  ({ name, src, size = "default", variant = "circle", fit = "cover", imgReferrerPolicy, imgLoading, className, ...props }, ref) => {
     const [imgError, setImgError] = useState(false);
     const showImage = src && !imgError;
 
@@ -49,7 +56,7 @@ export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
             alt={name}
             referrerPolicy={imgReferrerPolicy}
             loading={imgLoading}
-            className="h-full w-full object-cover"
+            className={cn("h-full w-full", fitClasses[fit])}
             onError={() => setImgError(true)}
           />
         ) : (
