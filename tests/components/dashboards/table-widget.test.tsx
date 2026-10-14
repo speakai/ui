@@ -413,7 +413,7 @@ describe("TableWidget top scrollbar", () => {
 
 describe("TableWidget cards", () => {
   const CARD_DATA: TableWidgetData = {
-    columns: [{ header: "Speaker" }, { header: "Room" }],
+    columns: [{ header: "Track" }, { header: "Speaker" }, { header: "Room" }],
     rows: [
       {
         name: "Opening keynote",
@@ -421,19 +421,21 @@ describe("TableWidget cards", () => {
         mediaType: "video",
         mediaUrl: "https://media.example/m1.mp4",
         durationSec: 3725,
-        cells: ["Ada", "Hall A"],
+        cells: ["Health", "Ada", "Hall A"],
       },
-      { name: "Podcast live", mediaId: "m2", mediaType: "audio", cells: ["Grace", "Hall B"] },
+      { name: "Podcast live", mediaId: "m2", mediaType: "audio", cells: ["Tech", "Grace", "Hall B"] },
     ],
     total: 2,
   };
   const cardConfig = {
     display: "cards" as const,
     rowClick: "openMedia" as const,
-    card: { subtitleColumns: ["Speaker"], detailColumns: ["Room"] },
+    card: { subtitleColumns: ["Track", "Speaker"], detailColumns: ["Room"] },
   };
 
-  it("shows a card skeleton grid while loading, then a card per row that opens the media on click", async () => {
+  const PLAY_OVERLAY = ".rounded-full.bg-black\\/70";
+
+  it("shows a card skeleton grid while loading, then a card per row with a topic chip and play overlay that opens the media on click", async () => {
     const onRowClick = vi.fn();
     const { container, rerender } = render(
       <TableWidget data={undefined} isLoading={true} isError={false} config={cardConfig} labels={LABELS} />,
@@ -452,16 +454,18 @@ describe("TableWidget cards", () => {
     );
     expect(container.querySelector("table")).toBeNull();
     expect(screen.getByRole("heading", { name: "Opening keynote" })).toBeInTheDocument();
-    expect(screen.getByText("Ada")).toBeInTheDocument();
+    expect(screen.getByText("Health").closest(".bg-muted")).not.toBeNull();
+    expect(screen.getByText("Ada").tagName).toBe("P");
     expect(screen.getByText("Hall A")).toBeInTheDocument();
     expect(screen.getByText("1:02:05")).toBeInTheDocument();
+    expect(container.querySelectorAll(PLAY_OVERLAY)).toHaveLength(1);
 
     await userEvent.click(screen.getByRole("button", { name: "Opening keynote" }));
     expect(onRowClick).toHaveBeenCalledWith("m1");
   });
 
-  it("renders plain cards when row click is off and the shared empty state when search matches nothing", async () => {
-    render(
+  it("renders plain cards without a play overlay when row click is off and the shared empty state when search matches nothing", async () => {
+    const { container } = render(
       <TableWidget
         data={CARD_DATA}
         isLoading={false}
@@ -472,6 +476,7 @@ describe("TableWidget cards", () => {
     );
     expect(screen.getByRole("heading", { name: "Opening keynote" })).toBeInTheDocument();
     expect(screen.queryByRole("button")).toBeNull();
+    expect(container.querySelector(PLAY_OVERLAY)).toBeNull();
 
     await userEvent.type(screen.getByRole("searchbox"), "zzz");
     expect(screen.getByText("No rows")).toBeInTheDocument();

@@ -82,7 +82,7 @@ function isLikelyTailwindClass(token) {
     "items-", "content-", "justify-", "place-", "self-",
     "grow-", "shrink-", "basis-", "order-", "z-", "inset-",
     "scrollbar-",
-    "top-", "right-", "bottom-", "left-",
+    "top-", "right-", "bottom-", "left-", "end-",
     "rounded-", "overflow-", "opacity-", "cursor-", "pointer-events-",
     "select-", "resize-", "appearance-",
     "sr-only", "not-sr-only", "truncate", "line-clamp-", "whitespace-",

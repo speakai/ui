@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { cn } from "../../utils/cn";
+import { Badge } from "../Badge";
 import { Skeleton } from "../Skeleton";
 import { formatClockDuration } from "./format";
 import { FileAudioIcon, PlayIcon } from "./icons";
@@ -29,10 +30,14 @@ export interface SessionCardData {
 
 function useNearViewport() {
   const ref = useRef<HTMLDivElement | null>(null);
-  const [near, setNear] = useState(() => typeof IntersectionObserver === "undefined");
+  const [near, setNear] = useState(false);
 
   useEffect(() => {
     if (near) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setNear(true);
+      return;
+    }
     const node = ref.current;
     if (!node) return;
     const observer = new IntersectionObserver(
@@ -54,16 +59,19 @@ function useNearViewport() {
 interface SessionPosterProps {
   card: SessionCardData;
   showDuration: boolean;
+  clickable: boolean;
   audioOnlyLabel?: string;
 }
 
-function SessionPoster({ card, showDuration, audioOnlyLabel }: SessionPosterProps) {
+function SessionPoster({ card, showDuration, clickable, audioOnlyLabel }: SessionPosterProps) {
   const { ref, near } = useNearViewport();
   const [frameReady, setFrameReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const { mediaUrl, durationSec } = card;
   const isAudio = card.mediaType === "audio";
-  const showVideo = near && !isAudio && !!mediaUrl && !failed;
+  const isVideo = !isAudio && !!mediaUrl;
+  const showVideo = near && isVideo && !failed;
+  const showPlayButton = clickable && isVideo;
 
   return (
     <div ref={ref} className="relative aspect-video w-full overflow-hidden rounded-t-xl bg-muted">
@@ -90,13 +98,20 @@ function SessionPoster({ card, showDuration, audioOnlyLabel }: SessionPosterProp
               <FileAudioIcon className="h-8 w-8" />
               {audioOnlyLabel ?? "Audio"}
             </span>
-          ) : (
+          ) : showPlayButton ? null : (
             <PlayIcon className="h-8 w-8 opacity-60" />
           )}
         </div>
       ) : null}
+      {showPlayButton ? (
+        <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
+          <span className="rounded-full bg-black/70 p-3 text-white shadow-lg backdrop-blur-sm transition-transform group-hover:scale-110">
+            <PlayIcon className="ml-0.5 h-6 w-6 fill-current" />
+          </span>
+        </div>
+      ) : null}
       {showDuration && typeof durationSec === "number" && durationSec > 0 ? (
-        <span className="absolute bottom-2 right-2 rounded-md bg-foreground/80 px-1.5 py-0.5 text-xs font-medium tabular-nums text-background">
+        <span className="absolute bottom-2 end-2 rounded-md bg-black/70 px-1.5 py-0.5 text-xs font-medium tabular-nums text-white backdrop-blur-sm">
           {formatClockDuration(durationSec)}
         </span>
       ) : null}
@@ -114,23 +129,34 @@ interface SessionCardProps {
 
 function SessionCard({ card, showDuration, clickable, audioOnlyLabel, onOpen }: SessionCardProps) {
   const mediaId = clickable ? card.mediaId : undefined;
+  const [topic, ...subtitles] = card.subtitles;
   return (
     <article
       className={cn(
-        "relative flex w-full flex-col overflow-hidden rounded-xl border border-border bg-card text-card-foreground",
+        "group relative flex w-full flex-col overflow-hidden rounded-xl border border-border bg-card text-card-foreground",
         mediaId && "transition-shadow hover:shadow-md",
       )}
     >
-      <SessionPoster card={card} showDuration={showDuration} audioOnlyLabel={audioOnlyLabel} />
-      <div className="flex flex-1 flex-col gap-1 p-3 text-left">
+      <SessionPoster
+        card={card}
+        showDuration={showDuration}
+        clickable={!!mediaId}
+        audioOnlyLabel={audioOnlyLabel}
+      />
+      <div className="flex flex-1 flex-col gap-1 p-3 text-start">
+        {topic ? (
+          <Badge color="gray" size="sm" role={undefined} className="mb-1 max-w-full self-start rounded-md">
+            <span className="line-clamp-1">{topic}</span>
+          </Badge>
+        ) : null}
         <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">{card.title}</h3>
-        {card.subtitles.map((line, i) => (
+        {subtitles.map((line, i) => (
           <p key={`s-${i}`} className="line-clamp-1 text-sm text-muted-foreground">
             {line}
           </p>
         ))}
         {card.details.map((line, i) => (
-          <p key={`d-${i}`} className="line-clamp-2 text-xs text-muted-foreground">
+          <p key={`d-${i}`} className="line-clamp-3 text-xs text-muted-foreground">
             {line}
           </p>
         ))}
@@ -183,7 +209,14 @@ export function SessionCardGridSkeleton() {
   return (
     <div className={CARD_GRID_CLASS} aria-hidden="true">
       {Array.from({ length: SKELETON_CARD_COUNT }, (_, i) => (
-        <Skeleton key={i} className="aspect-video w-full rounded-xl" />
+        <div key={i} className="flex flex-col overflow-hidden rounded-xl border border-border bg-card">
+          <Skeleton className="aspect-video w-full rounded-none" />
+          <div className="flex flex-col gap-2 p-3">
+            <Skeleton className="h-5 w-20 rounded-md" />
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+          </div>
+        </div>
       ))}
     </div>
   );

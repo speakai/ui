@@ -69,6 +69,7 @@ export function NotesWidget({ config, labels, onAction }: NotesWidgetProps) {
               type="button"
               size="sm"
               variant={i === 0 ? "primary" : "outline"}
+              className="h-auto min-h-9 whitespace-normal py-2 text-start"
               onClick={() => onAction?.(action)}
             >
               {action.label}
