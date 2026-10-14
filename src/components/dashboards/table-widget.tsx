@@ -18,7 +18,7 @@ import {
   TableEmpty,
   type SortDirection,
 } from "../Table";
-import { Avatar } from "../Avatar";
+import { AVATAR_SHAPE_PROPS, Avatar } from "../Avatar";
 import { Popover } from "../Popover";
 import { WidgetError, WidgetEmpty } from "./widget-states";
 import { BarChart3Icon } from "./icons";
@@ -29,7 +29,6 @@ import {
 } from "./spec-thresholds";
 import { formatCount, formatDurationHuman } from "./format";
 import {
-  AVATAR_SHAPE_PROPS,
   SessionCardGrid,
   SessionCardGridSkeleton,
   type SessionCardConfig,

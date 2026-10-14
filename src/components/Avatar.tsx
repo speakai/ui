@@ -1,4 +1,5 @@
 import { forwardRef, HTMLAttributes, useState } from "react";
+import type { DashboardProfileImageShape } from "@speakai/shared";
 import { cn } from "../utils/cn";
 import { getInitials } from "../utils/initials";
 
@@ -31,6 +32,11 @@ const fitClasses: Record<AvatarFit, string> = {
   cover: "object-cover",
   contain: "object-contain",
 };
+
+export const AVATAR_SHAPE_PROPS = {
+  round: { variant: "circle", fit: "cover" },
+  square: { variant: "rounded", fit: "contain" },
+} as const satisfies Record<DashboardProfileImageShape, Pick<AvatarProps, "variant" | "fit">>;
 
 export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
   ({ name, src, size = "default", variant = "circle", fit = "cover", imgReferrerPolicy, imgLoading, className, ...props }, ref) => {
