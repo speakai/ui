@@ -62,7 +62,7 @@ describe("TableWidget", () => {
     expect(screen.getByText("3 items total")).toBeInTheDocument();
   });
 
-  it("clamps long names to three wrapped lines and exposes the full name on hover", () => {
+  it("keeps long names whole in the cell and exposes the full name on hover", () => {
     const longName = "A very long media name ".repeat(8).trim();
     render(
       <TableWidget
@@ -73,11 +73,7 @@ describe("TableWidget", () => {
         labels={LABELS}
       />,
     );
-    const cell = screen.getByTestId("table-name-cell");
-    expect(cell).toHaveAttribute("title", longName);
-    expect(cell.className).toContain("line-clamp-3");
-    expect(cell.closest("td")?.className).toContain("max-w-xs");
-    expect(cell.closest("td")?.className).not.toContain("whitespace-nowrap");
+    expect(screen.getByTitle(longName)).toHaveTextContent(longName);
   });
 
   it("omits the name column when no row carries a name", () => {

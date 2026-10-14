@@ -548,7 +548,6 @@ export function TableWidget({
                         <span
                           className="line-clamp-3 break-words"
                           title={row.name ?? undefined}
-                          data-testid="table-name-cell"
                         >
                           {row.name ?? "—"}
                         </span>
