@@ -430,8 +430,13 @@ export function TableWidget({
     () => visibleRows.slice(currentPage * pageSize, (currentPage + 1) * pageSize),
     [visibleRows, currentPage, pageSize],
   );
-  // Rows show every record in a scroller, so paging only applies to the grid.
-  const asRows = config.display === "cards" && config.card?.layout === "rows";
+  // Rows show every record in a scroller, so paging only applies to the grid (also the fallback when rowBy is not a column).
+  const rowBy = config.card?.rowBy;
+  const asRows =
+    config.display === "cards" &&
+    config.card?.layout === "rows" &&
+    !!rowBy &&
+    columns.some((column) => column.header === rowBy);
   const showPager = !asRows && visibleRows.length > Math.min(pageSize, PAGE_SIZE_OPTIONS[0]);
 
   if (isLoading) {

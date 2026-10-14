@@ -210,7 +210,7 @@ function SessionCard({ card, showDuration, clickable, audioOnlyLabel, onOpen }: 
   );
 }
 
-export interface SessionCardRow {
+interface SessionCardRow {
   key: string;
   title: string;
   cards: SessionCardData[];
@@ -219,7 +219,7 @@ export interface SessionCardRow {
 const OTHER_ROW_KEY = "\u0000other";
 
 /** Splits cards into rows by `group`: `order` values first, then by count (ties keep first appearance), blanks last. */
-export function groupSessionCards(
+function groupSessionCards(
   cards: SessionCardData[],
   order: string[] = [],
   otherTitle = "Other",
@@ -424,7 +424,6 @@ interface SessionCardGridProps {
   cards: SessionCardData[];
   config?: SessionCardConfig;
   clickable: boolean;
-  audioOnlyLabel?: string;
   labels?: SessionCardLabels;
   /** Rendered as a hero banner above the cards; pass it only when `config.hero` is on. */
   hero?: SessionCardData;
@@ -435,16 +434,14 @@ export function SessionCardGrid({
   cards,
   config,
   clickable,
-  audioOnlyLabel,
   labels,
   hero,
   onOpen,
 }: SessionCardGridProps) {
   const showDuration = config?.showDuration !== false;
-  const mergedLabels: SessionCardLabels = { ...labels, audioOnly: labels?.audioOnly ?? audioOnlyLabel };
   // Without a resolvable row column the rows layout would be one "Other" row, so fall back to the grid.
   const asRows = config?.layout === "rows" && cards.some((card) => card.group?.trim());
-  const rows = asRows ? groupSessionCards(cards, config?.rowOrder, mergedLabels.otherRow) : [];
+  const rows = asRows ? groupSessionCards(cards, config?.rowOrder, labels?.otherRow) : [];
   return (
     <div className="flex min-w-0 flex-col gap-6">
       {hero ? (
@@ -452,7 +449,7 @@ export function SessionCardGrid({
           card={hero}
           showDuration={showDuration}
           clickable={clickable}
-          labels={mergedLabels}
+          labels={labels}
           onOpen={onOpen}
         />
       ) : null}
@@ -463,7 +460,7 @@ export function SessionCardGrid({
             row={row}
             showDuration={showDuration}
             clickable={clickable}
-            labels={mergedLabels}
+            labels={labels}
             onOpen={onOpen}
           />
         ))
@@ -475,7 +472,7 @@ export function SessionCardGrid({
               card={card}
               showDuration={showDuration}
               clickable={clickable}
-              audioOnlyLabel={mergedLabels.audioOnly}
+              audioOnlyLabel={labels?.audioOnly}
               onOpen={onOpen}
             />
           ))}

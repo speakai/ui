@@ -552,6 +552,13 @@ describe("TableWidget cards: hero and rows", () => {
     expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(6);
   });
 
+  it("keeps paging when rows cannot resolve and the layout falls back to the grid", () => {
+    renderWidget({ layout: "rows", rowBy: "Missing header" }, { pageSize: 2 });
+    expect(screen.queryAllByTestId("session-card-row")).toHaveLength(0);
+    expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(2);
+    expect(screen.getByLabelText("Next page")).toBeInTheDocument();
+  });
+
   it("renders one row per value ordered by count with a blank row last, titles and counts", () => {
     renderWidget({ layout: "rows", rowBy: "Track" });
     const rows = screen.getAllByTestId("session-card-row");
