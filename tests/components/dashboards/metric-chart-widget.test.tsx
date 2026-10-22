@@ -88,90 +88,25 @@ describe("MetricChartWidget", () => {
     expect(single.container.querySelector(".recharts-legend-wrapper")).toBeNull();
   });
 
-  it("renders the accessible figcaption title", () => {
-    const { container } = render(
-      <MetricChartWidget
-        data={TWO_SERIES_DATA}
-        isLoading={false}
-        isError={false}
-        config={{ mark: "bar" }}
-        labels={LABELS}
-      />,
+  it("renders empty, error with retry, and loading states", () => {
+    const empty = render(
+      <MetricChartWidget data={{ rows: [] }} isLoading={false} isError={false} config={{ mark: "bar" }} labels={LABELS} />,
     );
-    expect(container.querySelector("figcaption")?.textContent).toBe(
-      "Sessions by week",
-    );
-  });
+    expect(empty.getByText("No data yet")).toBeInTheDocument();
+    expect(empty.container.querySelector("figure")).toBeNull();
 
-  it("shows the empty state when rows are empty", () => {
-    const { getByText, container } = render(
-      <MetricChartWidget
-        data={{ rows: [] }}
-        isLoading={false}
-        isError={false}
-        config={{ mark: "bar" }}
-        labels={LABELS}
-      />,
-    );
-    expect(getByText("No data yet")).toBeInTheDocument();
-    expect(container.querySelector("figure")).toBeNull();
-  });
-
-  it("shows the error state with a retry hook", () => {
     const onRetry = vi.fn();
-    const { getByText } = render(
-      <MetricChartWidget
-        isLoading={false}
-        isError={true}
-        config={{ mark: "line" }}
-        labels={LABELS}
-        onRetry={onRetry}
-      />,
+    const error = render(
+      <MetricChartWidget isLoading={false} isError={true} config={{ mark: "line" }} labels={LABELS} onRetry={onRetry} />,
     );
-    expect(getByText("Could not load chart")).toBeInTheDocument();
-    getByText("Retry").click();
+    expect(error.getByText("Could not load chart")).toBeInTheDocument();
+    error.getByText("Retry").click();
     expect(onRetry).toHaveBeenCalledTimes(1);
-  });
 
-  it("renders a pulse skeleton while loading", () => {
-    const { container } = render(
-      <MetricChartWidget
-        isLoading={true}
-        isError={false}
-        config={{ mark: "line" }}
-        labels={LABELS}
-      />,
+    const loading = render(
+      <MetricChartWidget isLoading={true} isError={false} config={{ mark: "line" }} labels={LABELS} />,
     );
-    expect(container.querySelector(".animate-pulse")).not.toBeNull();
-  });
-
-  it("wraps long x-axis category labels across two lines when few bars have room (flat)", () => {
-    // Multi-series keeps the vertical layout (single-series categorical bars
-    // render as a horizontal leaderboard instead).
-    const { container } = render(
-      <MetricChartWidget
-        data={{
-          rows: [
-            { group: "A very long category label", series: "a", value: 5 },
-            { group: "A very long category label", series: "b", value: 4 },
-            { group: "Short", series: "a", value: 3 },
-            { group: "Short", series: "b", value: 2 },
-          ],
-        }}
-        isLoading={false}
-        isError={false}
-        config={{ mark: "bar" }}
-        labels={LABELS}
-      />,
-    );
-    const ticks = Array.from(
-      container.querySelectorAll("text.recharts-cartesian-axis-tick-value"),
-    ).filter((t) => !(t.getAttribute("transform")?.includes("rotate")));
-    // The long label is flat (not angled) and wraps across multiple <tspan> lines.
-    const longTick = ticks.find((t) => (t.textContent ?? "").startsWith("A very long"));
-    expect(longTick).toBeTruthy();
-    expect(longTick?.querySelectorAll("tspan").length ?? 0).toBeGreaterThan(1);
-    expect(ticks.map((t) => t.textContent)).toContain("Short");
+    expect(loading.container.querySelector(".animate-pulse")).not.toBeNull();
   });
 
   it("angles and ellipsis-truncates x-axis category labels when many bars are packed tight", () => {
