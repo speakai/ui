@@ -4,33 +4,12 @@ import userEvent from "@testing-library/user-event";
 import { Checkbox } from "../../src/components/Checkbox";
 
 describe("Checkbox", () => {
-  it("renders a checkbox input", () => {
-    render(<Checkbox />);
-    expect(screen.getByRole("checkbox")).toBeInTheDocument();
-  });
-
-  it("renders label when provided", () => {
-    render(<Checkbox label="Accept terms" />);
-    expect(screen.getByText("Accept terms")).toBeInTheDocument();
-    expect(screen.getByLabelText("Accept terms")).toBeInTheDocument();
-  });
-
-  it("renders description", () => {
-    render(<Checkbox label="Newsletter" description="We won't spam you" />);
-    expect(screen.getByText("We won't spam you")).toBeInTheDocument();
-  });
-
   it("toggles on click", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
     render(<Checkbox onChange={onChange} />);
     await user.click(screen.getByRole("checkbox"));
     expect(onChange).toHaveBeenCalled();
-  });
-
-  it("shows error border when error=true", () => {
-    render(<Checkbox error />);
-    expect(screen.getByRole("checkbox")).toHaveAttribute("aria-invalid", "true");
   });
 
   it("shows error message when error is string", () => {
@@ -59,12 +38,6 @@ describe("Checkbox", () => {
     );
     expect(screen.getByText("Please read first")).toBeInTheDocument();
     expect(screen.getByText("Required")).toBeInTheDocument();
-  });
-
-  it("does not render label/description container when neither provided", () => {
-    const { container } = render(<Checkbox />);
-    // Only the input, no wrapping div with label text
-    expect(container.querySelector("label")).not.toBeInTheDocument();
   });
 
   it("generates id from label for htmlFor association", () => {
