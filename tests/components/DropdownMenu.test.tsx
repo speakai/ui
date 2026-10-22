@@ -6,6 +6,9 @@ import {
   DropdownMenuItem,
   DropdownMenuHeader,
   DropdownMenuDivider,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
   MoreButton,
 } from "../../src/components/DropdownMenu";
 
@@ -342,5 +345,56 @@ describe("MoreButton", () => {
   it("renders with aria-label", () => {
     render(<MoreButton />);
     expect(screen.getByLabelText("More options")).toBeInTheDocument();
+  });
+});
+
+describe("DropdownMenuSub", () => {
+  function renderWithSub(onPick = vi.fn()) {
+    render(
+      <DropdownMenu trigger={<span>Account</span>}>
+        <DropdownMenuItem>Settings</DropdownMenuItem>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger hint="English">Language</DropdownMenuSubTrigger>
+          <DropdownMenuSubContent aria-label="Languages">
+            <DropdownMenuItem onClick={onPick}>Español</DropdownMenuItem>
+            <DropdownMenuItem>Français</DropdownMenuItem>
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
+      </DropdownMenu>
+    );
+    return onPick;
+  }
+
+  it("opens with ArrowRight, focuses the first item, and Escape closes only the sub-menu", async () => {
+    const user = userEvent.setup();
+    renderWithSub();
+    await user.click(screen.getByText("Account"));
+    const subTrigger = screen.getByRole("menuitem", { name: /Language/ });
+    expect(subTrigger).toHaveAttribute("aria-haspopup", "menu");
+    await waitFor(() => expect(screen.getByText("Settings")).toHaveFocus());
+    await user.keyboard("{ArrowDown}{ArrowRight}");
+    await waitFor(() => expect(screen.getByText("Español")).toHaveFocus());
+    expect(subTrigger).toHaveAttribute("aria-expanded", "true");
+
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByText("Español")).not.toBeInTheDocument());
+    expect(screen.getByText("Settings")).toBeInTheDocument();
+    expect(subTrigger).toHaveFocus();
+  });
+
+  it("selects an item inside the sub-menu and closes the whole menu; hovering a sibling item closes the sub-menu", async () => {
+    const user = userEvent.setup();
+    const onPick = renderWithSub();
+    await user.click(screen.getByText("Account"));
+    await user.click(screen.getByRole("menuitem", { name: /Language/ }));
+    expect(screen.getByRole("menu", { name: "Languages" })).toBeInTheDocument();
+
+    await user.hover(screen.getByText("Settings"));
+    await waitFor(() => expect(screen.queryByText("Español")).not.toBeInTheDocument());
+
+    await user.click(screen.getByRole("menuitem", { name: /Language/ }));
+    await user.click(screen.getByText("Español"));
+    expect(onPick).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(screen.queryByText("Settings")).not.toBeInTheDocument());
   });
 });

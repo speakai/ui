@@ -119,7 +119,7 @@ The barrel import (`from "@speakai/ui"`) still works for backward compatibility.
 | `@speakai/ui/confirm-dialog` | ConfirmDialog |
 | `@speakai/ui/date-picker` | DatePicker |
 | `@speakai/ui/dialog` | Dialog, DialogHeader, DialogBody, DialogFooter, DialogCloseButton |
-| `@speakai/ui/dropdown-menu` | DropdownMenu, DropdownMenuItem, DropdownMenuHeader, DropdownMenuDivider, MoreButton |
+| `@speakai/ui/dropdown-menu` | DropdownMenu, DropdownMenuItem, DropdownMenuHeader, DropdownMenuDivider, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, MoreButton |
 | `@speakai/ui/empty-state` | EmptyState |
 | `@speakai/ui/error-state` | ErrorState |
 | `@speakai/ui/file-dropzone` | FileDropzone |
@@ -326,7 +326,7 @@ import { TimePicker } from "@speakai/ui/time-picker";
 // Utilities
 import { Tooltip } from "@speakai/ui/tooltip";
 import { Popover } from "@speakai/ui/popover";
-import { DropdownMenu, DropdownMenuItem, DropdownMenuDivider, DropdownMenuHeader, MoreButton } from "@speakai/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuItem, DropdownMenuDivider, DropdownMenuHeader, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, MoreButton } from "@speakai/ui/dropdown-menu";
 import { Avatar } from "@speakai/ui/avatar";
 import { Progress } from "@speakai/ui/progress";
 import { ThemeToggle, ThemeSelector } from "@speakai/ui/theme-toggle";
@@ -1849,6 +1849,26 @@ Full keyboard-navigable dropdown with ARIA roles.
 **`DropdownMenuHeader` props:** `children`, `className`
 
 **`DropdownMenuDivider` props:** `className`
+
+#### `DropdownMenuSub` + `DropdownMenuSubTrigger` + `DropdownMenuSubContent`
+
+A flyout sub-menu inside a `DropdownMenu`. It opens on hover, click, ArrowRight, Enter or Space, and closes on ArrowLeft or Escape (focus returns to the trigger). It opens beside the menu, flips to the other side near the screen edge, and covers the menu with a back row when there is no room on either side. Selecting an item inside it closes the whole menu.
+
+```tsx
+<DropdownMenu trigger={<Button>Account</Button>} side="top" width="w-56">
+  <DropdownMenuSub>
+    <DropdownMenuSubTrigger icon={<GlobeIcon />} hint="English">Language</DropdownMenuSubTrigger>
+    <DropdownMenuSubContent width="w-56" backLabel="Back" aria-label="Language">
+      <DropdownMenuItem onClick={() => setLanguage("en")}>English</DropdownMenuItem>
+      <DropdownMenuItem onClick={() => setLanguage("es")}>Español</DropdownMenuItem>
+    </DropdownMenuSubContent>
+  </DropdownMenuSub>
+</DropdownMenu>
+```
+
+**`DropdownMenuSubTrigger` props:** `children`, `icon`, `hint` (text before the chevron), `disabled`, `className`
+
+**`DropdownMenuSubContent` props:** `children`, `width` (default `"w-48"`), `backLabel` (default `"Back"`), `aria-label`, `className`
 
 #### `MoreButton`
 
