@@ -5,13 +5,12 @@ import { cn } from "../utils/cn";
 
 export interface PageHeaderProps extends HTMLAttributes<HTMLDivElement> {
   title: string;
-  gradientText?: string;
   description?: string;
   action?: ReactNode;
 }
 
 export const PageHeader = forwardRef<HTMLDivElement, PageHeaderProps>(
-  ({ title, gradientText, description, action, className, ...props }, ref) => (
+  ({ title, description, action, className, ...props }, ref) => (
     <div
       ref={ref}
       className={cn(
@@ -23,14 +22,6 @@ export const PageHeader = forwardRef<HTMLDivElement, PageHeaderProps>(
       <div className="space-y-1">
         <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
           {title}
-          {gradientText && (
-            <>
-              {" "}
-              <span className="bg-gradient-to-r from-gradient-from to-gradient-to bg-clip-text text-transparent">
-                {gradientText}
-              </span>
-            </>
-          )}
         </h1>
         {description && (
           <p className="text-sm text-muted-foreground sm:text-base">

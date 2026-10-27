@@ -850,12 +850,11 @@ function DemoContent() {
 
           <Section id="button" title="Button" code={`<Button>Primary</Button>
 <Button variant="danger">Danger</Button>
-<Button variant="gradient">Gradient</Button>
 <Button size="sm">Small</Button>
 <Button size="icon"><PlusIcon /></Button>
 <Button isLoading>Saving</Button>`}>
             <Sub title="Variants">
-              <div className="flex flex-wrap gap-2"><Button>Primary</Button><Button variant="secondary">Secondary</Button><Button variant="danger">Danger</Button><Button variant="outline">Outline</Button><Button variant="ghost">Ghost</Button><Button variant="gradient">Gradient</Button><Button variant="glass">Glass</Button><Button variant="solid">Solid</Button></div>
+              <div className="flex flex-wrap gap-2"><Button>Primary</Button><Button variant="secondary">Secondary</Button><Button variant="danger">Danger</Button><Button variant="outline">Outline</Button><Button variant="ghost">Ghost</Button><Button variant="glass">Glass</Button><Button variant="solid">Solid</Button></div>
             </Sub>
             <Sub title="Sizes">
               <div className="flex flex-wrap gap-2 items-center"><Button size="sm">Small</Button><Button>Default</Button><Button size="lg">Large</Button><Button size="icon"><I4 d={icons.plus} /></Button></div>
@@ -907,23 +906,22 @@ function DemoContent() {
           <CategoryHeader title="Layout" />
 
           <Section id="card" title="Card" code={`<Card variant="elevated">Content</Card>
-<Card variant="glass">Frosted</Card>
 <Card showGradientAccent>Accent top border</Card>`}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Card><p className="text-sm font-medium">Default</p><p className="text-xs text-muted-foreground mt-1">Standard card</p></Card>
               <Card variant="outline"><p className="text-sm font-medium">Outline</p><p className="text-xs text-muted-foreground mt-1">Thick border</p></Card>
               <Card variant="elevated"><p className="text-sm font-medium">Elevated</p><p className="text-xs text-muted-foreground mt-1">Shadow</p></Card>
-              <Card variant="glass"><p className="text-sm font-medium">Glass</p><p className="text-xs text-muted-foreground mt-1">Frosted</p></Card>
+              <Card variant="glass"><p className="text-sm font-medium">Glass</p><p className="text-xs text-muted-foreground mt-1">Mac desktop chrome only</p></Card>
             </div>
             <Card showGradientAccent className="mt-3"><p className="text-sm font-medium">Gradient Accent</p></Card>
           </Section>
 
-          <Section id="page-header" title="PageHeader" code={`<PageHeader title="Your" gradientText="Agents"
+          <Section id="page-header" title="PageHeader" code={`<PageHeader title="Your agents"
   description="Deploy and monitor your AI fleet."
   action={<Button size="sm">New</Button>} />
 <SectionHeader title="Activity" action={...} />`}>
             <Card>
-              <PageHeader title="Your" gradientText="Agents" description="Deploy and monitor your AI fleet." action={<Button size="sm">New</Button>} />
+              <PageHeader title="Your agents" description="Deploy and monitor your AI fleet." action={<Button size="sm">New</Button>} />
               <div className="border-t border-border pt-3 mt-2">
                 <SectionHeader title="Activity" action={<Button variant="ghost" size="sm">View All</Button>} />
               </div>

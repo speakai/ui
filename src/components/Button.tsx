@@ -7,7 +7,6 @@ export type ButtonVariant =
   | "danger"
   | "ghost"
   | "outline"
-  | "gradient"
   | "glass"
   | "solid";
 
@@ -29,8 +28,6 @@ const variantStyles: Record<ButtonVariant, string> = {
   ghost: "hover:bg-accent hover:text-accent-foreground",
   outline:
     "border border-input bg-background text-foreground shadow-xs hover:bg-accent hover:text-accent-foreground",
-  gradient:
-    "bg-gradient-to-r from-gradient-from to-gradient-to text-primary-foreground shadow-xs hover:opacity-90",
   glass:
     "bg-background/10 backdrop-blur-xl border border-border/20 text-foreground hover:bg-background/20 shadow-xs",
   solid:
