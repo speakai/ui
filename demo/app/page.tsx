@@ -1178,7 +1178,7 @@ toast.error("Error", "Something went wrong.");`}>
                     <Input placeholder="Full name" />
                     <Input placeholder="Email address" />
                     <PasswordInput placeholder="Create a password" />
-                    <Button className="w-full" variant="gradient">Get Started</Button>
+                    <Button className="w-full" variant="primary">Get Started</Button>
                   </div>
                 </AuthCard>
               </Sub>
