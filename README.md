@@ -520,14 +520,14 @@ Primary action element. Extend all native `<button>` props.
 
 ```tsx
 <Button variant="primary" size="md">Save Changes</Button>
-<Button variant="gradient" isLoading={saving}>Submit</Button>
+<Button variant="primary" isLoading={saving}>Submit</Button>
 <Button variant="danger" size="sm">Delete</Button>
 <Button variant="ghost" size="icon"><TrashIcon /></Button>
 ```
 
 | Prop | Type | Default | Required |
 |------|------|---------|----------|
-| `variant` | `"primary" \| "secondary" \| "danger" \| "ghost" \| "outline" \| "gradient" \| "glass" \| "solid"` | `"primary"` | No |
+| `variant` | `"primary" \| "secondary" \| "danger" \| "ghost" \| "outline" \| "solid"` | `"primary"` | No |
 | `size` | `"sm" \| "md" \| "lg" \| "icon"` | `"md"` | No |
 | `isLoading` | `boolean` | `false` | No |
 | `disabled` | `boolean` | — | No |
@@ -891,12 +891,11 @@ Surface container with multiple visual styles.
 ```tsx
 <Card variant="default">Content</Card>
 <Card variant="elevated" showGradientAccent>Featured card</Card>
-<Card variant="glass">Glassmorphism effect</Card>
 ```
 
 | Prop | Type | Default | Required |
 |------|------|---------|----------|
-| `variant` | `"default" \| "outline" \| "elevated" \| "glass"` | `"default"` | No |
+| `variant` | `"default" \| "outline" \| "elevated"` | `"default"` | No |
 | `showGradientAccent` | `boolean` | `false` | No |
 | `children` | `ReactNode` | — | No |
 
@@ -1033,12 +1032,11 @@ Slide-over drawer from left or right edge.
 
 #### `PageHeader`
 
-Page-level heading with optional gradient text accent and action slot.
+Page-level heading with an optional description and action slot.
 
 ```tsx
 <PageHeader
   title="Voice Agents"
-  gradientText="AI-Powered"
   description="Build and manage your AI voice agents."
   action={<Button variant="primary">Create Agent</Button>}
 />
@@ -1047,7 +1045,6 @@ Page-level heading with optional gradient text accent and action slot.
 | Prop | Type | Default | Required |
 |------|------|---------|----------|
 | `title` | `string` | — | Yes |
-| `gradientText` | `string` | — | No |
 | `description` | `string` | — | No |
 | `action` | `ReactNode` | — | No |
 

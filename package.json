@@ -448,6 +448,7 @@
     "*.css"
   ],
   "scripts": {
+    "prebuild": "node scripts/sync-shared-tokens.mjs",
     "build": "tsup",
     "postbuild": "node scripts/generate-safelist.mjs",
     "dev:lib": "tsup --watch",
