@@ -527,11 +527,13 @@ Primary action element. Extend all native `<button>` props.
 
 | Prop | Type | Default | Required |
 |------|------|---------|----------|
-| `variant` | `"primary" \| "secondary" \| "danger" \| "ghost" \| "outline" \| "solid"` | `"primary"` | No |
+| `variant` | `"primary" \| "secondary" \| "danger" \| "ghost" \| "outline" \| "glass" \| "solid"` | `"primary"` | No |
 | `size` | `"sm" \| "md" \| "lg" \| "icon"` | `"md"` | No |
 | `isLoading` | `boolean` | `false` | No |
 | `disabled` | `boolean` | — | No |
 | `children` | `ReactNode` | — | No |
+
+`glass` is for Mac desktop chrome only (sidebar, toolbars and window chrome over Electron vibrancy, the macOS Liquid Glass look). Never use it on content, on web or on mobile.
 
 **Size reference:** `sm` = h-9, `md` = h-10, `lg` = h-11, `icon` = h-10 w-10
 
@@ -895,9 +897,11 @@ Surface container with multiple visual styles.
 
 | Prop | Type | Default | Required |
 |------|------|---------|----------|
-| `variant` | `"default" \| "outline" \| "elevated"` | `"default"` | No |
+| `variant` | `"default" \| "outline" \| "elevated" \| "glass"` | `"default"` | No |
 | `showGradientAccent` | `boolean` | `false` | No |
 | `children` | `ReactNode` | — | No |
+
+`glass` is for Mac desktop chrome only (sidebar, toolbars and window chrome over Electron vibrancy, the macOS Liquid Glass look). Never use it on content, on web or on mobile.
 
 ---
 

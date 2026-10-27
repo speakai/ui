@@ -14,7 +14,7 @@ describe("Button", () => {
 
   // ── Variants ────────────────────────────────────────────────────────────
 
-  const variants = ["primary", "secondary", "danger", "ghost", "outline", "solid"] as const;
+  const variants = ["primary", "secondary", "danger", "ghost", "outline", "glass", "solid"] as const;
 
   it.each(variants)("renders %s variant without crashing", (variant) => {
     const { container } = render(<Button variant={variant}>Test</Button>);

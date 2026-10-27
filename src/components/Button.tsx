@@ -7,6 +7,7 @@ export type ButtonVariant =
   | "danger"
   | "ghost"
   | "outline"
+  | "glass"
   | "solid";
 
 export type ButtonSize = "sm" | "md" | "lg" | "icon";
@@ -27,6 +28,8 @@ const variantStyles: Record<ButtonVariant, string> = {
   ghost: "hover:bg-accent hover:text-accent-foreground",
   outline:
     "border border-input bg-background text-foreground shadow-xs hover:bg-accent hover:text-accent-foreground",
+  glass:
+    "bg-background/10 backdrop-blur-xl border border-border/20 text-foreground hover:bg-background/20 shadow-xs",
   solid:
     "bg-foreground text-background shadow-xs hover:bg-foreground/90",
 };

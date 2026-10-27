@@ -854,7 +854,7 @@ function DemoContent() {
 <Button size="icon"><PlusIcon /></Button>
 <Button isLoading>Saving</Button>`}>
             <Sub title="Variants">
-              <div className="flex flex-wrap gap-2"><Button>Primary</Button><Button variant="secondary">Secondary</Button><Button variant="danger">Danger</Button><Button variant="outline">Outline</Button><Button variant="ghost">Ghost</Button><Button variant="solid">Solid</Button></div>
+              <div className="flex flex-wrap gap-2"><Button>Primary</Button><Button variant="secondary">Secondary</Button><Button variant="danger">Danger</Button><Button variant="outline">Outline</Button><Button variant="ghost">Ghost</Button><Button variant="glass">Glass</Button><Button variant="solid">Solid</Button></div>
             </Sub>
             <Sub title="Sizes">
               <div className="flex flex-wrap gap-2 items-center"><Button size="sm">Small</Button><Button>Default</Button><Button size="lg">Large</Button><Button size="icon"><I4 d={icons.plus} /></Button></div>
@@ -911,6 +911,7 @@ function DemoContent() {
               <Card><p className="text-sm font-medium">Default</p><p className="text-xs text-muted-foreground mt-1">Standard card</p></Card>
               <Card variant="outline"><p className="text-sm font-medium">Outline</p><p className="text-xs text-muted-foreground mt-1">Thick border</p></Card>
               <Card variant="elevated"><p className="text-sm font-medium">Elevated</p><p className="text-xs text-muted-foreground mt-1">Shadow</p></Card>
+              <Card variant="glass"><p className="text-sm font-medium">Glass</p><p className="text-xs text-muted-foreground mt-1">Mac desktop chrome only</p></Card>
             </div>
             <Card showGradientAccent className="mt-3"><p className="text-sm font-medium">Gradient Accent</p></Card>
           </Section>
