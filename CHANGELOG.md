@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.36.1 (2026-10-27)
+
+- Merge pull request #88 from speakai/ci/single-verify-check;ci: one verify check per pull request; Release only builds and publishes
+
 ## v0.36.0 (2026-10-27)
 
 - Merge pull request #87 from speakai/fix/release-runner-ubuntu-2404;ci: run pull-request CI on ubuntu-24.04 too ci: run the Release jobs on ubuntu-24.04, which Playwright supports;Merge pull request #86 from speakai/fix/demo-gradient fix(demo): use the primary Button variant where the removed gradient variant was used;Merge pull request #85 from speakai/fix/shared-tokens-test fix: build on @speakai/shared 2.1.64 and check shared colours with a test instead of a prebuild rewrite;Merge pull request #84 from speakai/feat/design-system fix: keep the Button and Card glass variants for Mac desktop chrome;feat: read identical colours from @speakai/shared design tokens
