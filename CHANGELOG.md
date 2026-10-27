@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.36.0 (2026-10-27)
+
+- Merge pull request #87 from speakai/fix/release-runner-ubuntu-2404;ci: run pull-request CI on ubuntu-24.04 too ci: run the Release jobs on ubuntu-24.04, which Playwright supports;Merge pull request #86 from speakai/fix/demo-gradient fix(demo): use the primary Button variant where the removed gradient variant was used;Merge pull request #85 from speakai/fix/shared-tokens-test fix: build on @speakai/shared 2.1.64 and check shared colours with a test instead of a prebuild rewrite;Merge pull request #84 from speakai/feat/design-system fix: keep the Button and Card glass variants for Mac desktop chrome;feat: read identical colours from @speakai/shared design tokens
+
 ## v0.35.0 (2026-10-22)
 
 - Merge pull request #83 from speakai/chore/combined-release-2026-10-22;chore(deps): jsdom 30, vitest 5, tsup 9; prosemirror as dev dependencies Merge remote-tracking branch 'origin/feat/dropdown-menu-sub' into chore/combined-release-2026-10-22;Merge remote-tracking branch 'origin/chore/test-cleanup' into chore/combined-release-2026-10-22 feat(dropdown-menu): add DropdownMenuSub flyout sub-menus;chore: keep agent tooling out of this public repo chore: re-sync ai-skills (pr-gate always asks before Ready);chore: re-sync ai-skills (pr-gate path hardening) chore: re-sync ai-skills (pr-gate hardening, test budget base fix);chore: agent guardrails and team rules, hooks only Merge remote-tracking branch 'origin/chore/agents-md-draft-prs' into chore/test-cleanup;test: fold repeated chart and accessibility cases into tables test: drop render-only, class-name and pass-through component tests;docs: mention test-guard, the team rules and add-rule in the README chore: render the team rules block and vendor add-rule and test-guard from ai-skills;chore: add the agent guardrail hooks and the draft PR guard docs: move agent instructions to AGENTS.md and bring the README up to date
