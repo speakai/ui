@@ -448,7 +448,6 @@
     "*.css"
   ],
   "scripts": {
-    "prebuild": "node scripts/sync-shared-tokens.mjs",
     "build": "tsup",
     "postbuild": "node scripts/generate-safelist.mjs",
     "dev:lib": "tsup --watch",
@@ -503,7 +502,7 @@
     }
   },
   "dependencies": {
-    "@speakai/shared": "^2.1.54",
+    "@speakai/shared": "^2.1.64",
     "clsx": "^2.1.1",
     "tailwind-merge": "^3.5.0"
   },
