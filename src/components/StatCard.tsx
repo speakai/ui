@@ -19,6 +19,11 @@ export interface StatCardProps extends HTMLAttributes<HTMLDivElement> {
    * row of equal-height cards; pass an empty node to reserve the slot.
    */
   footer?: ReactNode;
+  /**
+   * Below the `sm` breakpoint, drop the card border, padding and icon and lead
+   * with the value. For stats laid out inside another card on narrow screens.
+   */
+  compactBelowSm?: boolean;
 }
 
 // ── Color Maps ─────────────────────────────────────────────────────────────────
@@ -50,6 +55,7 @@ export const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
       valueClassName,
       variant = "default",
       footer,
+      compactBelowSm = false,
       className,
       ...props
     },
@@ -65,6 +71,7 @@ export const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
           isGradient
             ? "border-transparent bg-gradient-to-br from-gradient-from to-gradient-to text-primary-foreground"
             : "border-border bg-card",
+          compactBelowSm && "max-sm:border-0 max-sm:bg-transparent max-sm:p-0",
           className
         )}
         {...props}
@@ -76,7 +83,8 @@ export const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
               "flex h-10 w-10 items-center justify-center rounded-lg",
               isGradient
                 ? "bg-white/20 text-primary-foreground"
-                : iconBgMap[iconColor]
+                : iconBgMap[iconColor],
+              compactBelowSm && "max-sm:hidden"
             )}
           >
             {icon}
@@ -85,7 +93,8 @@ export const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
         <p
           className={cn(
             "mt-3 text-sm font-medium",
-            isGradient ? "text-primary-foreground/70" : "text-muted-foreground"
+            isGradient ? "text-primary-foreground/70" : "text-muted-foreground",
+            compactBelowSm && "max-sm:mt-0.5 max-sm:text-xs"
           )}
         >
           {label}
@@ -94,6 +103,7 @@ export const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
           className={cn(
             "mt-1 text-xl font-semibold",
             isGradient ? "text-primary-foreground" : "text-foreground",
+            compactBelowSm && "max-sm:order-first max-sm:mt-0 max-sm:text-lg",
             valueClassName
           )}
         >

@@ -20,6 +20,9 @@ import {
 } from "./stat-metrics";
 import type { WidgetCommonLabels } from "./types";
 
+// Inside a widget card, narrow screens show two borderless columns instead of a tall stack of bordered cards.
+const COMPACT_GRID_CLASS = "h-full content-start max-sm:grid-cols-2 max-sm:gap-x-4 max-sm:gap-y-5";
+
 export interface StatCardsConfig {
   /** Ordered list of metric keys to render; falls back to the default four. */
   metrics?: unknown;
@@ -74,7 +77,7 @@ export function StatCardsWidget({
 
   if (isLoading) {
     return (
-      <StatCardGrid columns={columns} className="h-full content-start">
+      <StatCardGrid columns={columns} className={COMPACT_GRID_CLASS}>
         {selected.map((key) => (
           <Skeleton key={key} className="h-24 w-full rounded-xl" />
         ))}
@@ -102,7 +105,7 @@ export function StatCardsWidget({
   };
 
   return (
-    <StatCardGrid columns={columns} className="h-full content-start">
+    <StatCardGrid columns={columns} className={COMPACT_GRID_CLASS}>
       {selected.map((key) => {
         const meta = STAT_METRICS[key];
         const Icon = meta.icon;
@@ -118,6 +121,7 @@ export function StatCardsWidget({
             icon={<Icon className="h-5 w-5" />}
             iconColor={meta.iconColor}
             label={labels.metricLabels[key]}
+            compactBelowSm
             value={
               isUnavailable
                 ? labels.unavailableValue ?? "—"

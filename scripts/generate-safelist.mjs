@@ -92,7 +92,7 @@ function isLikelyTailwindClass(token) {
     "snap-", "scroll-", "inline-",
     "after:", "rtl:",
     // Modifiers
-    "dark:", "sm:", "md:", "lg:", "xl:", "2xl:",
+    "dark:", "sm:", "md:", "lg:", "xl:", "2xl:", "max-sm:",
     "hover:", "focus:", "focus-visible:", "focus-within:",
     "active:", "disabled:", "group-hover:", "motion-reduce:", "peer-",
     "first:", "last:", "odd:", "even:", "placeholder:",

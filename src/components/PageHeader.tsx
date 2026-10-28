@@ -24,7 +24,7 @@ export const PageHeader = forwardRef<HTMLDivElement, PageHeaderProps>(
           {title}
         </h1>
         {description && (
-          <p className="text-sm text-muted-foreground sm:text-base">
+          <p className="line-clamp-1 text-sm text-muted-foreground sm:line-clamp-none sm:text-base">
             {description}
           </p>
         )}
