@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.37.0 (2026-10-28)
+
+- Merge pull request #89 from speakai/fix/phone-headers-stats;feat: compact stat cards and one-line page header descriptions on narrow screens
+
 ## v0.36.1 (2026-10-27)
 
 - Merge pull request #88 from speakai/ci/single-verify-check;ci: one verify check per pull request; Release only builds and publishes
