@@ -3,7 +3,7 @@
  *
  * The package does not depend on `lucide-react`, and its existing components
  * (e.g. ErrorState) draw icons as inline SVGs. These mirror the lucide glyphs
- * the speak-client widgets used (PieChart, Activity, Tags, LineChart, Hash,
+ * the web app widgets used (PieChart, Activity, Tags, LineChart, Hash,
  * Users, TrendingUp/Down, BarChart3, StickyNote, FileAudio, EyeOff) so the
  * presentational output matches without adding a runtime dependency.
  *

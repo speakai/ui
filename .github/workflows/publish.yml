@@ -164,9 +164,9 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      # Mirror the same version to GitHub Packages so the voice-agent-client
-      # (which scopes @speakai -> npm.pkg.github.com for the private
-      # voice-agent-shared) can resolve @speakai/ui from the same registry.
+      # Mirror the same version to GitHub Packages so consumers
+      # that scope @speakai -> npm.pkg.github.com for private
+      # packages can resolve @speakai/ui from the same registry.
       # Runs AFTER the npm publish; only edits the working copy (never committed).
       - name: Publish to GitHub Packages
         if: steps.bump.outputs.should_release == 'true'

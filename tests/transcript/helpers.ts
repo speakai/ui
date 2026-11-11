@@ -2,7 +2,7 @@
  * ProseMirror test fixtures for transcript editing command tests.
  *
  * makeEditorState(segments) — builds a minimal EditorState from transcriptSchema
- * using the same node-construction pattern as speak-client build-doc.ts.
+ * using the same node-construction pattern as the web app's document builder.
  *
  * setCursor(state, sentenceIndex, offset) — returns a new EditorState with the
  * cursor placed inside the nth sentence at the given char offset.

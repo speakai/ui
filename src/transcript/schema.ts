@@ -4,7 +4,7 @@
  * Structure: doc → paragraph_container+ → transcript_block+ → sentence+ → text*
  * Marks: word (word-level time tracking), anchor (label anchors carried through edit mode)
  *
- * Ported from Angular speak-client transcript.schema.ts.
+ * Ported from the web app's earlier Angular transcript schema.
  * Used by both TranscriptViewer (editable: false) and TranscriptEditor (editable: true).
  */
 

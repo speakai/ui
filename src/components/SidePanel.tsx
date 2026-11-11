@@ -318,7 +318,7 @@ export const SidePanel = forwardRef<HTMLDivElement, SidePanelProps>(
           className={cn(
             "fixed inset-y-0 flex flex-col border-border bg-card shadow-2xl transition-transform duration-200 ease-in-out",
             // z-[75]: above Dialog's z-[70] backdrop, but must stay below the
-            // consuming app's z-[80] Combobox dropdown portal (speak-client) so a
+            // consuming app's z-[80] Combobox dropdown portal so a
             // Combobox opened inside an elevated panel still renders on top of it.
             elevated ? "z-[75]" : "z-[60]",
             isRight ? "right-0 border-l" : "left-0 border-r",

@@ -4,7 +4,7 @@
 @import "../../dist/styles.css";
 @source "../../src";
 
-/* Demo app overrides — darker default theme matching voice-agent-client */
+/* Demo app overrides — darker default theme */
 :root {
   --font-sans: var(--font-poppins), "Poppins", sans-serif;
   --color-background: hsl(222 47% 11%);

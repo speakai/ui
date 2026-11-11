@@ -1,6 +1,6 @@
 /**
- * DashboardWidgetView — the single presentational entry point both speak-client
- * (TanStack) and speak-media-library (fetch client) call to render a dashboard
+ * DashboardWidgetView — the single presentational entry point both the web app
+ * (TanStack) and the media library (fetch client) call to render a dashboard
  * widget body identically.
  *
  * Given a discriminated `{ type, ... }` props object, it renders the matching

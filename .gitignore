@@ -36,3 +36,10 @@ TEST_REPORT.md
 # Logs
 *.log
 npm-debug.log*
+
+# Local agent tooling
+.claude/
+.codex/
+.agents/
+AGENTS.md
+plans/
