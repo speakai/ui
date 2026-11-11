@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.37.1 (2026-11-11)
+
+- Merge pull request #91 from speakai/chore/remove-internal-references;chore(repo): remove internal references from comments and docs
+
 ## v0.37.0 (2026-10-28)
 
 - Merge pull request #89 from speakai/fix/phone-headers-stats;feat: compact stat cards and one-line page header descriptions on narrow screens
