@@ -1,7 +1,7 @@
 /**
  * Pure number/duration/size formatting helpers for the dashboard widget bodies.
  *
- * Ported verbatim (behaviour-identical) from the speak-client `lib/utils/format`
+ * Ported verbatim (behaviour-identical) from the web app's format helpers
  * so the presentational widgets render the same value strings in both the authed
  * builder and the anonymous public view without depending on the app. No i18n,
  * no framework — pure functions only.

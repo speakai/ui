@@ -214,7 +214,7 @@ export interface TableSkeletonProps {
 
 export const TableSkeleton = forwardRef<HTMLDivElement, TableSkeletonProps>(
   ({ columns = 4, rows = 5, rowHeight, className }, ref) => {
-    // Simple bar mode (voice-agent-client compat)
+    // Simple bar mode (kept for existing consumers)
     if (rowHeight) {
       return (
         <div

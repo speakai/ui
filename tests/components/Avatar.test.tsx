@@ -28,7 +28,7 @@ describe("Avatar", () => {
   });
 
   it("draws initials in the theme's primary foreground so they stay readable in dark mode", () => {
-    const { container } = render(<Avatar name="Vatsal Patel" />);
+    const { container } = render(<Avatar name="Alex Example" />);
     expect(container.firstChild).toHaveClass("text-primary-foreground");
     expect(container.firstChild).not.toHaveClass("text-white");
   });

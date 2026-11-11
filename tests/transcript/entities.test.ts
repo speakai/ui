@@ -1,6 +1,5 @@
 /**
  * Unit tests for validateTimestampPair and splitTextNodesWithMarks.
- * C7 from the transcript-parity-speak-ui plan.
  */
 
 import { describe, it, expect } from "vitest";

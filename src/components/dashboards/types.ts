@@ -2,8 +2,8 @@
  * Shared prop contracts for the presentational dashboard widgets.
  *
  * These widgets are pure render surfaces: every datum, config flag, and
- * user-facing string is injected. Both speak-client (TanStack) and
- * speak-media-library (fetch client) feed the SAME components through the
+ * user-facing string is injected. Both the web app (TanStack) and
+ * the media library (fetch client) feed the SAME components through the
  * `DashboardWidgetView` dispatcher, so identical inputs produce identical output.
  *
  * Widget data shapes come from `@speakai/shared` (the wire contract). Each

@@ -1124,13 +1124,13 @@ toast.error("Error", "Something went wrong.");`}>
             </div>
           </Section>
 
-          <Section id="avatar" title="Avatar" code={`<Avatar name="Vatsal Shah" size="lg" />
+          <Section id="avatar" title="Avatar" code={`<Avatar name="Alex Example" size="lg" />
 <Avatar name="Jane Doe" variant="rounded" />
 <Avatar name="John" src="/john.jpg" />`}>
             <div className="flex flex-wrap items-center gap-4">
-              <Avatar name="Vatsal Shah" size="sm" />
-              <Avatar name="Vatsal Shah" />
-              <Avatar name="Vatsal Shah" size="lg" />
+              <Avatar name="Alex Example" size="sm" />
+              <Avatar name="Alex Example" />
+              <Avatar name="Alex Example" size="lg" />
               <Avatar name="Jane Doe" size="lg" variant="rounded" />
               <Avatar name="John" src="https://api.dicebear.com/8.x/avataaars/svg?seed=John" size="lg" />
             </div>

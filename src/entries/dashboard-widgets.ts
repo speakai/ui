@@ -3,8 +3,8 @@
  *
  * `@speakai/ui/dashboard-widgets` exposes the `DashboardWidgetView` dispatcher,
  * every widget body, their labels/config prop contracts, the pure metric
- * registries + format/brand helpers, and the widget icon set. Both speak-client
- * (TanStack) and speak-media-library (fetch client) import from here so the same
+ * registries + format/brand helpers, and the widget icon set. Both the web app
+ * (TanStack) and the media library (fetch client) import from here so the same
  * widgets render identically in the builder and the public view.
  */
 
