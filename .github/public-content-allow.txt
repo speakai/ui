@@ -1,0 +1,3 @@
+# Files that are meant to be public but have a name the content check flags.
+# A neutral contributor guide for AI coding tools.
+CLAUDE.md
