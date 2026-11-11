@@ -108,6 +108,7 @@ describe("Dialog focus trap", () => {
         </DialogBody>
       </Dialog>
     );
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByTestId("first")));
     // Focus the last element, then Tab should wrap to first
     screen.getByTestId("last").focus();
     await user.tab();
