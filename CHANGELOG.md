@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.37.2 (2026-11-11)
+
+- Merge pull request #93 from speakai/chore/jsdom-31-and-content-check;Merge remote-tracking branch 'origin/chore/public-content-check' into chore/jsdom-31-and-content-check Merge remote-tracking branch 'origin/dependabot/npm_and_yarn/jsdom-31.0.0' into chore/jsdom-31-and-content-check;chore(ci): read every changed path and keep the allow list on the base branch chore(ci): add a content check for pull requests;test(dialog): wait for the open auto-focus before tabbing chore(deps-dev): Bump jsdom from 30.1.3 to 31.0.0
+
 ## v0.37.1 (2026-11-11)
 
 - Merge pull request #91 from speakai/chore/remove-internal-references;chore(repo): remove internal references from comments and docs
