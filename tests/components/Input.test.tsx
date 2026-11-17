@@ -184,7 +184,7 @@ describe("form components wire aria-describedby to FieldError", () => {
   it.each([
     ["FileDropzone", <FileDropzone onFiles={vi.fn()} maxSize={1024} />, /exceed the 0\.0 MB limit/],
     ["ImageUploader", <ImageUploader onChange={vi.fn()} maxSize={1024} />, /File exceeds 0\.0 MB limit/],
-  ])("%s points its drop target at the size error", (_name, ui, message) => {
+  ])("%s announces the size error and points its drop target at it", (_name, ui, message) => {
     const { container } = render(ui);
     const target = container.querySelector('[role="button"]') as HTMLElement;
     expect(target).not.toHaveAttribute("aria-describedby");
@@ -195,6 +195,7 @@ describe("form components wire aria-describedby to FieldError", () => {
     fireEvent.change(input);
 
     const error = screen.getByText(message);
+    expect(error).toHaveAttribute("role", "alert");
     expect(error).toHaveClass("mt-1.5", "text-xs", "text-danger-text");
     expect(target).toHaveAttribute("aria-describedby", error.id);
   });

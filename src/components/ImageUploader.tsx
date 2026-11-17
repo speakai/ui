@@ -249,7 +249,9 @@ export const ImageUploader = forwardRef<HTMLDivElement, ImageUploaderProps>(
         </div>
 
         {/* Error message */}
-        <FieldError id={errorId}>{errorMessage}</FieldError>
+        <FieldError id={errorId} role="alert">
+          {errorMessage}
+        </FieldError>
       </div>
     );
   },

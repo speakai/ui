@@ -58,7 +58,7 @@ const defaultIcons: Record<ConfirmDialogVariant, ReactNode> = {
 };
 
 const variantStyles: Record<ConfirmDialogVariant, { icon: string; button: "danger" | "primary" | "outline" }> = {
-  danger: { icon: "bg-danger/10 text-danger", button: "danger" },
+  danger: { icon: "bg-danger/10 text-danger-text", button: "danger" },
   warning: { icon: "bg-warning/10 text-warning", button: "primary" },
   info: { icon: "bg-info/10 text-info", button: "primary" },
 };
