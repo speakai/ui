@@ -11,6 +11,7 @@ import {
 } from "react";
 import { cn } from "../utils/cn";
 import { inputBase } from "../utils/inputBase";
+import { FieldError, useFieldError } from "./FieldError";
 
 const errorRing = "border-danger focus-visible:ring-danger";
 const defaultRing = "border-input";
@@ -77,6 +78,7 @@ export const PhoneInput = forwardRef<HTMLDivElement, PhoneInputProps>(
         COUNTRIES.find((c) => c.code === defaultCountry) ?? COUNTRIES[0],
     );
     const [isOpen, setIsOpen] = useState(false);
+    const { errorId, errorMessage, ariaDescribedBy } = useFieldError(error);
     const containerRef = useRef<HTMLDivElement>(null);
 
     // Extract phone number without dial code
@@ -196,6 +198,7 @@ export const PhoneInput = forwardRef<HTMLDivElement, PhoneInputProps>(
             placeholder={placeholder}
             disabled={disabled}
             aria-invalid={error ? true : undefined}
+            aria-describedby={ariaDescribedBy}
             className={cn(
               inputBase,
               "h-10 rounded-l-none border-l-0",
@@ -241,9 +244,7 @@ export const PhoneInput = forwardRef<HTMLDivElement, PhoneInputProps>(
           )}
         </div>
 
-        {typeof error === "string" && error && (
-          <p className="mt-1.5 text-xs text-danger-text">{error}</p>
-        )}
+        <FieldError id={errorId}>{errorMessage}</FieldError>
       </div>
     );
   },

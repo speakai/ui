@@ -7,10 +7,10 @@ import {
   ClipboardEvent,
   useCallback,
   useEffect,
-  useId,
   useRef,
 } from "react";
 import { cn } from "../utils/cn";
+import { FieldError, useFieldError } from "./FieldError";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -78,14 +78,10 @@ export const OTPInput = forwardRef<HTMLDivElement, OTPInputProps>(
     ref,
   ) => {
     const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
-    const errorId = useId();
-
-    const errorMessage = typeof error === "string" && error ? error : null;
+    const { errorId, errorMessage, ariaDescribedBy: describedBy } = useFieldError(error, ariaDescribedBy);
     const invalidByProp =
       ariaInvalid !== undefined && ariaInvalid !== false && ariaInvalid !== "false";
     const invalid = Boolean(error) || invalidByProp;
-    const describedBy =
-      [ariaDescribedBy, errorMessage ? errorId : null].filter(Boolean).join(" ") || undefined;
     const groupLabel = ariaLabelledBy ? ariaLabel : (ariaLabel ?? DEFAULT_GROUP_LABEL);
 
     const digits = value.split("").concat(Array(length).fill("")).slice(0, length);
@@ -235,11 +231,9 @@ export const OTPInput = forwardRef<HTMLDivElement, OTPInputProps>(
             />
           ))}
         </div>
-        {errorMessage && (
-          <p id={errorId} role="alert" className="mt-1.5 text-xs text-danger-text">
-            {errorMessage}
-          </p>
-        )}
+        <FieldError id={errorId} role="alert">
+          {errorMessage}
+        </FieldError>
       </div>
     );
   },

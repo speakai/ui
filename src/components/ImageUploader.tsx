@@ -9,6 +9,7 @@ import {
   DragEvent,
 } from "react";
 import { cn } from "../utils/cn";
+import { FieldError, useFieldError } from "./FieldError";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -70,6 +71,7 @@ export const ImageUploader = forwardRef<HTMLDivElement, ImageUploaderProps>(
     const [isDragging, setIsDragging] = useState(false);
     const [preview, setPreview] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const { errorId, errorMessage, ariaDescribedBy } = useFieldError(error);
     const inputRef = useRef<HTMLInputElement>(null);
 
     const displayImage = value || preview;
@@ -145,6 +147,7 @@ export const ImageUploader = forwardRef<HTMLDivElement, ImageUploaderProps>(
         <div
           role="button"
           tabIndex={disabled ? -1 : 0}
+          aria-describedby={ariaDescribedBy}
           onClick={handleClick}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
@@ -246,7 +249,7 @@ export const ImageUploader = forwardRef<HTMLDivElement, ImageUploaderProps>(
         </div>
 
         {/* Error message */}
-        {error && <p className="mt-1.5 text-xs text-danger-text">{error}</p>}
+        <FieldError id={errorId}>{errorMessage}</FieldError>
       </div>
     );
   },

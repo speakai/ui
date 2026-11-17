@@ -116,6 +116,11 @@
       "import": "./dist/entries/error-state.mjs",
       "require": "./dist/entries/error-state.js"
     },
+    "./field-error": {
+      "types": "./dist/entries/field-error.d.ts",
+      "import": "./dist/entries/field-error.mjs",
+      "require": "./dist/entries/field-error.js"
+    },
     "./file-dropzone": {
       "types": "./dist/entries/file-dropzone.d.ts",
       "import": "./dist/entries/file-dropzone.mjs",
@@ -342,6 +347,9 @@
       ],
       "error-state": [
         "dist/entries/error-state.d.ts"
+      ],
+      "field-error": [
+        "dist/entries/field-error.d.ts"
       ],
       "file-dropzone": [
         "dist/entries/file-dropzone.d.ts"
