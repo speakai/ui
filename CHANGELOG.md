@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.37.4 (2026-11-17)
+
+- Merge pull request #95 from speakai/fix/otp-input-a11y;fix(otp-input): one-time-code autofill, spread pasted codes, label and error wiring fix(tokens): add a danger text colour that meets 4.5:1 for error text
+
 ## v0.37.3 (2026-11-11)
 
 - Merge pull request #94 from speakai/chore/content-check-gaps;chore(ci): look for credentials in every changed file chore(ci): report files that are not UTF-8 or are too large;chore(ci): content check covers renames and mislabelled text files
