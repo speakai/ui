@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.37.5 (2026-11-17)
+
+- Merge pull request #96 from speakai/fix/shared-field-error;fix(a11y): danger-text for dialog and table danger icons, announce upload errors fix(tokens): use danger-text for error text on surfaces;refactor(forms): share one FieldError for form error text
+
 ## v0.37.4 (2026-11-17)
 
 - Merge pull request #95 from speakai/fix/otp-input-a11y;fix(otp-input): one-time-code autofill, spread pasted codes, label and error wiring fix(tokens): add a danger text colour that meets 4.5:1 for error text
