@@ -187,11 +187,11 @@ describe("TableWidget", () => {
     expect(within(goodCell).getByText("Great")).toBeInTheDocument();
 
     const criticalCell = screen.getByText("40").closest("td") as HTMLElement;
-    expect(criticalCell.className).toContain("text-destructive");
+    expect(criticalCell.className).toContain("text-danger-text");
 
     const unmatchedCell = screen.getByText("70").closest("td") as HTMLElement;
     expect(unmatchedCell.className).not.toContain("text-success");
-    expect(unmatchedCell.className).not.toContain("text-destructive");
+    expect(unmatchedCell.className).not.toContain("text-danger-text");
   });
 
   it("filters rows via the search input (case-insensitive)", async () => {

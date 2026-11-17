@@ -11,6 +11,7 @@ import {
 } from "react";
 import { cn } from "../utils/cn";
 import { inputBase } from "../utils/inputBase";
+import { FieldError, useFieldError } from "./FieldError";
 
 const errorRing = "border-danger focus-visible:ring-danger";
 const defaultRing = "border-input";
@@ -61,6 +62,7 @@ export const LanguageSelector = forwardRef<HTMLDivElement, LanguageSelectorProps
   ) => {
     const [isOpen, setIsOpen] = useState(false);
     const [search, setSearch] = useState("");
+    const { errorId, errorMessage, ariaDescribedBy } = useFieldError(error);
     const containerRef = useRef<HTMLDivElement>(null);
     const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -154,6 +156,7 @@ export const LanguageSelector = forwardRef<HTMLDivElement, LanguageSelectorProps
             type="button"
             disabled={disabled}
             onClick={handleToggle}
+            aria-describedby={ariaDescribedBy}
             className={cn(
               inputBase,
               "h-10 cursor-pointer items-center justify-between pr-10 text-left",
@@ -244,9 +247,7 @@ export const LanguageSelector = forwardRef<HTMLDivElement, LanguageSelectorProps
           )}
         </div>
 
-        {typeof error === "string" && error && (
-          <p className="mt-1.5 text-xs text-danger-text">{error}</p>
-        )}
+        <FieldError id={errorId}>{errorMessage}</FieldError>
       </div>
     );
   },

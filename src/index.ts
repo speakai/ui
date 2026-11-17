@@ -157,6 +157,10 @@ export type { ColorPickerProps } from "./components/ColorPicker";
 export { ImageUploader } from "./components/ImageUploader";
 export type { ImageUploaderProps, ImageUploaderVariant } from "./components/ImageUploader";
 
+// FieldError
+export { FieldError } from "./components/FieldError";
+export type { FieldErrorProps } from "./components/FieldError";
+
 // FileDropzone
 export { FileDropzone } from "./components/FileDropzone";
 export type { FileDropzoneProps } from "./components/FileDropzone";

@@ -1,5 +1,6 @@
 import { forwardRef, InputHTMLAttributes } from "react";
 import { cn } from "../utils/cn";
+import { FieldError, useFieldError } from "./FieldError";
 
 export type CheckboxSize = "sm" | "default" | "lg";
 
@@ -21,8 +22,10 @@ const sizeStyles: Record<CheckboxSize, { box: string; label: string; description
 };
 
 export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
-  ({ className, label, description, size = "default", error, disabled, id, ...props }, ref) => {
+  ({ className, label, description, size = "default", error, disabled, id, "aria-describedby": describedBy, ...props }, ref) => {
     const styles = sizeStyles[size];
+    // The error text only renders inside the label block, so only point at it when that block exists.
+    const { errorId, errorMessage, ariaDescribedBy } = useFieldError(label || description ? error : undefined, describedBy);
     const checkboxId = id ?? (label ? `checkbox-${label.replace(/\s+/g, "-").toLowerCase()}` : undefined);
 
     return (
@@ -33,6 +36,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
           id={checkboxId}
           disabled={disabled}
           aria-invalid={error ? true : undefined}
+          aria-describedby={ariaDescribedBy}
           className={cn(
             "mt-1.5 shrink-0 cursor-pointer rounded-sm border border-border transition-colors",
             "accent-primary text-primary",
@@ -62,9 +66,9 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
                 {description}
               </p>
             )}
-            {typeof error === "string" && error && (
-              <p className="mt-1 text-xs text-danger-text">{error}</p>
-            )}
+            <FieldError id={errorId} className="mt-1">
+              {errorMessage}
+            </FieldError>
           </div>
         )}
       </div>

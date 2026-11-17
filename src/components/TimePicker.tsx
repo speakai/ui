@@ -2,6 +2,7 @@
 
 import { forwardRef, HTMLAttributes, useCallback } from "react";
 import { cn } from "../utils/cn";
+import { FieldError, useFieldError } from "./FieldError";
 import { inputBase } from "../utils/inputBase";
 
 const errorRing = "border-danger focus-visible:ring-danger";
@@ -54,6 +55,7 @@ export const TimePicker = forwardRef<HTMLDivElement, TimePickerProps>(
       [onChange],
     );
 
+    const { errorId, errorMessage, ariaDescribedBy } = useFieldError(error);
     const inputId = props.id ?? (label ? `timepicker-${label.replace(/\s+/g, "-").toLowerCase()}` : undefined);
 
     return (
@@ -77,15 +79,14 @@ export const TimePicker = forwardRef<HTMLDivElement, TimePickerProps>(
           disabled={disabled}
           placeholder={placeholder}
           aria-invalid={error ? true : undefined}
+          aria-describedby={ariaDescribedBy}
           className={cn(
             inputBase,
             "h-10",
             error ? errorRing : defaultRing,
           )}
         />
-        {typeof error === "string" && error && (
-          <p className="mt-1.5 text-xs text-danger-text">{error}</p>
-        )}
+        <FieldError id={errorId}>{errorMessage}</FieldError>
       </div>
     );
   },

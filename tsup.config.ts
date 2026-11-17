@@ -27,6 +27,7 @@ export default defineConfig({
     "src/entries/dropdown-menu.ts",
     "src/entries/empty-state.ts",
     "src/entries/error-state.ts",
+    "src/entries/field-error.ts",
     "src/entries/file-dropzone.ts",
     "src/entries/image-uploader.ts",
     "src/entries/info-card.ts",

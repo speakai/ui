@@ -10,6 +10,7 @@ import {
   DragEvent,
 } from "react";
 import { cn } from "../utils/cn";
+import { FieldError, useFieldError } from "./FieldError";
 
 // ── FileDropzone ─────────────────────────────────────────────────────────────
 
@@ -44,6 +45,7 @@ export const FileDropzone = forwardRef<HTMLDivElement, FileDropzoneProps>(
   ) => {
     const [isDragging, setIsDragging] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const { errorId, errorMessage, ariaDescribedBy } = useFieldError(error);
     const inputRef = useRef<HTMLInputElement>(null);
     const dragCounter = useRef(0);
 
@@ -127,6 +129,7 @@ export const FileDropzone = forwardRef<HTMLDivElement, FileDropzoneProps>(
         <div
           role="button"
           tabIndex={disabled ? -1 : 0}
+          aria-describedby={ariaDescribedBy}
           onClick={handleClick}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
@@ -188,7 +191,9 @@ export const FileDropzone = forwardRef<HTMLDivElement, FileDropzoneProps>(
         </div>
 
         {/* Error message */}
-        {error && <p className="mt-1.5 text-xs text-danger-text">{error}</p>}
+        <FieldError id={errorId} role="alert">
+          {errorMessage}
+        </FieldError>
       </div>
     );
   },

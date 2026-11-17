@@ -86,11 +86,11 @@ export const ErrorState = forwardRef<HTMLDivElement, ErrorStateProps>(
           )}
           {...props}
         >
-          <WarningIcon className="shrink-0 text-danger" />
+          <WarningIcon className="shrink-0 text-danger-text" />
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-danger">{title}</p>
+            <p className="text-sm font-medium text-danger-text">{title}</p>
             {message && (
-              <p className="text-xs text-danger/80">{message}</p>
+              <p className="text-xs text-danger-text">{message}</p>
             )}
           </div>
           {retryButton}
@@ -114,7 +114,7 @@ export const ErrorState = forwardRef<HTMLDivElement, ErrorStateProps>(
             aria-hidden="true"
             className="flex h-16 w-16 items-center justify-center rounded-full bg-danger/10"
           >
-            <WarningIcon className="h-8 w-8 text-danger" />
+            <WarningIcon className="h-8 w-8 text-danger-text" />
           </div>
           <div className="space-y-2">
             <h2 className="text-xl font-semibold text-foreground">{title}</h2>
@@ -144,7 +144,7 @@ export const ErrorState = forwardRef<HTMLDivElement, ErrorStateProps>(
           aria-hidden="true"
           className="flex h-12 w-12 items-center justify-center rounded-full bg-danger/10"
         >
-          <WarningIcon className="text-danger" />
+          <WarningIcon className="text-danger-text" />
         </div>
         <div className="space-y-1">
           <h3 className="text-base font-semibold text-foreground">{title}</h3>

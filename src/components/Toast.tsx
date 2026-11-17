@@ -64,7 +64,7 @@ const icons: Record<ToastType, ReactNode> = {
   error: (
     <svg
       aria-hidden="true"
-      className="h-5 w-5 text-danger"
+      className="h-5 w-5 text-danger-text"
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"

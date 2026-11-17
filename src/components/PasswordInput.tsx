@@ -2,6 +2,7 @@
 
 import { forwardRef, InputHTMLAttributes, useState } from "react";
 import { cn } from "../utils/cn";
+import { FieldError, useFieldError } from "./FieldError";
 import { inputBase } from "../utils/inputBase";
 
 const errorRing = "border-danger focus-visible:ring-danger";
@@ -63,8 +64,9 @@ export interface PasswordInputProps
 // ── Component ────────────────────────────────────────────────────────────────
 
 export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
-  ({ className, error, label, id, disabled, ...props }, ref) => {
+  ({ className, error, label, id, disabled, "aria-describedby": describedBy, ...props }, ref) => {
     const [visible, setVisible] = useState(false);
+    const { errorId, errorMessage, ariaDescribedBy } = useFieldError(error, describedBy);
 
     return (
       <div className="w-full">
@@ -83,6 +85,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             type={visible ? "text" : "password"}
             disabled={disabled}
             aria-invalid={error ? true : undefined}
+            aria-describedby={ariaDescribedBy}
             className={cn(
               inputBase,
               "h-10 pr-10",
@@ -102,9 +105,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             {visible ? <EyeOffIcon /> : <EyeIcon />}
           </button>
         </div>
-        {typeof error === "string" && error && (
-          <p className="mt-1.5 text-xs text-danger-text">{error}</p>
-        )}
+        <FieldError id={errorId}>{errorMessage}</FieldError>
       </div>
     );
   },

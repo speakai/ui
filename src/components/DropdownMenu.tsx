@@ -489,7 +489,7 @@ export const DropdownMenuItem = forwardRef<
           "focus:bg-muted focus:text-foreground focus:outline-hidden",
           "hover:bg-muted hover:text-foreground",
           variant === "danger"
-            ? "text-danger hover:bg-danger/10 hover:text-danger focus:bg-danger/10 focus:text-danger"
+            ? "text-danger-text hover:bg-danger/10 hover:text-danger-text focus:bg-danger/10 focus:text-danger-text"
             : "text-popover-foreground",
           disabled && "pointer-events-none opacity-50",
           className

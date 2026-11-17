@@ -191,7 +191,7 @@ export const TableActionButton = forwardRef<
       "inline-flex h-10 w-10 items-center justify-center rounded-lg transition-colors",
       "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
       variant === "danger"
-        ? "text-muted-foreground hover:bg-danger/10 hover:text-danger"
+        ? "text-muted-foreground hover:bg-danger/10 hover:text-danger-text"
         : "text-muted-foreground hover:bg-muted hover:text-foreground",
       className
     )}

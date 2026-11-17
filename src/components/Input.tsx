@@ -7,6 +7,7 @@ import {
 } from "react";
 import { cn } from "../utils/cn";
 import { inputBase } from "../utils/inputBase";
+import { FieldError, useFieldError } from "./FieldError";
 
 // Inline SVG paths sourced from Lucide v0.x (MIT) — avoids a runtime dependency.
 const SearchIconSvg = () => (
@@ -54,25 +55,27 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, error, id, ...props }, ref) => (
-    <div className="w-full">
-      <input
-        ref={ref}
-        id={id}
-        aria-invalid={error ? true : undefined}
-        className={cn(
-          inputBase,
-          "h-10",
-          error ? errorRing : defaultRing,
-          className,
-        )}
-        {...props}
-      />
-      {typeof error === "string" && error && (
-        <p className="mt-1.5 text-xs text-danger-text">{error}</p>
-      )}
-    </div>
-  ),
+  ({ className, error, id, "aria-describedby": describedBy, ...props }, ref) => {
+    const { errorId, errorMessage, ariaDescribedBy } = useFieldError(error, describedBy);
+    return (
+      <div className="w-full">
+        <input
+          ref={ref}
+          id={id}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={ariaDescribedBy}
+          className={cn(
+            inputBase,
+            "h-10",
+            error ? errorRing : defaultRing,
+            className,
+          )}
+          {...props}
+        />
+        <FieldError id={errorId}>{errorMessage}</FieldError>
+      </div>
+    );
+  },
 );
 
 Input.displayName = "Input";
@@ -184,51 +187,53 @@ export interface SelectProps
 }
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, error, children, options, placeholder, id, ...props }, ref) => (
-    <div className="relative w-full">
-      <select
-        ref={ref}
-        id={id}
-        aria-invalid={error ? true : undefined}
-        className={cn(
-          inputBase,
-          "h-10 appearance-none pr-10",
-          error ? errorRing : defaultRing,
-          className,
-        )}
-        {...props}
-      >
-        {children ?? (
-          <>
-            {placeholder && <option value="">{placeholder}</option>}
-            {options?.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </>
-        )}
-      </select>
-      <svg
-        className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={2}
-        stroke="currentColor"
-        aria-hidden="true"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M19.5 8.25l-7.5 7.5-7.5-7.5"
-        />
-      </svg>
-      {typeof error === "string" && error && (
-        <p className="mt-1.5 text-xs text-danger-text">{error}</p>
-      )}
-    </div>
-  ),
+  ({ className, error, children, options, placeholder, id, "aria-describedby": describedBy, ...props }, ref) => {
+    const { errorId, errorMessage, ariaDescribedBy } = useFieldError(error, describedBy);
+    return (
+      <div className="relative w-full">
+        <select
+          ref={ref}
+          id={id}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={ariaDescribedBy}
+          className={cn(
+            inputBase,
+            "h-10 appearance-none pr-10",
+            error ? errorRing : defaultRing,
+            className,
+          )}
+          {...props}
+        >
+          {children ?? (
+            <>
+              {placeholder && <option value="">{placeholder}</option>}
+              {options?.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </>
+          )}
+        </select>
+        <svg
+          className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+          stroke="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+          />
+        </svg>
+        <FieldError id={errorId}>{errorMessage}</FieldError>
+      </div>
+    );
+  },
 );
 
 Select.displayName = "Select";
@@ -242,25 +247,27 @@ export interface TextareaProps
 }
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, error, id, ...props }, ref) => (
-    <div className="w-full">
-      <textarea
-        ref={ref}
-        id={id}
-        aria-invalid={error ? true : undefined}
-        className={cn(
-          inputBase,
-          "min-h-[80px] py-2.5",
-          error ? errorRing : defaultRing,
-          className,
-        )}
-        {...props}
-      />
-      {typeof error === "string" && error && (
-        <p className="mt-1.5 text-xs text-danger-text">{error}</p>
-      )}
-    </div>
-  ),
+  ({ className, error, id, "aria-describedby": describedBy, ...props }, ref) => {
+    const { errorId, errorMessage, ariaDescribedBy } = useFieldError(error, describedBy);
+    return (
+      <div className="w-full">
+        <textarea
+          ref={ref}
+          id={id}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={ariaDescribedBy}
+          className={cn(
+            inputBase,
+            "min-h-[80px] py-2.5",
+            error ? errorRing : defaultRing,
+            className,
+          )}
+          {...props}
+        />
+        <FieldError id={errorId}>{errorMessage}</FieldError>
+      </div>
+    );
+  },
 );
 
 Textarea.displayName = "Textarea";

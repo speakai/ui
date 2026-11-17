@@ -81,7 +81,7 @@ export function DeltaCaption({
     <p
       className={cn(
         "inline-flex items-center gap-1 text-xs font-medium",
-        positive ? "text-success" : "text-destructive",
+        positive ? "text-success" : "text-danger-text",
         className,
       )}
     >

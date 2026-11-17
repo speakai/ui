@@ -137,6 +137,7 @@ The barrel import (`from "@speakai/ui"`) still works for backward compatibility.
 | `@speakai/ui/dropdown-menu` | DropdownMenu, DropdownMenuItem, DropdownMenuHeader, DropdownMenuDivider, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, MoreButton |
 | `@speakai/ui/empty-state` | EmptyState |
 | `@speakai/ui/error-state` | ErrorState |
+| `@speakai/ui/field-error` | FieldError |
 | `@speakai/ui/file-dropzone` | FileDropzone |
 | `@speakai/ui/image-uploader` | ImageUploader |
 | `@speakai/ui/info-card` | InfoCard |
@@ -313,6 +314,7 @@ import { AuthDivider } from "@speakai/ui/auth-divider";
 // Forms
 import { Button } from "@speakai/ui/button";
 import { Input, SearchInput, Select, Textarea } from "@speakai/ui/input";
+import { FieldError } from "@speakai/ui/field-error";
 import { Switch } from "@speakai/ui/switch";
 import { Checkbox } from "@speakai/ui/checkbox";
 import { RadioGroup } from "@speakai/ui/radio-group";
@@ -487,7 +489,7 @@ Multi-digit code input with auto-focus advance, paste and autofill support. The 
 <OTPInput length={4} value={code} onChange={setCode} error="Invalid code" />
 {/* Point at an error you render yourself */}
 <OTPInput value={code} onChange={setCode} aria-invalid={!!err} aria-describedby="code-error" />
-<p id="code-error" role="alert" className="text-xs text-danger-text">{err}</p>
+<FieldError id="code-error" role="alert">{err}</FieldError>
 ```
 
 | Prop | Type | Default | Required |
@@ -566,6 +568,27 @@ Standard text input. Extends all native `<input>` props.
 | `error` | `boolean \| string` | — | No |
 | `label` | `string` | — | No |
 | `disabled` | `boolean` | — | No |
+
+When `error` is a string, the message renders in a `FieldError` and the control's `aria-describedby` points at it (after any ids you pass yourself). The same applies to `Select`, `Textarea`, `PasswordInput`, `PhoneInput`, `DatePicker`, `TimePicker`, `LanguageSelector`, `Checkbox`, `OTPInput`, `FileDropzone` and `ImageUploader`.
+
+---
+
+#### `FieldError`
+
+Error message under a form control, in `text-danger-text`. Renders nothing when it has no content. Use it for errors next to your own controls.
+
+```tsx
+<input aria-invalid={!!err} aria-describedby="email-error" />
+<FieldError id="email-error">{err}</FieldError>
+```
+
+| Prop | Type | Default | Required |
+|------|------|---------|----------|
+| `id` | `string` | — | No |
+| `children` | `ReactNode` | — | No |
+| `className` | `string` | — | No |
+
+Extends all native `<p>` props, so `role="alert"` can be passed for errors that appear after a user action.
 
 ---
 
