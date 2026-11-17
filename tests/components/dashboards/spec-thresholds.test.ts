@@ -70,7 +70,7 @@ describe("threshold styling maps", () => {
   it("maps every status to a semantic text class", () => {
     expect(THRESHOLD_TEXT_CLASS.good).toBe("text-success");
     expect(THRESHOLD_TEXT_CLASS.warn).toBe("text-warning");
-    expect(THRESHOLD_TEXT_CLASS.critical).toBe("text-destructive");
+    expect(THRESHOLD_TEXT_CLASS.critical).toBe("text-danger-text");
     expect(THRESHOLD_TEXT_CLASS.neutral).toBe("text-muted-foreground");
   });
 

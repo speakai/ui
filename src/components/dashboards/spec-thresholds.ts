@@ -61,7 +61,7 @@ export function resolveThresholdStatus(
 export const THRESHOLD_TEXT_CLASS: Record<ThresholdStatus, string> = {
   good: "text-success",
   warn: "text-warning",
-  critical: "text-destructive",
+  critical: "text-danger-text",
   neutral: "text-muted-foreground",
 };
 

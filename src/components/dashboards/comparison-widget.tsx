@@ -78,7 +78,7 @@ function DeltaIndicator({
     <span
       className={cn(
         "inline-flex shrink-0 items-center gap-1 text-xs font-medium",
-        positive ? "text-success" : "text-destructive",
+        positive ? "text-success" : "text-danger-text",
       )}
     >
       <Icon className="h-3.5 w-3.5" />
