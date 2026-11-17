@@ -209,6 +209,7 @@ All color tokens are CSS variables named `--color-*`, holding full color values 
   /* Status */
   --color-danger: hsl(0 84.2% 60.2%);            /* --color-destructive has the same value */
   --color-danger-foreground: hsl(0 0% 100%);
+  --color-danger-text: hsl(0 73.7% 41.8%);       /* error text, at least 4.5:1 on background/card/popover */
   --color-success: hsl(160 84% 39%);
   --color-success-foreground: hsl(0 0% 100%);
   --color-warning: hsl(38 92% 50%);
@@ -250,6 +251,7 @@ Typography tokens live in `@theme`: `--font-sans` (Inter, then system fonts) and
 | `--color-input` | `border-input` |
 | `--color-ring` | `ring-ring` |
 | `--color-danger` / `--color-destructive` | `text-danger` / `bg-danger` / `border-danger` (or `-destructive`) |
+| `--color-danger-text` | `text-danger-text` (error and helper text; use it instead of `text-danger` for small text) |
 | `--color-success` | `text-success` / `bg-success` |
 | `--color-warning` | `text-warning` / `bg-warning` |
 | `--color-info` | `text-info` / `bg-info` |

@@ -97,7 +97,7 @@ export const DatePicker = forwardRef<HTMLDivElement, DatePickerProps>(
           )}
         />
         {typeof error === "string" && error && (
-          <p className="mt-1.5 text-xs text-danger">{error}</p>
+          <p className="mt-1.5 text-xs text-danger-text">{error}</p>
         )}
       </div>
     );
