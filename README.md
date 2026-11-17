@@ -480,11 +480,14 @@ Accepts all native `<input>` props.
 
 #### `OTPInput`
 
-Multi-digit code input with auto-focus advance and paste support.
+Multi-digit code input with auto-focus advance, paste and autofill support. The first box has `autocomplete="one-time-code"`, so iOS and Android offer the code from mail or SMS. A code that arrives in one box (autofill or paste) is spread across the boxes from that box onward; a full-length code always starts at the first box.
 
 ```tsx
 <OTPInput length={6} value={code} onChange={setCode} autoFocus />
 <OTPInput length={4} value={code} onChange={setCode} error="Invalid code" />
+{/* Point at an error you render yourself */}
+<OTPInput value={code} onChange={setCode} aria-invalid={!!err} aria-describedby="code-error" />
+<p id="code-error" role="alert" className="text-xs text-danger-text">{err}</p>
 ```
 
 | Prop | Type | Default | Required |
@@ -495,6 +498,12 @@ Multi-digit code input with auto-focus advance and paste support.
 | `error` | `boolean \| string` | — | No |
 | `disabled` | `boolean` | `false` | No |
 | `autoFocus` | `boolean` | `false` | No |
+| `aria-label` | `string` | `"Verification code"` | No |
+| `aria-labelledby` | `string` | — | No |
+| `aria-describedby` | `string` | — | No |
+| `aria-invalid` | `boolean` | — | No |
+
+A string `error` is shown with `role="alert"` and linked to every box with `aria-describedby`. `aria-label` and `aria-labelledby` name the group of boxes; `aria-describedby` and `aria-invalid` go on every box, and `aria-invalid` also shows the error border.
 
 ---
 

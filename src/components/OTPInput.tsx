@@ -7,6 +7,7 @@ import {
   ClipboardEvent,
   useCallback,
   useEffect,
+  useId,
   useRef,
 } from "react";
 import { cn } from "../utils/cn";
@@ -21,10 +22,25 @@ export interface OTPInputProps
   value: string;
   /** Called when the value changes */
   onChange: (value: string) => void;
-  /** Pass `true` for red border only, or a string to show an error message. */
+  /**
+   * Pass `true` for red border only, or a string to show an error message.
+   * The message is announced (`role="alert"`) and linked to every box with
+   * `aria-describedby`.
+   */
   error?: boolean | string;
   disabled?: boolean;
   autoFocus?: boolean;
+  /** Accessible name of the group of boxes (default "Verification code"). */
+  "aria-label"?: string;
+  /** Id of a visible element that names the group. Takes the place of `aria-label`. */
+  "aria-labelledby"?: string;
+  /**
+   * Id(s) of elements that describe the code, such as an error message the
+   * consumer renders. Added to every box, before the component's own error id.
+   */
+  "aria-describedby"?: string;
+  /** Mark the boxes invalid (and show the error border) without passing `error`. */
+  "aria-invalid"?: boolean | "true" | "false" | "grammar" | "spelling";
 }
 
 // ── Styles ───────────────────────────────────────────────────────────────────
@@ -39,6 +55,8 @@ const digitBase = [
 const errorRing = "border-danger focus-visible:ring-danger";
 const defaultRing = "border-input";
 
+const DEFAULT_GROUP_LABEL = "Verification code";
+
 // ── Component ────────────────────────────────────────────────────────────────
 
 export const OTPInput = forwardRef<HTMLDivElement, OTPInputProps>(
@@ -51,11 +69,24 @@ export const OTPInput = forwardRef<HTMLDivElement, OTPInputProps>(
       error,
       disabled = false,
       autoFocus = false,
+      "aria-label": ariaLabel,
+      "aria-labelledby": ariaLabelledBy,
+      "aria-describedby": ariaDescribedBy,
+      "aria-invalid": ariaInvalid,
       ...props
     },
     ref,
   ) => {
     const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
+    const errorId = useId();
+
+    const errorMessage = typeof error === "string" && error ? error : null;
+    const invalidByProp =
+      ariaInvalid !== undefined && ariaInvalid !== false && ariaInvalid !== "false";
+    const invalid = Boolean(error) || invalidByProp;
+    const describedBy =
+      [ariaDescribedBy, errorMessage ? errorId : null].filter(Boolean).join(" ") || undefined;
+    const groupLabel = ariaLabelledBy ? ariaLabel : (ariaLabel ?? DEFAULT_GROUP_LABEL);
 
     const digits = value.split("").concat(Array(length).fill("")).slice(0, length);
 
@@ -116,28 +147,63 @@ export const OTPInput = forwardRef<HTMLDivElement, OTPInputProps>(
       [digits, handleChange, focusInput, length],
     );
 
-    const handlePaste = useCallback(
-      (e: ClipboardEvent<HTMLInputElement>) => {
-        e.preventDefault();
-        const pasted = e.clipboardData
-          .getData("text/plain")
-          .replace(/\D/g, "")
-          .slice(0, length);
+    /**
+     * Write several digits (paste or autofill) into the boxes, starting at
+     * `index`. A full-length code always starts at the first box. The start
+     * never passes the first empty box, because `value` has no gaps.
+     */
+    const fillFrom = useCallback(
+      (index: number, raw: string) => {
+        const incoming = raw.replace(/\D/g, "").slice(0, length);
+        if (!incoming) return;
 
-        if (pasted) {
-          onChange(pasted.padEnd(length, "").slice(0, length).replace(/ /g, ""));
-          // Focus the last filled digit or the next empty one
-          focusInput(Math.min(pasted.length, length - 1));
-        }
+        const current = value.slice(0, length);
+        const start = incoming.length >= length ? 0 : Math.min(index, current.length);
+        const arr = current.split("");
+        incoming
+          .slice(0, length - start)
+          .split("")
+          .forEach((char, offset) => {
+            arr[start + offset] = char;
+          });
+        onChange(arr.join(""));
+        focusInput(start + incoming.length);
       },
-      [onChange, length, focusInput],
+      [value, onChange, length, focusInput],
+    );
+
+    const handleInputValue = useCallback(
+      (index: number, raw: string) => {
+        const old = digits[index];
+        // Typing over a box that already holds a digit gives "old+new" or
+        // "new+old" (when the caret was not selecting the digit).
+        if (old && /^\d{2}$/.test(raw) && raw.includes(old)) {
+          handleChange(index, raw.startsWith(old) ? raw[1] : raw[0]);
+          return;
+        }
+        if (raw.length > 1) {
+          fillFrom(index, raw);
+          return;
+        }
+        handleChange(index, raw);
+      },
+      [digits, handleChange, fillFrom],
+    );
+
+    const handlePaste = useCallback(
+      (index: number, e: ClipboardEvent<HTMLInputElement>) => {
+        e.preventDefault();
+        fillFrom(index, e.clipboardData.getData("text/plain"));
+      },
+      [fillFrom],
     );
 
     return (
       <div className={cn("w-full", className)} ref={ref} {...props}>
         <div
           role="group"
-          aria-label="One-time password input"
+          aria-label={groupLabel}
+          aria-labelledby={ariaLabelledBy}
           className="flex items-center gap-2"
         >
           {digits.map((digit, index) => (
@@ -148,28 +214,31 @@ export const OTPInput = forwardRef<HTMLDivElement, OTPInputProps>(
               }}
               type="text"
               inputMode="numeric"
-              maxLength={1}
+              // Only the first box asks for the one-time code, so iOS and
+              // Android offer the code from mail or SMS once, there.
+              autoComplete={index === 0 ? "one-time-code" : "off"}
+              // No maxLength: autofill and some keyboards put the whole code
+              // into one box, and handleInputValue spreads it.
               value={digit}
               disabled={disabled}
               aria-label={`Digit ${index + 1} of ${length}`}
-              aria-invalid={error ? true : undefined}
+              aria-invalid={invalid ? true : undefined}
+              aria-describedby={describedBy}
               className={cn(
                 digitBase,
-                error ? errorRing : defaultRing,
+                invalid ? errorRing : defaultRing,
               )}
-              onChange={(e) => {
-                const val = e.target.value;
-                // Take only the last character (handles overwrite)
-                handleChange(index, val.slice(-1));
-              }}
+              onChange={(e) => handleInputValue(index, e.target.value)}
               onKeyDown={(e) => handleKeyDown(index, e)}
-              onPaste={handlePaste}
+              onPaste={(e) => handlePaste(index, e)}
               onFocus={(e) => e.target.select()}
             />
           ))}
         </div>
-        {typeof error === "string" && error && (
-          <p className="mt-1.5 text-xs text-danger">{error}</p>
+        {errorMessage && (
+          <p id={errorId} role="alert" className="mt-1.5 text-xs text-danger-text">
+            {errorMessage}
+          </p>
         )}
       </div>
     );
