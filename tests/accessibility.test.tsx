@@ -23,6 +23,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "../src/components/Tabs
 import { ToastContainer } from "../src/components/Toast";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TablePagination } from "../src/components/Table";
 import { MoreButton } from "../src/components/DropdownMenu";
+import { OTPInput } from "../src/components/OTPInput";
 
 expect.extend(toHaveNoViolations);
 
@@ -52,6 +53,7 @@ const IN_PLACE: Array<[string, ReactElement]> = [
   ["Avatar", <Avatar name="John Doe" />],
   ["Switch", <Switch checked={false} onChange={noop} label="Notifications" />],
   ["Checkbox", <Checkbox label="Accept terms" />],
+  ["OTPInput (error)", <OTPInput value="12" onChange={noop} error="Wrong code" />],
   ["SidePanel", <SidePanel open onClose={noop} title="Details">Panel content</SidePanel>],
   ["ThemeToggle", <ThemeToggle theme="light" onChange={noop} />],
   ["ThemeSelector", <ThemeSelector theme="light" onChange={noop} />],

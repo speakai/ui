@@ -69,7 +69,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {...props}
       />
       {typeof error === "string" && error && (
-        <p className="mt-1.5 text-xs text-danger">{error}</p>
+        <p className="mt-1.5 text-xs text-danger-text">{error}</p>
       )}
     </div>
   ),
@@ -225,7 +225,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         />
       </svg>
       {typeof error === "string" && error && (
-        <p className="mt-1.5 text-xs text-danger">{error}</p>
+        <p className="mt-1.5 text-xs text-danger-text">{error}</p>
       )}
     </div>
   ),
@@ -257,7 +257,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         {...props}
       />
       {typeof error === "string" && error && (
-        <p className="mt-1.5 text-xs text-danger">{error}</p>
+        <p className="mt-1.5 text-xs text-danger-text">{error}</p>
       )}
     </div>
   ),

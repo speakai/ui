@@ -188,7 +188,7 @@ export const FileDropzone = forwardRef<HTMLDivElement, FileDropzoneProps>(
         </div>
 
         {/* Error message */}
-        {error && <p className="mt-1.5 text-xs text-danger">{error}</p>}
+        {error && <p className="mt-1.5 text-xs text-danger-text">{error}</p>}
       </div>
     );
   },
