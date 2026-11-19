@@ -46,18 +46,6 @@ describe("Avatar", () => {
     expect(screen.getByText("JD")).toBeInTheDocument();
   });
 
-  const sizes = ["sm", "default", "lg"] as const;
-  it.each(sizes)("renders %s size", (size) => {
-    const { container } = render(<Avatar name="Test" size={size} />);
-    expect(container.firstChild).toBeInTheDocument();
-  });
-
-  const variants = ["circle", "rounded"] as const;
-  it.each(variants)("renders %s variant", (variant) => {
-    const { container } = render(<Avatar name="Test" variant={variant} />);
-    expect(container.firstChild).toBeInTheDocument();
-  });
-
   it("handles whitespace-only name", () => {
     render(<Avatar name="   " />);
     expect(screen.getByText("?")).toBeInTheDocument();

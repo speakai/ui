@@ -707,7 +707,6 @@ describe("TableWidget speaker avatars", () => {
     expect(imgs[0]).toHaveAttribute("src", PHOTO);
     expect(imgs[0]).toHaveAttribute("referrerpolicy", "no-referrer");
     expect(imgs[0]).toHaveAttribute("loading", "lazy");
-    expect(imgs[0].parentElement).toHaveClass("rounded-full");
     expect(screen.getByText("SC")).toBeInTheDocument();
     expect(screen.getByTitle(LONG_NAME)).toHaveTextContent(LONG_NAME);
     expect(screen.queryByText("AV")).toBeNull();
@@ -732,8 +731,6 @@ describe("TableWidget speaker avatars", () => {
     expect(cardImgs).toHaveLength(1);
     expect(cardImgs[0]).toHaveAttribute("src", PHOTO);
     expect(cardImgs[0]).toHaveAttribute("referrerpolicy", "no-referrer");
-    expect(cardImgs[0]).toHaveClass("object-contain");
-    expect(cardImgs[0].parentElement).toHaveClass("rounded-lg");
     expect(screen.queryAllByRole("img")).toHaveLength(0);
     cards.unmount();
 

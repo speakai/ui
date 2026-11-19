@@ -18,6 +18,9 @@ jobs:
           node-version: 22
       - run: npm ci --ignore-scripts
       - run: npm run typecheck
+      # Build before test: safelist and sub-path export guards read dist and fail in CI without it.
+      - name: Build library
+        run: npm run build
       - run: npm run test
 
       - name: Cache demo build
@@ -26,9 +29,6 @@ jobs:
         with:
           path: demo/out
           key: demo-build-${{ hashFiles('src/**', 'demo/**', '!demo/node_modules/**', '!demo/out/**', '!demo/.next/**') }}
-
-      - name: Build library
-        run: npm run build
 
       - name: Build demo
         if: steps.demo-cache.outputs.cache-hit != 'true'

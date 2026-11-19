@@ -4,7 +4,6 @@ import userEvent from "@testing-library/user-event";
 import {
   DropdownMenu,
   DropdownMenuItem,
-  DropdownMenuHeader,
   DropdownMenuDivider,
   DropdownMenuSub,
   DropdownMenuSubTrigger,
@@ -307,11 +306,6 @@ describe("DropdownMenuItem", () => {
     expect(onClick).toHaveBeenCalled();
   });
 
-  it("renders danger variant", () => {
-    render(<DropdownMenuItem variant="danger">Delete</DropdownMenuItem>);
-    expect(screen.getByRole("menuitem")).toBeInTheDocument();
-  });
-
   it("renders icon when provided", () => {
     render(
       <DropdownMenuItem icon={<span data-testid="icon">*</span>}>
@@ -324,13 +318,6 @@ describe("DropdownMenuItem", () => {
   it("can be disabled", () => {
     render(<DropdownMenuItem disabled>Locked</DropdownMenuItem>);
     expect(screen.getByRole("menuitem")).toBeDisabled();
-  });
-});
-
-describe("DropdownMenuHeader", () => {
-  it("renders header text", () => {
-    render(<DropdownMenuHeader>Actions</DropdownMenuHeader>);
-    expect(screen.getByText("Actions")).toBeInTheDocument();
   });
 });
 

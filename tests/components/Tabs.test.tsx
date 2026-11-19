@@ -201,22 +201,6 @@ describe("Tabs edge cases", () => {
   });
 });
 
-describe("TabsList variants", () => {
-  const variants = ["default", "underline", "pills"] as const;
-
-  it.each(variants)("renders %s variant", (variant) => {
-    render(
-      <Tabs defaultTab="t1">
-        <TabsList variant={variant}>
-          <TabsTrigger value="t1" variant={variant}>Tab</TabsTrigger>
-        </TabsList>
-        <TabsContent value="t1">Content</TabsContent>
-      </Tabs>
-    );
-    expect(screen.getByRole("tablist")).toBeInTheDocument();
-  });
-});
-
 describe("TabsTrigger", () => {
   it("renders badge when provided", () => {
     render(

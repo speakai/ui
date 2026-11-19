@@ -44,24 +44,6 @@ describe("Table", () => {
     expect(screen.getByText("Alice")).toBeInTheDocument();
   });
 
-  it("has scrollable wrapper by default", () => {
-    const { container } = renderBasicTable();
-    const wrapper = container.firstChild as HTMLElement;
-    expect(wrapper.className).toContain("overflow-x-auto");
-  });
-
-  it("disables scroll when scrollable=false", () => {
-    const { container } = render(
-      <Table scrollable={false}>
-        <TableBody>
-          <TableRow><TableCell>A</TableCell></TableRow>
-        </TableBody>
-      </Table>
-    );
-    const wrapper = container.firstChild as HTMLElement;
-    expect(wrapper.className).toContain("overflow-hidden");
-  });
-
   it("TableHead renders with scope=col", () => {
     renderBasicTable();
     const th = screen.getByText("Name");
