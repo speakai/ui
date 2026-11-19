@@ -19,54 +19,22 @@ describe("Progress", () => {
     expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "100");
   });
 
-  it("shows percentage label when showLabel=true", () => {
-    render(<Progress value={42} showLabel />);
-    expect(screen.getByText("42%")).toBeInTheDocument();
+  it.each([
+    [42, "42%"],
+    [0, "0%"],
+    [100, "100%"],
+    [33.7, "34%"],
+  ])("labels value %s as %s", (value, label) => {
+    render(<Progress value={value} showLabel />);
+    expect(screen.getByText(label)).toBeInTheDocument();
   });
 
-  it("sets width style on inner bar", () => {
-    const { container } = render(<Progress value={60} />);
-    const innerBar = container.querySelector("[style]");
-    expect(innerBar).toHaveStyle({ width: "60%" });
+  it.each([
+    [60, "60%"],
+    [-50, "0%"],
+    [200, "100%"],
+  ])("fills the bar for value %s to width %s", (value, width) => {
+    const { container } = render(<Progress value={value} />);
+    expect(container.querySelector("[style]")).toHaveStyle({ width });
   });
-
-  const sizes = ["sm", "default"] as const;
-  it.each(sizes)("renders %s size", (size) => {
-    render(<Progress value={50} size={size} />);
-    expect(screen.getByRole("progressbar")).toBeInTheDocument();
-  });
-
-  const variants = ["default", "gradient"] as const;
-  it.each(variants)("renders %s variant", (variant) => {
-    render(<Progress value={50} variant={variant} />);
-    expect(screen.getByRole("progressbar")).toBeInTheDocument();
-  });
-
-  it("shows 0% label for value 0", () => {
-    render(<Progress value={0} showLabel />);
-    expect(screen.getByText("0%")).toBeInTheDocument();
-  });
-
-  it("shows 100% label for value 100", () => {
-    render(<Progress value={100} showLabel />);
-    expect(screen.getByText("100%")).toBeInTheDocument();
-  });
-
-  it("rounds display label for fractional values", () => {
-    render(<Progress value={33.7} showLabel />);
-    expect(screen.getByText("34%")).toBeInTheDocument();
-  });
-
-  it("clamps negative to 0% width", () => {
-    const { container } = render(<Progress value={-50} />);
-    const innerBar = container.querySelector("[style]");
-    expect(innerBar).toHaveStyle({ width: "0%" });
-  });
-
-  it("clamps >100 to 100% width", () => {
-    const { container } = render(<Progress value={200} />);
-    const innerBar = container.querySelector("[style]");
-    expect(innerBar).toHaveStyle({ width: "100%" });
-  });
-
 });

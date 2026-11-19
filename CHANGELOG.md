@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.37.6 (2026-11-19)
+
+- Merge pull request #98 from speakai/chore/test-review-2026-11;docs: test traps in Build & Test test: check clip badge order and clip range in clip-selection tests;test(ui): prune smoke tests, fix blind dist guards, cover KPI, clip and upload paths
+
 ## v0.37.5 (2026-11-17)
 
 - Merge pull request #96 from speakai/fix/shared-field-error;fix(a11y): danger-text for dialog and table danger icons, announce upload errors fix(tokens): use danger-text for error text on surfaces;refactor(forms): share one FieldError for form error text

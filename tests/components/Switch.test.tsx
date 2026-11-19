@@ -58,10 +58,4 @@ describe("Switch", () => {
     render(<Switch checked={false} onChange={() => {}} label="Notifications" />);
     expect(screen.getByRole("switch")).toHaveAttribute("aria-label", "Notifications");
   });
-
-  const sizes = ["sm", "default"] as const;
-  it.each(sizes)("renders %s size", (size) => {
-    render(<Switch checked={false} onChange={() => {}} size={size} />);
-    expect(screen.getByRole("switch")).toBeInTheDocument();
-  });
 });

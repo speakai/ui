@@ -1,11 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { EditorState, TextSelection, type Transaction } from "prosemirror-state";
+import { EditorState, TextSelection } from "prosemirror-state";
 import type { Decoration } from "prosemirror-view";
 import {
   clipSelectionPluginKey,
   createClipSelectionPlugin,
   getClipTimesFromSelection,
   setClipMode,
+  updateClipDecorations,
+  type ClipSegmentInput,
 } from "../../src/transcript/plugins/clip-selection";
 import { makeEditorState } from "./helpers";
 
@@ -20,7 +22,7 @@ function makeView(withWords = true) {
   ]);
   const view = {
     state: EditorState.create({ doc: base.doc, plugins: [createClipSelectionPlugin()] }),
-    dispatch(tr: Transaction) {
+    dispatch(tr: import("prosemirror-state").Transaction) {
       view.state = view.state.apply(tr);
     },
   };
@@ -29,9 +31,19 @@ function makeView(withWords = true) {
 
 type View = ReturnType<typeof makeView>;
 
+function decorations(view: View): Decoration[] {
+  return clipSelectionPluginKey.getState(view.state)!.decorations.find();
+}
+
+/** Highlighted words, in document order. */
+function highlightedWords(view: View): string[] {
+  return decorations(view)
+    .filter((d) => d.from !== d.to && view.state.doc.resolve(d.from).parent.isTextblock)
+    .map((d) => view.state.doc.textBetween(d.from, d.to).trim());
+}
+
 function badges(view: View): { label: string; before: string }[] {
-  const decorations: Decoration[] = clipSelectionPluginKey.getState(view.state)!.decorations.find();
-  return decorations
+  return decorations(view)
     .filter((d) => d.from === d.to)
     .map((d) => {
       const dom = (d as unknown as { type: { toDOM: HTMLElement } }).type.toDOM;
@@ -52,7 +64,75 @@ function selectText(view: View, text: string) {
   view.dispatch(view.state.tr.setSelection(TextSelection.create(view.state.doc, from, from + text.length)));
 }
 
+describe("clip selection decorations", () => {
+  it("highlights nothing until clip mode is on", () => {
+    const view = makeView();
+    updateClipDecorations(view, [{ start: 1, end: 3, order: 0 }]);
+    expect(decorations(view)).toHaveLength(0);
+  });
+
+  it("highlights exactly the words inside the segment, not their neighbours", () => {
+    const view = makeView();
+    setClipMode(view, true, [{ start: 1, end: 3, order: 0 }]);
+    expect(highlightedWords(view)).toEqual(["bravo", "charlie"]);
+  });
+
+  it("treats segment edges as exclusive so a word ending at the start is not included", () => {
+    const view = makeView();
+    setClipMode(view, true, [{ start: 2, end: 2.5, order: 0 }]);
+    expect(highlightedWords(view)).toEqual(["charlie"]);
+  });
+
+  it("numbers each segment's badge from its order, at its first highlighted word", () => {
+    const view = makeView();
+    const segments: ClipSegmentInput[] = [
+      { start: 11, end: 12, order: 1 },
+      { start: 0, end: 1, order: 0 },
+    ];
+    setClipMode(view, true, segments);
+    expect(highlightedWords(view)).toEqual(["alpha", "foxtrot"]);
+    // Only the first badge's word is checked: the second should sit before "foxtrot"
+    // but sits before "echo" (see the skipped BUG case below).
+    const found = badges(view);
+    expect(found.map((b) => b.label)).toEqual(["1", "2"]);
+    expect(found[0].before).toBe("alpha");
+  });
+
+  it("adds no badge for a segment that matches no words", () => {
+    const view = makeView();
+    setClipMode(view, true, [{ start: 100, end: 120, order: 0 }]);
+    expect(badges(view)).toHaveLength(0);
+  });
+
+  it("clears every highlight when clip mode is turned off", () => {
+    const view = makeView();
+    setClipMode(view, true, [{ start: 0, end: 14, order: 0 }]);
+    setClipMode(view, false, []);
+    expect(decorations(view)).toHaveLength(0);
+  });
+
+  it("updates highlights when segments change but keeps clip mode", () => {
+    const view = makeView();
+    setClipMode(view, true, [{ start: 0, end: 1, order: 0 }]);
+    updateClipDecorations(view, [{ start: 12, end: 14, order: 0 }]);
+    expect(highlightedWords(view)).toEqual(["golf", "hotel"]);
+  });
+
+  it("keeps highlights on the same words after text is typed before them", () => {
+    const view = makeView();
+    setClipMode(view, true, [{ start: 12, end: 13, order: 0 }]);
+    view.dispatch(view.state.tr.insertText("so ", 3));
+    expect(highlightedWords(view)).toEqual(["golf"]);
+  });
+});
+
 describe("getClipTimesFromSelection", () => {
+  it("returns null for an empty selection", () => {
+    const view = makeView();
+    view.dispatch(view.state.tr.setSelection(TextSelection.create(view.state.doc, 4)));
+    expect(getClipTimesFromSelection(view)).toBeNull();
+  });
+
   it("uses the selected words' times and badges the first highlighted word", () => {
     const view = makeView();
     selectText(view, "bravo charlie");

@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ConfirmDialog } from "../../src/components/ConfirmDialog";
+import { Button } from "../../src/components/Button";
 
 describe("ConfirmDialog", () => {
   const defaultProps = {
@@ -94,15 +95,6 @@ describe("ConfirmDialog", () => {
     expect(screen.getByText("Delete")).toBeInTheDocument();
   });
 
-  // ── Variants ────────────────────────────────────────────────────────────
-
-  const variants = ["danger", "warning", "info"] as const;
-
-  it.each(variants)("renders %s variant", (variant) => {
-    render(<ConfirmDialog {...defaultProps} variant={variant} />);
-    expect(screen.getByText("Delete item?")).toBeInTheDocument();
-  });
-
   // ── Loading state ─────────────────────────────────────────────────────
 
   it("disables cancel when loading", () => {
@@ -146,18 +138,17 @@ describe("ConfirmDialog", () => {
 
   // ── Variant button mapping ────────────────────────────────────────────
 
-  it("danger variant uses danger confirm button", () => {
-    render(<ConfirmDialog {...defaultProps} variant="danger" />);
-    // The confirm button should have danger styling. Dialog content is portaled
-    // to document.body, so screen (not container) must be used to find it.
-    const confirmBtn = screen.getByRole("button", { name: "Confirm" });
-    expect(confirmBtn.className).toContain("bg-danger");
-  });
-
-  it("info variant uses primary confirm button", () => {
-    render(<ConfirmDialog {...defaultProps} variant="info" />);
-    const confirmBtn = screen.getByRole("button", { name: "Confirm" });
-    expect(confirmBtn.className).toContain("bg-primary");
+  // Catches a destructive confirm rendered as a plain primary button; compares against Button, not class tokens.
+  it.each([
+    ["danger", "danger"],
+    ["warning", "primary"],
+    ["info", "primary"],
+  ] as const)("%s variant confirm button looks like a %s Button", (variant, buttonVariant) => {
+    const { unmount } = render(<Button variant={buttonVariant} size="sm">Confirm</Button>);
+    const expected = screen.getByRole("button", { name: "Confirm" }).className;
+    unmount();
+    render(<ConfirmDialog {...defaultProps} variant={variant} />);
+    expect(screen.getByRole("button", { name: "Confirm" }).className).toBe(expected);
   });
 
   // ── Escape key ────────────────────────────────────────────────────────

@@ -3,9 +3,7 @@ import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import {
   Dialog,
-  DialogHeader,
   DialogBody,
-  DialogFooter,
   DialogCloseButton,
 } from "../../src/components/Dialog";
 
@@ -72,16 +70,6 @@ describe("Dialog", () => {
     );
     await user.click(screen.getByText("Content"));
     expect(onClose).not.toHaveBeenCalled();
-  });
-
-  const sizes = ["sm", "default", "lg", "xl", "full"] as const;
-  it.each(sizes)("renders %s size", (size) => {
-    render(
-      <Dialog open onClose={() => {}} size={size}>
-        <DialogBody>Content</DialogBody>
-      </Dialog>
-    );
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
   it("locks body scroll when open", () => {
@@ -178,21 +166,6 @@ describe("Dialog focus trap", () => {
 });
 
 describe("Dialog sub-components", () => {
-  it("DialogHeader renders", () => {
-    render(<DialogHeader>Title</DialogHeader>);
-    expect(screen.getByText("Title")).toBeInTheDocument();
-  });
-
-  it("DialogBody renders", () => {
-    render(<DialogBody>Body content</DialogBody>);
-    expect(screen.getByText("Body content")).toBeInTheDocument();
-  });
-
-  it("DialogFooter renders", () => {
-    render(<DialogFooter>Footer</DialogFooter>);
-    expect(screen.getByText("Footer")).toBeInTheDocument();
-  });
-
   it("DialogCloseButton calls onClose", async () => {
     const user = userEvent.setup();
     const onClose = vi.fn();
