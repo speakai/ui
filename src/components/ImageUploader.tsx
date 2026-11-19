@@ -9,6 +9,7 @@ import {
   DragEvent,
 } from "react";
 import { cn } from "../utils/cn";
+import { matchesAccept } from "../utils/accept";
 import { FieldError, useFieldError } from "./FieldError";
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -80,6 +81,12 @@ export const ImageUploader = forwardRef<HTMLDivElement, ImageUploaderProps>(
       (file: File) => {
         setError(null);
 
+        // Drag and drop skips the picker's filter, so check accept here too.
+        if (!matchesAccept(file, accept)) {
+          setError("File type is not accepted");
+          return;
+        }
+
         if (maxSize && file.size > maxSize) {
           const sizeMB = (maxSize / (1024 * 1024)).toFixed(1);
           setError(`File exceeds ${sizeMB} MB limit`);
@@ -90,7 +97,7 @@ export const ImageUploader = forwardRef<HTMLDivElement, ImageUploaderProps>(
         setPreview(objectUrl);
         onChange(file);
       },
-      [maxSize, onChange],
+      [accept, maxSize, onChange],
     );
 
     const handleDragOver = useCallback(

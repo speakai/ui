@@ -10,6 +10,7 @@ import {
   DragEvent,
 } from "react";
 import { cn } from "../utils/cn";
+import { matchesAccept } from "../utils/accept";
 import { FieldError, useFieldError } from "./FieldError";
 
 // ── FileDropzone ─────────────────────────────────────────────────────────────
@@ -53,22 +54,31 @@ export const FileDropzone = forwardRef<HTMLDivElement, FileDropzoneProps>(
       (fileList: FileList): File[] => {
         const files = Array.from(fileList);
         const selected = multiple ? files : files.slice(0, 1);
+        const errors: string[] = [];
 
+        // Drag and drop skips the picker's filter, so check accept here too.
+        const typed = selected.filter((f) => matchesAccept(f, accept));
+        const wrongTypeCount = selected.length - typed.length;
+        if (wrongTypeCount > 0) {
+          errors.push(`${wrongTypeCount} file(s) are not an accepted type`);
+        }
+
+        let valid = typed;
         if (maxSize) {
-          const oversized = selected.filter((f) => f.size > maxSize);
+          const oversized = typed.filter((f) => f.size > maxSize);
           if (oversized.length > 0) {
             const sizeMB = (maxSize / (1024 * 1024)).toFixed(1);
-            setError(
+            errors.push(
               `${oversized.length} file(s) exceed the ${sizeMB} MB limit`,
             );
-            return selected.filter((f) => f.size <= maxSize);
+            valid = typed.filter((f) => f.size <= maxSize);
           }
         }
 
-        setError(null);
-        return selected;
+        setError(errors.length > 0 ? errors.join(". ") : null);
+        return valid;
       },
-      [maxSize, multiple],
+      [accept, maxSize, multiple],
     );
 
     const handleDragEnter = useCallback(
