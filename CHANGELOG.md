@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.37.7 (2026-11-19)
+
+- Merge pull request #97 from speakai/chore/worktreeinclude-local-settings;chore: copy local Claude settings into new worktrees
+
 ## v0.37.6 (2026-11-19)
 
 - Merge pull request #98 from speakai/chore/test-review-2026-11;docs: test traps in Build & Test test: check clip badge order and clip range in clip-selection tests;test(ui): prune smoke tests, fix blind dist guards, cover KPI, clip and upload paths
