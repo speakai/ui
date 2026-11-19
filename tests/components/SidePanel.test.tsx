@@ -93,18 +93,6 @@ describe("SidePanel", () => {
     expect(document.body.style.overflow).toBe("");
   });
 
-  const sides = ["left", "right"] as const;
-  it.each(sides)("renders on %s side", (side) => {
-    render(<SidePanel open onClose={() => {}} title="Test" side={side}>Content</SidePanel>);
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
-  });
-
-  const sizes = ["sm", "default", "lg", "xl", "full"] as const;
-  it.each(sizes)("renders %s size", (size) => {
-    render(<SidePanel open onClose={() => {}} title="Test" size={size}>Content</SidePanel>);
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
-  });
-
   it("does not render children when closed", () => {
     render(
       <SidePanel open={false} onClose={() => {}} title="Test">

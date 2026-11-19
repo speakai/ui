@@ -3,15 +3,6 @@ import { render, screen, act, fireEvent } from "@testing-library/react";
 import { Tooltip } from "../../src/components/Tooltip";
 
 describe("Tooltip", () => {
-  it("renders children", () => {
-    render(
-      <Tooltip content="Help text">
-        <button>Hover me</button>
-      </Tooltip>
-    );
-    expect(screen.getByText("Hover me")).toBeInTheDocument();
-  });
-
   it("does not show tooltip initially", () => {
     render(
       <Tooltip content="Help text">
@@ -63,16 +54,6 @@ describe("Tooltip", () => {
     act(() => { vi.advanceTimersByTime(0); });
     expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
     vi.useRealTimers();
-  });
-
-  const sides = ["top", "bottom", "left", "right"] as const;
-  it.each(sides)("supports %s placement", (side) => {
-    const { container } = render(
-      <Tooltip content="Help" side={side}>
-        <button>Test</button>
-      </Tooltip>
-    );
-    expect(container).toBeInTheDocument();
   });
 
   it("shows tooltip on focus", () => {

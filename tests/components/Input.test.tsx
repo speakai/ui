@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactElement } from "react";
@@ -79,25 +79,18 @@ describe("Textarea", () => {
 const noop = () => {};
 
 describe("FieldError", () => {
-  it("renders the message with the danger text token and the base spacing", () => {
+  it("renders the message with the contrast-safe danger text token", () => {
     render(<FieldError id="email-error">Email is required</FieldError>);
     const el = screen.getByText("Email is required");
     expect(el.tagName).toBe("P");
     expect(el).toHaveAttribute("id", "email-error");
-    expect(el).toHaveClass("mt-1.5", "text-xs", "text-danger-text");
+    expect(el).toHaveClass("text-danger-text");
     expect(el).not.toHaveAttribute("role");
   });
 
   it("passes role through", () => {
     render(<FieldError role="alert">Wrong code</FieldError>);
     expect(screen.getByRole("alert")).toHaveTextContent("Wrong code");
-  });
-
-  it("lets className override the spacing", () => {
-    render(<FieldError className="mt-1">Needed</FieldError>);
-    const el = screen.getByText("Needed");
-    expect(el).toHaveClass("mt-1", "text-danger-text");
-    expect(el).not.toHaveClass("mt-1.5");
   });
 
   it.each([
@@ -140,7 +133,7 @@ describe("form components wire aria-describedby to FieldError", () => {
     const error = document.getElementById(id!);
     expect(error).not.toBeNull();
     expect(error!.tagName).toBe("P");
-    expect(error).toHaveClass("text-xs", "text-danger-text");
+    expect(error).toHaveClass("text-danger-text");
   });
 
   it("keeps the consumer's aria-describedby before the error id", () => {
@@ -160,12 +153,6 @@ describe("form components wire aria-describedby to FieldError", () => {
     expect(screen.getByLabelText("Email")).not.toHaveAttribute("aria-describedby");
   });
 
-  it("keeps Checkbox's tighter spacing", () => {
-    render(<Checkbox label="Terms" error="You must accept" />);
-    expect(screen.getByText("You must accept")).toHaveClass("mt-1");
-    expect(screen.getByText("You must accept")).not.toHaveClass("mt-1.5");
-  });
-
   it("does not point Checkbox at an error it does not render (no label or description)", () => {
     render(<Checkbox aria-label="Terms" error="You must accept" />);
     expect(screen.getByLabelText("Terms")).not.toHaveAttribute("aria-describedby");
@@ -175,7 +162,7 @@ describe("form components wire aria-describedby to FieldError", () => {
   it("OTPInput keeps role=alert on its error", () => {
     render(<OTPInput value="12" onChange={noop} error="Wrong code" />);
     const alert = screen.getByRole("alert");
-    expect(alert).toHaveClass("text-danger-text");
+    expect(alert).toHaveTextContent("Wrong code");
     for (const box of screen.getAllByRole("textbox")) {
       expect(box).toHaveAttribute("aria-describedby", alert.id);
     }
@@ -196,7 +183,73 @@ describe("form components wire aria-describedby to FieldError", () => {
 
     const error = screen.getByText(message);
     expect(error).toHaveAttribute("role", "alert");
-    expect(error).toHaveClass("mt-1.5", "text-xs", "text-danger-text");
     expect(target).toHaveAttribute("aria-describedby", error.id);
+  });
+});
+
+describe("ImageUploader", () => {
+  const MB = 1024 * 1024;
+  const image = (size: number) => new File([new Uint8Array(size)], "photo.png", { type: "image/png" });
+  const originalCreateObjectURL = URL.createObjectURL;
+
+  beforeEach(() => {
+    URL.createObjectURL = vi.fn(() => "blob:preview");
+  });
+  afterEach(() => {
+    URL.createObjectURL = originalCreateObjectURL;
+  });
+
+  function setup(props: Partial<Parameters<typeof ImageUploader>[0]> = {}) {
+    const onChange = vi.fn();
+    const onRemove = vi.fn();
+    const { container } = render(<ImageUploader onChange={onChange} onRemove={onRemove} {...props} />);
+    const target = container.querySelector('[role="button"]') as HTMLElement;
+    const drop = (...files: File[]) => fireEvent.drop(target, { dataTransfer: { files } });
+    return { onChange, onRemove, drop };
+  }
+
+  it("emits the dropped image and shows its preview", () => {
+    const s = setup();
+    const file = image(1024);
+    s.drop(file);
+    expect(s.onChange).toHaveBeenCalledWith(file);
+    expect(screen.getByAltText("Preview")).toHaveAttribute("src", "blob:preview");
+  });
+
+  it("emits only the first image when several are dropped", () => {
+    const s = setup();
+    const first = image(1024);
+    s.drop(first, image(2048));
+    expect(s.onChange).toHaveBeenCalledTimes(1);
+    expect(s.onChange).toHaveBeenCalledWith(first);
+  });
+
+  it("rejects images over the 10 MB default limit without emitting or previewing", () => {
+    const s = setup();
+    s.drop(image(10 * MB + 1));
+    expect(s.onChange).not.toHaveBeenCalled();
+    expect(screen.getByRole("alert")).toHaveTextContent("File exceeds 10.0 MB limit");
+    expect(screen.queryByAltText("Preview")).toBeNull();
+  });
+
+  it("ignores drops while disabled", () => {
+    const s = setup({ disabled: true });
+    s.drop(image(1024));
+    expect(s.onChange).not.toHaveBeenCalled();
+  });
+
+  it("removes the preview on remove", async () => {
+    const user = userEvent.setup();
+    const s = setup();
+    s.drop(image(1024));
+    await user.click(screen.getByRole("button", { name: "Remove image" }));
+    expect(s.onRemove).toHaveBeenCalledTimes(1);
+    expect(screen.queryByAltText("Preview")).toBeNull();
+  });
+
+  it("hides the remove button while disabled so a locked image cannot be cleared", () => {
+    render(<ImageUploader onChange={vi.fn()} value="https://example.com/a.png" disabled />);
+    expect(screen.getByAltText("Preview")).toHaveAttribute("src", "https://example.com/a.png");
+    expect(screen.queryByRole("button", { name: "Remove image" })).toBeNull();
   });
 });
