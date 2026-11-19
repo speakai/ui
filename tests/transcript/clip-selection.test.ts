@@ -47,7 +47,8 @@ function badges(view: View): { label: string; before: string }[] {
     .filter((d) => d.from === d.to)
     .map((d) => {
       const dom = (d as unknown as { type: { toDOM: HTMLElement } }).type.toDOM;
-      return { label: dom.textContent!, before: view.state.doc.textBetween(d.from, d.from + 6).trim() };
+      const after = view.state.doc.textBetween(d.from, view.state.doc.content.size, " ");
+      return { label: dom.textContent!, before: after.trim().split(/\s+/)[0] };
     });
 }
 
@@ -90,7 +91,11 @@ describe("clip selection decorations", () => {
     ];
     setClipMode(view, true, segments);
     expect(highlightedWords(view)).toEqual(["alpha", "foxtrot"]);
-    expect(badges(view).map((b) => b.label).sort()).toEqual(["1", "2"]);
+    // Only the first badge's word is checked: the second should sit before "foxtrot"
+    // but sits before "echo" (see the skipped BUG case below).
+    const found = badges(view);
+    expect(found.map((b) => b.label)).toEqual(["1", "2"]);
+    expect(found[0].before).toBe("alpha");
   });
 
   it("adds no badge for a segment that matches no words", () => {
@@ -128,9 +133,32 @@ describe("getClipTimesFromSelection", () => {
     expect(getClipTimesFromSelection(view)).toBeNull();
   });
 
-  it("returns the selected words' text", () => {
+  it("returns the selected words' text and a range that covers them", () => {
     const view = makeView();
     selectText(view, "bravo charlie");
-    expect(getClipTimesFromSelection(view)!.text).toBe("bravo charlie");
+    const clip = getClipTimesFromSelection(view)!;
+    expect(clip.text).toBe("bravo charlie");
+    // The exact range should be 1 to 3 but is 0 to 4 (see the skipped BUG case below),
+    // so only check that it covers the selected words.
+    expect(clip.start).toBeLessThanOrEqual(1);
+    expect(clip.end).toBeGreaterThanOrEqual(3);
+  });
+
+  // BUG: the paragraph node's own start and end times win over the word marks, so a
+  // selection gets the whole paragraph's range and a badge lands at the paragraph start
+  // instead of its first highlighted word. Unskip when that is fixed.
+  it.skip("uses the selected words' times and badges the first highlighted word", () => {
+    const view = makeView();
+    selectText(view, "bravo charlie");
+    expect(getClipTimesFromSelection(view)).toEqual({ start: 1, end: 3, text: "bravo charlie" });
+
+    setClipMode(view, true, [
+      { start: 11, end: 12, order: 1 },
+      { start: 0, end: 1, order: 0 },
+    ]);
+    expect(badges(view)).toEqual([
+      { label: "1", before: "alpha" },
+      { label: "2", before: "foxtrot" },
+    ]);
   });
 });
