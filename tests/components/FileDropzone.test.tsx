@@ -117,6 +117,26 @@ describe("FileDropzone", () => {
     expect(s.onFiles).not.toHaveBeenCalled();
   });
 
+  it("shows the caller's labels instead of the English rejection text", () => {
+    const s = setup({
+      accept: ".csv",
+      maxSize: KB,
+      labels: {
+        invalidType: (count) => `wrong type: ${count}`,
+        tooLarge: (count, limit) => `too big: ${count} over ${limit}`,
+      },
+    });
+    s.drop(file("a.exe", KB, "application/x-msdownload"), file("big.csv", 2 * KB, "text/csv"));
+    expect(s.onFiles).not.toHaveBeenCalled();
+    expect(screen.getByRole("alert")).toHaveTextContent("wrong type: 1. too big: 1 over 0.0 MB");
+  });
+
+  it("keeps the English text for a label the caller leaves out", () => {
+    const s = setup({ maxSize: KB, labels: { invalidType: () => "wrong type" } });
+    s.choose(file("big.pdf", 2 * KB));
+    expect(screen.getByRole("alert")).toHaveTextContent("1 file(s) exceed the 0.0 MB limit");
+  });
+
   it("accepts any dropped file when accept is not set", () => {
     const s = setup();
     s.drop(file("setup.exe", KB, "application/x-msdownload"));
