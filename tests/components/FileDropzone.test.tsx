@@ -99,4 +99,27 @@ describe("FileDropzone", () => {
     expect(s.input).toHaveAttribute("accept", "image/*,.pdf");
     expect(s.input.multiple).toBe(false);
   });
+  it("applies accept to dropped files by MIME type and extension, like the file picker", () => {
+    const s = setup({ accept: "image/*,.PDF,text/csv" });
+    s.drop(
+      file("setup.exe", KB, "application/x-msdownload"),
+      file("photo.png", KB, "image/png"),
+      file("report.pdf", KB, "application/pdf"),
+      file("data.csv", KB, "text/csv"),
+    );
+    expect(names(s.onFiles.mock.calls[0][0])).toEqual(["photo.png", "report.pdf", "data.csv"]);
+    expect(screen.getByRole("alert")).toHaveTextContent("1 file(s) are not an accepted type");
+  });
+
+  it("does not call onFiles when no dropped file is accepted", () => {
+    const s = setup({ accept: "image/*" });
+    s.drop(file("setup.exe", KB, "application/x-msdownload"));
+    expect(s.onFiles).not.toHaveBeenCalled();
+  });
+
+  it("accepts any dropped file when accept is not set", () => {
+    const s = setup();
+    s.drop(file("setup.exe", KB, "application/x-msdownload"));
+    expect(names(s.onFiles.mock.calls[0][0])).toEqual(["setup.exe"]);
+  });
 });

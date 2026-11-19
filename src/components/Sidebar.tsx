@@ -8,6 +8,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { cn } from "../utils/cn";
@@ -117,6 +118,12 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(
       document.addEventListener("keydown", handleKey);
       return () => document.removeEventListener("keydown", handleKey);
     }, [mobileOpen, setMobileOpen]);
+
+    // `inert` is set on the DOM node because React 18 does not support the prop
+    const mobileDrawerRef = useRef<HTMLElement>(null);
+    useEffect(() => {
+      mobileDrawerRef.current?.toggleAttribute("inert", !mobileOpen);
+    }, [mobileOpen]);
 
     // Lock body scroll on mobile open
     useEffect(() => {
@@ -245,8 +252,10 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(
           />
         )}
 
-        {/* Mobile drawer */}
+        {/* Mobile drawer: when closed it is off screen, so keep it out of the tab order and accessibility tree */}
         <aside
+          ref={mobileDrawerRef}
+          aria-hidden={mobileOpen ? undefined : true}
           className={cn(
             "fixed inset-y-0 left-0 z-[60] flex w-[min(280px,calc(100vw-3rem))] flex-col border-r border-border bg-card shadow-2xl transition-transform duration-200 ease-in-out md:hidden",
             mobileOpen ? "translate-x-0" : "-translate-x-full"

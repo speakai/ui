@@ -15,10 +15,10 @@ const words = (text: string, start: number) =>
   text.split(" ").map((w, i) => ({ text: w, startInSec: start + i, endInSec: start + i + 1 }));
 
 // Two paragraphs, one word per second: alpha..delta = [0,4], echo..hotel = [10,14].
-function makeView() {
+function makeView(withWords = true) {
   const base = makeEditorState([
-    { text: "alpha bravo charlie delta", startInSec: 0, endInSec: 4, entities: words("alpha bravo charlie delta", 0) },
-    { text: "echo foxtrot golf hotel", startInSec: 10, endInSec: 14, entities: words("echo foxtrot golf hotel", 10) },
+    { text: "alpha bravo charlie delta", startInSec: 0, endInSec: 4, entities: withWords ? words("alpha bravo charlie delta", 0) : undefined },
+    { text: "echo foxtrot golf hotel", startInSec: 10, endInSec: 14, entities: withWords ? words("echo foxtrot golf hotel", 10) : undefined },
   ]);
   const view = {
     state: EditorState.create({ doc: base.doc, plugins: [createClipSelectionPlugin()] }),
@@ -133,21 +133,7 @@ describe("getClipTimesFromSelection", () => {
     expect(getClipTimesFromSelection(view)).toBeNull();
   });
 
-  it("returns the selected words' text and a range that covers them", () => {
-    const view = makeView();
-    selectText(view, "bravo charlie");
-    const clip = getClipTimesFromSelection(view)!;
-    expect(clip.text).toBe("bravo charlie");
-    // The exact range should be 1 to 3 but is 0 to 4 (see the skipped BUG case below),
-    // so only check that it covers the selected words.
-    expect(clip.start).toBeLessThanOrEqual(1);
-    expect(clip.end).toBeGreaterThanOrEqual(3);
-  });
-
-  // BUG: the paragraph node's own start and end times win over the word marks, so a
-  // selection gets the whole paragraph's range and a badge lands at the paragraph start
-  // instead of its first highlighted word. Unskip when that is fixed.
-  it.skip("uses the selected words' times and badges the first highlighted word", () => {
+  it("uses the selected words' times and badges the first highlighted word", () => {
     const view = makeView();
     selectText(view, "bravo charlie");
     expect(getClipTimesFromSelection(view)).toEqual({ start: 1, end: 3, text: "bravo charlie" });
@@ -160,5 +146,11 @@ describe("getClipTimesFromSelection", () => {
       { label: "1", before: "alpha" },
       { label: "2", before: "foxtrot" },
     ]);
+  });
+
+  it("falls back to the block's times when the text has no word timings", () => {
+    const view = makeView(false);
+    selectText(view, "bravo charlie");
+    expect(getClipTimesFromSelection(view)).toEqual({ start: 0, end: 4, text: "bravo charlie" });
   });
 });

@@ -77,7 +77,7 @@ export const SNAPSHOT_METRIC_ORDER: SnapshotMetricKey[] = [
 ];
 
 function isSnapshotMetricKey(value: unknown): value is SnapshotMetricKey {
-  return typeof value === "string" && value in SNAPSHOT_METRICS;
+  return typeof value === "string" && Object.prototype.hasOwnProperty.call(SNAPSHOT_METRICS, value);
 }
 
 /**
