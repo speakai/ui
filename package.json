@@ -510,7 +510,7 @@
     }
   },
   "dependencies": {
-    "@speakai/shared": "^2.1.64",
+    "@speakai/shared": "^2.1.84",
     "clsx": "^2.1.1",
     "tailwind-merge": "^3.5.0"
   },
