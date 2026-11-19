@@ -13,6 +13,11 @@ npm run test         # vitest
 npm run demo:build   # Next.js demo site
 ```
 
+Test traps:
+- `npm run typecheck` checks `src` only. Test files are not type checked, so run them.
+- The safelist and sub-path export tests read `dist`. Run `npm run build` before `npm run test`. In CI they fail when `dist` is missing; locally they show as skipped.
+- `vitest --reporter=json` writes `.vitest/json/output.json`. Do not stage it.
+
 ## Sub-path Exports Architecture
 
 Every component has a dedicated sub-path export so consumers can import only what they need:
