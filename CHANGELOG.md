@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.38.0 (2026-11-19)
+
+- Merge pull request #102 from speakai/feat/dropzone-rejection-messages;feat(file-dropzone): let callers set rejection messages
+
 ## v0.37.8 (2026-11-19)
 
 - Merge pull request #99 from speakai/fix/review-bugs;Merge main into fix/review-bugs fix(sidebar): take the closed mobile drawer out of the tab order;fix(dashboards): ignore object prototype names as metric keys fix(upload): apply accept to dropped files in FileDropzone and ImageUploader;fix(transcript): clip times and badge follow the selected words, not the enclosing block
