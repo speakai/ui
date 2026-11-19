@@ -111,7 +111,7 @@ export const DEFAULT_STAT_METRICS: StatMetricKey[] = [
 ];
 
 function isStatMetricKey(value: unknown): value is StatMetricKey {
-  return typeof value === "string" && value in STAT_METRICS;
+  return typeof value === "string" && Object.prototype.hasOwnProperty.call(STAT_METRICS, value);
 }
 
 /**
