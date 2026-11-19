@@ -11,6 +11,7 @@ import {
 } from "react";
 import { cn } from "../utils/cn";
 import { matchesAccept } from "../utils/accept";
+import { FileRejectionLabels, formatSizeLimit } from "../utils/fileRejection";
 import { FieldError, useFieldError } from "./FieldError";
 
 // ── FileDropzone ─────────────────────────────────────────────────────────────
@@ -26,6 +27,8 @@ export interface FileDropzoneProps
   /** Max file size in bytes per file */
   maxSize?: number;
   disabled?: boolean;
+  /** Rejection text for wrong-type and too-large files (default English) */
+  labels?: FileRejectionLabels;
   /** Custom content inside the dropzone */
   children?: ReactNode;
 }
@@ -39,6 +42,7 @@ export const FileDropzone = forwardRef<HTMLDivElement, FileDropzoneProps>(
       multiple = true,
       maxSize,
       disabled = false,
+      labels,
       children,
       ...props
     },
@@ -60,16 +64,20 @@ export const FileDropzone = forwardRef<HTMLDivElement, FileDropzoneProps>(
         const typed = selected.filter((f) => matchesAccept(f, accept));
         const wrongTypeCount = selected.length - typed.length;
         if (wrongTypeCount > 0) {
-          errors.push(`${wrongTypeCount} file(s) are not an accepted type`);
+          errors.push(
+            labels?.invalidType?.(wrongTypeCount) ??
+              `${wrongTypeCount} file(s) are not an accepted type`,
+          );
         }
 
         let valid = typed;
         if (maxSize) {
           const oversized = typed.filter((f) => f.size > maxSize);
           if (oversized.length > 0) {
-            const sizeMB = (maxSize / (1024 * 1024)).toFixed(1);
+            const limit = formatSizeLimit(maxSize);
             errors.push(
-              `${oversized.length} file(s) exceed the ${sizeMB} MB limit`,
+              labels?.tooLarge?.(oversized.length, limit) ??
+                `${oversized.length} file(s) exceed the ${limit} limit`,
             );
             valid = typed.filter((f) => f.size <= maxSize);
           }
@@ -78,7 +86,7 @@ export const FileDropzone = forwardRef<HTMLDivElement, FileDropzoneProps>(
         setError(errors.length > 0 ? errors.join(". ") : null);
         return valid;
       },
-      [accept, maxSize, multiple],
+      [accept, labels, maxSize, multiple],
     );
 
     const handleDragEnter = useCallback(

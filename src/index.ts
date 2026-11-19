@@ -164,6 +164,7 @@ export type { FieldErrorProps } from "./components/FieldError";
 // FileDropzone
 export { FileDropzone } from "./components/FileDropzone";
 export type { FileDropzoneProps } from "./components/FileDropzone";
+export type { FileRejectionLabels } from "./utils/fileRejection";
 
 // Chips
 export { Chips } from "./components/Chips";

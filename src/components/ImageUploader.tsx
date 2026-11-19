@@ -10,6 +10,7 @@ import {
 } from "react";
 import { cn } from "../utils/cn";
 import { matchesAccept } from "../utils/accept";
+import { FileRejectionLabels, formatSizeLimit } from "../utils/fileRejection";
 import { FieldError, useFieldError } from "./FieldError";
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -51,6 +52,8 @@ export interface ImageUploaderProps
   disabled?: boolean;
   /** Display variant */
   variant?: ImageUploaderVariant;
+  /** Rejection text for a wrong-type or too-large file (default English). Count is always 1. */
+  labels?: FileRejectionLabels;
 }
 
 export const ImageUploader = forwardRef<HTMLDivElement, ImageUploaderProps>(
@@ -65,6 +68,7 @@ export const ImageUploader = forwardRef<HTMLDivElement, ImageUploaderProps>(
       placeholder = "Drop an image here or click to browse",
       disabled = false,
       variant = "dropzone",
+      labels,
       ...props
     },
     ref,
@@ -83,13 +87,13 @@ export const ImageUploader = forwardRef<HTMLDivElement, ImageUploaderProps>(
 
         // Drag and drop skips the picker's filter, so check accept here too.
         if (!matchesAccept(file, accept)) {
-          setError("File type is not accepted");
+          setError(labels?.invalidType?.(1) ?? "File type is not accepted");
           return;
         }
 
         if (maxSize && file.size > maxSize) {
-          const sizeMB = (maxSize / (1024 * 1024)).toFixed(1);
-          setError(`File exceeds ${sizeMB} MB limit`);
+          const limit = formatSizeLimit(maxSize);
+          setError(labels?.tooLarge?.(1, limit) ?? `File exceeds ${limit} limit`);
           return;
         }
 
@@ -97,7 +101,7 @@ export const ImageUploader = forwardRef<HTMLDivElement, ImageUploaderProps>(
         setPreview(objectUrl);
         onChange(file);
       },
-      [accept, maxSize, onChange],
+      [accept, labels, maxSize, onChange],
     );
 
     const handleDragOver = useCallback(

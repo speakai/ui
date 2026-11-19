@@ -641,6 +641,17 @@ Dropdown selector. Supports both `options` array and children syntax.
 | `label` | `string` | — | No |
 | `disabled` | `boolean` | — | No |
 | `children` | `ReactNode` | — | No |
+| `labels` | `FileRejectionLabels` | English text | No |
+
+`labels` replaces the error text for refused files, for example to translate it. `invalidType(count)` covers files that do not match `accept` (drag and drop included) and `tooLarge(count, limit)` covers files over `maxSize`, with `limit` formatted like `"2.0 MB"`. Leave a function out to keep the English default. `ImageUploader` takes the same prop, with `count` always 1.
+
+```tsx
+<FileDropzone
+  accept=".csv"
+  onFiles={importCsv}
+  labels={{ invalidType: () => t("import.csvOnly") }}
+/>
+```
 
 ---
 
@@ -812,6 +823,7 @@ Drag-and-drop image upload with preview and remove button.
 | `placeholder` | `string` | `"Drop an image here or click to browse"` | No |
 | `disabled` | `boolean` | `false` | No |
 | `variant` | `"dropzone" \| "avatar"` | `"dropzone"` | No |
+| `labels` | `FileRejectionLabels` | English text | No |
 
 ---
 
