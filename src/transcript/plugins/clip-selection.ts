@@ -42,11 +42,10 @@ function buildClipDecorations(
 
   const decorations: Decoration[] = [];
 
-  // Track first position per segment for badge widget
-  const segmentFirstPos = new Map<number, number | null>();
-  for (const seg of segments) {
-    segmentFirstPos.set(seg.order, null);
-  }
+  // First highlighted position per segment, for the badge widget. A word
+  // position wins over its enclosing block, which starts before the word.
+  const segmentFirstWordPos = new Map<number, number>();
+  const segmentFirstBlockPos = new Map<number, number>();
 
   doc.descendants((node, pos) => {
     // Try to get time attrs from the node itself (transcript_block / sentence nodes)
@@ -63,9 +62,8 @@ function buildClipDecorations(
               class: "transcript-clip-selection--block",
             })
           );
-          // Record first position for badge
-          if (segmentFirstPos.get(seg.order) === null) {
-            segmentFirstPos.set(seg.order, pos);
+          if (!segmentFirstBlockPos.has(seg.order)) {
+            segmentFirstBlockPos.set(seg.order, pos);
           }
         }
       }
@@ -85,8 +83,8 @@ function buildClipDecorations(
                   class: "transcript-clip-selection",
                 })
               );
-              if (segmentFirstPos.get(seg.order) === null) {
-                segmentFirstPos.set(seg.order, pos);
+              if (!segmentFirstWordPos.has(seg.order)) {
+                segmentFirstWordPos.set(seg.order, pos);
               }
             }
           }
@@ -97,7 +95,7 @@ function buildClipDecorations(
 
   // Add badge widgets at first highlighted position for each segment
   for (const seg of segments) {
-    const firstPos = segmentFirstPos.get(seg.order);
+    const firstPos = segmentFirstWordPos.get(seg.order) ?? segmentFirstBlockPos.get(seg.order);
     if (firstPos != null) {
       const badge = document.createElement("span");
       badge.className = "transcript-clip-badge";
@@ -181,33 +179,23 @@ export function getClipTimesFromSelection(
   const { from, to, empty } = view.state.selection;
   if (empty) return null;
 
-  let minStart: number | null = null;
-  let maxEnd: number | null = null;
-  let text = "";
+  // Word timings of the selected words, and as a fallback the times of the
+  // enclosing transcript_block / sentence nodes (for text without word marks).
+  const wordRange: { start: number | null; end: number | null } = { start: null, end: null };
+  const nodeRange: { start: number | null; end: number | null } = { start: null, end: null };
+  const widen = (range: typeof wordRange, start: unknown, end: unknown) => {
+    if (start != null && (range.start == null || Number(start) < range.start)) range.start = Number(start);
+    if (end != null && (range.end == null || Number(end) > range.end)) range.end = Number(end);
+  };
 
   view.state.doc.nodesBetween(from, to, (node: any) => {
-    if (node.isText) {
-      text += node.text ?? "";
-    }
-    // Check word mark attrs
     const wordMark = node.marks?.find((m: any) => m.type.name === "word");
-    if (wordMark) {
-      const s = wordMark.attrs.startInSec;
-      const e = wordMark.attrs.endInSec;
-      if (s != null && (minStart == null || Number(s) < minStart)) minStart = Number(s);
-      if (e != null && (maxEnd == null || Number(e) > maxEnd)) maxEnd = Number(e);
-    }
-    // Check node attrs (for transcript_block or sentence nodes)
-    if (node.attrs?.startInSec != null) {
-      if (minStart == null || Number(node.attrs.startInSec) < minStart)
-        minStart = Number(node.attrs.startInSec);
-    }
-    if (node.attrs?.endInSec != null) {
-      if (maxEnd == null || Number(node.attrs.endInSec) > maxEnd)
-        maxEnd = Number(node.attrs.endInSec);
-    }
+    if (wordMark) widen(wordRange, wordMark.attrs.startInSec, wordMark.attrs.endInSec);
+    widen(nodeRange, node.attrs?.startInSec, node.attrs?.endInSec);
   });
 
-  if (minStart == null || maxEnd == null) return null;
-  return { start: minStart, end: maxEnd, text: text.trim() };
+  const range = wordRange.start != null && wordRange.end != null ? wordRange : nodeRange;
+  if (range.start == null || range.end == null) return null;
+  const text = view.state.doc.textBetween(from, to, " ").trim();
+  return { start: range.start, end: range.end, text };
 }
