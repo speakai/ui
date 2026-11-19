@@ -368,3 +368,24 @@ describe("SidebarUser", () => {
     expect(screen.getByAltText("avatar")).toBeInTheDocument();
   });
 });
+
+describe("Sidebar mobile drawer", () => {
+  it("keeps the closed drawer's links out of the tab order and the accessibility tree", async () => {
+    const user = userEvent.setup();
+    render(
+      <SidebarProvider>
+        <Sidebar sections={sections} />
+      </SidebarProvider>
+    );
+    const mobileAside = document.querySelectorAll("aside")[1];
+    expect(mobileAside).toHaveAttribute("inert");
+    expect(mobileAside).toHaveAttribute("aria-hidden", "true");
+
+    await user.click(screen.getByLabelText("Open menu"));
+    expect(mobileAside).not.toHaveAttribute("inert");
+    expect(mobileAside).not.toHaveAttribute("aria-hidden");
+
+    await user.keyboard("{Escape}");
+    expect(mobileAside).toHaveAttribute("inert");
+  });
+});
