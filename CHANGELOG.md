@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.38.1 (2026-11-22)
+
+- Merge pull request #103 from speakai/fix/radio-option-names;fix(radio-group): name each radio from its label and select on label click
+
 ## v0.38.0 (2026-11-19)
 
 - Merge pull request #102 from speakai/feat/dropzone-rejection-messages;feat(file-dropzone): let callers set rejection messages
