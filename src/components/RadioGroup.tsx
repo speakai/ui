@@ -100,17 +100,23 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
         className={cn("flex", orientationStyles[orientation], className)}
         {...props}
       >
-        {options.map((option) => {
+        {options.map((option, index) => {
           const isSelected = option.value === value;
           const isDisabled = disabled || !!option.disabled;
           const optionId = `${radioName}-${option.value}`;
+          // Index-based: aria-labelledby splits on spaces, and option values may contain them.
+          const labelId = `${radioName}-label-${index}`;
+          const descriptionId = `${radioName}-description-${index}`;
 
           const isCard = variant === "card";
 
           return (
             <label
               key={option.value}
-              htmlFor={optionId}
+              onClick={(e) => {
+                e.preventDefault();
+                if (!isDisabled) onChange(option.value);
+              }}
               className={cn(
                 "group flex cursor-pointer items-start gap-3",
                 isCard && "rounded-lg border p-3 transition-colors",
@@ -124,11 +130,10 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
                 role="radio"
                 aria-checked={isSelected}
                 aria-disabled={isDisabled}
+                aria-labelledby={labelId}
+                aria-describedby={option.description ? descriptionId : undefined}
                 tabIndex={isSelected || (!value && option === enabledOptions[0]) ? 0 : -1}
                 data-value={option.value}
-                onClick={() => {
-                  if (!isDisabled) onChange(option.value);
-                }}
                 className={cn(
                   "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
                   "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
@@ -143,9 +148,13 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
                 )}
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-medium text-foreground">{option.label}</span>
+                <span id={labelId} className="text-sm font-medium text-foreground">
+                  {option.label}
+                </span>
                 {option.description && (
-                  <span className="text-xs text-muted-foreground">{option.description}</span>
+                  <span id={descriptionId} className="text-xs text-muted-foreground">
+                    {option.description}
+                  </span>
                 )}
               </div>
             </label>
