@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.38.2 (2026-11-24)
+
+- docs: move the AI coding tool guide from CLAUDE.md to AGENTS.md (#105)
+
 ## v0.38.1 (2026-11-22)
 
 - Merge pull request #103 from speakai/fix/radio-option-names;fix(radio-group): name each radio from its label and select on label click
