@@ -42,4 +42,5 @@ npm-debug.log*
 .codex/
 .agents/
 AGENTS.md
+!/AGENTS.md
 plans/
