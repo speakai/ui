@@ -1,4 +1,4 @@
-# @speakai/ui — Claude Instructions
+# @speakai/ui — instructions for AI coding tools
 
 ## Project Overview
 
